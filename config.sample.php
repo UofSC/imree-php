@@ -27,5 +27,11 @@ $imree_database_password = "password";
 
 /** 
  * Assets Directory
+ * Should be relative to the target index file
  */
 $imree_assets_directory = "imree_assets/";
+
+/**
+ * Absolute Directory of index.php
+ */
+$imree_absolute_path = "http://localhost/imree-php/api/";
