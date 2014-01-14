@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<root>
+	<group_id>123</group_id>
+	<group_name>Test group 123</group_name>
+	<group_type>gallery</group_type>
+	<children>
+		<item></item>
+		<item></item>
+		<item></item>
+		<item></item>
+		<item></item>
+		<item></item>
+		<item></item>
+		<item></item>
+		<item></item>
+	</children>
+    
+</root>
