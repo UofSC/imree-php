@@ -24,3 +24,8 @@ $imree_database_dsn = "mysql:host=localhost;dbname=testdb";
 $imree_database_username = "username";
 $imree_database_password = "password";
 
+
+/** 
+ * Assets Directory
+ */
+$imree_assets_directory = "imree_assets/";
