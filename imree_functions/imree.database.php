@@ -17,11 +17,17 @@
  * @return PDO an active pdo connection
  */
 function imree_db_connect() {
-    global $imree_database_dsn, $imree_database_password, $imree_database_username;
-    
-    //@todo check for an existing connection, if one exists, return it; otherwise make one and an return it
-    
-    return $conn;
+    global $imree_database_dsn, $imree_database_password, $imree_database_username, $conn;
+    if(!isset($conn)){ //checks for existsing connection
+        try{
+            $conn = PDO($imree_database_dsn, $imree_database_password, $imree_database_username)
+            return $conn;
+        }catch (PDOException $e) { //catches exception and returns error message
+           echo 'Connection Failed: ' . $e->getMessage(); 
+        } 
+    }else{
+        return $conn;
+    }
 }
 
 
