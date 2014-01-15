@@ -20,7 +20,7 @@ function imree_db_connect() {
     global $imree_database_dsn, $imree_database_password, $imree_database_username, $conn;
     if(!isset($conn)){ //checks for existsing connection
         try{
-            $conn = PDO($imree_database_dsn, $imree_database_password, $imree_database_username);
+            $conn = new PDO($imree_database_dsn, $imree_database_password, $imree_database_username);
             return $conn;
         }catch (PDOException $e) { //displays error message
            echo 'Connection Failed: ' . $e->getMessage(); 
