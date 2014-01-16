@@ -19,6 +19,7 @@ todo
 that don't do anything. The first ones to work on are the database functions, 
 after that, I'm not sure there's a "good" or "worse" order.
 
+intermediate project details can be requested from Kristine. -Jason
 
 usage
 ======
