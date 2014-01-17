@@ -6,15 +6,31 @@
 	<group_name>Test group 123</group_name>
 	<group_type>gallery</group_type>
 	<children>
-		<item></item>
-		<item></item>
-		<item></item>
-		<item></item>
-		<item></item>
-		<item></item>
-		<item></item>
-		<item></item>
-		<item></item>
+            <item>
+                <item_id>1</item_id>
+                <item_name>sample</item_name>
+                <item_type>image</item_type>
+                <children>
+                    <property>
+                        <type>description</type>
+                        <value>This is the description of the image</value>
+                    </property>
+                    <property>
+                        <type>caption</type>
+                        <value>Can't think of the diff btw desc and caption</value>
+                    </property>
+                </children>
+                <item_data_url>http://imree.tcl.sc.edu/imree/api/sampleimage.jpg</item_data_url>
+                <item_thumb_url>http://imree.tcl.sc.edu/imree/api/sampleimage_thumb.jpg</item_thumb_url>
+            </item>
+            <item></item>
+            <item></item>
+            <item></item>
+            <item></item>
+            <item></item>
+            <item></item>
+            <item></item>
+            <item></item>
 	</children>
     
 </root>
