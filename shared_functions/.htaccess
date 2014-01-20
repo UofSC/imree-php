@@ -1,0 +1,7 @@
+# This folder should never be publicly accessible. Its contents should ever ONLY
+# be requested through PHP includes or requires. The functions.*.php aren't 
+# really "bad" to be accessible publicly as everything is encapsulated in 
+# funtions; however, swiftmailer is not and comes with test files and such
+# that could do something nasty if swiftmailer commited something malicious. 
+# I know, extremely unlikely, but my paranoia gets the best of me. 
+Deny from all 
