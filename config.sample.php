@@ -16,15 +16,23 @@
 
 
 /** 
- * Assets Directory
+ * Directories
  * Should be relative to the target index file
  */
 $imree_assets_directory = "imree_assets/";
+$imree_admin_directory = "curator/";
+
+/**
+ * Google Analytics
+ * Set the google_analytics_account to FALSE and it will be ignored, otherwise
+ * an unset account will generate a JS error in the browser. 
+ */
+$google_analytics_account = "UA-XXXXXXX-XX";
 
 /**
  * Absolute Directory of index.php
  */
-$imree_absolute_path = "http://localhost/imree-php/api/";
+$imree_absolute_path = "http://localhost/imree-php/";
 
 
 /**
