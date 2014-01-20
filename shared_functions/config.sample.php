@@ -70,7 +70,7 @@ $GLOBALS['session_name'] = 'my_game';
 /**
  * LDAP is only required if you're using user_rights.php 
  */
-//$ldap_server = "cae145adcp03.ds.sc.edu";
+//$ldap_server = "";
 
 
 
