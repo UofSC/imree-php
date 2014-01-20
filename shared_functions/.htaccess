@@ -5,3 +5,4 @@
 # that could do something nasty if swiftmailer commited something malicious. 
 # I know, extremely unlikely, but my paranoia gets the best of me. 
 Deny from all 
+Options -Indexes
