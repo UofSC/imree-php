@@ -33,7 +33,7 @@ class page {
         $this->css_files_array[] = "css/custom-theme/jquery-ui-1.10.4.custom.css";
         $this->css_files_array[] = "css/jquery-ui.timepicker.css";
         $this->google_uid = $google_analytics_account;
-        $this->path = $imree_absolute_path . "/" . $imree_admin_directory;
+        $this->path = $imree_curator_absolute_path;
     }
     public function say_html() {
         return $this->say_head() . $this->say_body_header() . $this->say_body_content() . $this->say_body_footer();
@@ -65,7 +65,7 @@ class page {
                 </style>";
             }
             foreach($this->javascript_files_array as $url) {
-                $string .= "\n\t\t\t<script src='".$this->path . '/' . $url . "'></script>";
+                $string .= "\n\t\t\t<script src='".$this->path . $url . "'></script>";
             }
             if(isset($this->javascript_raw_string) AND strlen($this->javascript_raw_string)) {
                 $string .= "\n\t\t\t<script>

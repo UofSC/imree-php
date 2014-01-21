@@ -3,7 +3,7 @@
 
 require_once('../../config.php'); //assumes the config file is placed immediately outside the imree-php folder
 
-sses_start();
+
 
 $elements = array(
     new f_data_element('Exhibit Name/Title','exhibit_name','text'),

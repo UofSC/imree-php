@@ -31,8 +31,10 @@ $swift_mailer_path =        "/var/www/imree-php/external_packages/swiftmailer/li
 // Takes the same format as the 'domain' parameter of the PHP setcookie function.
 define('UL_DOMAIN', 'XXXXXXXXXXXXXXXXXXXXXX');
 
-//Absolute URL to IMREE directory (containing index.php):
-$imree_absolute_path = "http://mysite.com/imree-php/"; 
+//Absolute URL to IMREE directory (containing index.php). End with a trailing
+//Slash:
+$imree_absolute_path =          "http://mysite.com/imree-php/";
+$imree_curator_absolute_path =  "http://mysite.com/imree-php/curator/";
 
 
 /**
@@ -55,11 +57,11 @@ $google_analytics_account = ""; //UA-XXXXXXX-XX
  * The paths to the function files 
  * ===============================
  */
-require_once('imree/shared_functions/functions.api.php');
-require_once('imree/shared_functions/functions.core.php');
-require_once('imree/shared_functions/functions.db.php');
-require_once('imree/shared_functions/functions.catalog.php');
-require_once('imree/shared_functions/functions.form.php');
+require_once('imree-php/shared_functions/functions.api.php');
+require_once('imree-php/shared_functions/functions.core.php');
+require_once('imree-php/shared_functions/functions.db.php');
+require_once('imree-php/shared_functions/functions.form.php');
+require_once('imree-php/imree_functions/imree.template.php');
 
 
 /**
@@ -181,3 +183,5 @@ define('UL_PDO_SESSIONS_USER', $cfg_ulogin_username);
 define('UL_PDO_SESSIONS_PWD', $cfg_ulogin_password);
 define('UL_PDO_LOG_USER', $cfg_ulogin_username);
 define('UL_PDO_LOG_PWD', $cfg_ulogin_password);
+
+require_once($ulogin_directory . 'main.inc.php');
