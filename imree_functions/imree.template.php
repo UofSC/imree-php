@@ -14,16 +14,23 @@ class page {
     public $body_content;
     public $page_title;
     private $google_uid;
+    private $path;
     public function __construct($body_content, $page_title='Admin') {
-        global $google_analytics_account;
+        global $google_analytics_account, $imree_absolute_path, $imree_admin_directory;
         $this->body_content = $body_content;
         $this->page_title = $page_title;
         $this->javascript_files_array = array();
         $this->javascript_files_array[] = 'js/vendor/modernizr-2.6.2.min.js';
+        $this->javascript_files_array[] = 'js/vendor/jquery-ui-1.10.4.custom.min.js';
+        $this->javascript_files_array[] = 'js/vendor/jquery-ui.timepicker.js';
+        $this->javascript_files_array[] = 'js/vendor/jquery-ui.datetime.js';
         $this->css_files_array = array();
         $this->css_files_array[] = "css/normalize.min.css";
         $this->css_files_array[] = "css/main.css";
+        $this->css_files_array[] = "css/custom-theme/jquery-ui-1.10.4.custom.css";
+        $this->css_files_array[] = "css/jquery-ui.timepicker.css";
         $this->google_uid = $google_analytics_account;
+        $this->path = $imree_absolute_path . $imree_admin_directory;
     }
     public function say_html() {
         return $this->say_head() . $this->say_body_header() . $this->say_body_content() . $this->say_body_footer();
@@ -47,7 +54,7 @@ class page {
             <meta name='viewport' content='width=device-width'>
             ";
             foreach($this->css_files_array as $url) {
-                $string .= "\n\t\t\t<link rel='stylesheet' href='$url'>";
+                $string .= "\n\t\t\t<link rel='stylesheet' href='".$this->path . $url . "'>";
             }
             if(isset($this->css_raw_string) AND strlen($this->css_raw_string)) {
                 $string .= "\n\t\t\t<style>
@@ -55,7 +62,7 @@ class page {
                 </style>";
             }
             foreach($this->javascript_files_array as $url) {
-                $string .= "\n\t\t\t<script src='$url'></script>";
+                $string .= "\n\t\t\t<script src='".$this->path . $url . "'></script>";
             }
             if(isset($this->javascript_raw_string) AND strlen($this->javascript_raw_string)) {
                 $string .= "\n\t\t\t<script>
@@ -93,8 +100,8 @@ class page {
             <section id='footer'>
                 Footer Information Here
             </section>
-            <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js'></script>
-            <script>window.jQuery || document.write('<script src='js/vendor/jquery-1.10.1.min.js'><\/script>')</script>
+            <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
+            <script>window.jQuery || document.write(\"<script src='js/vendor/jquery-1.10.2.js'><\/script>\")</script>
 
             <script src='js/plugins.js'></script>
             <script src='js/main.js'></script>
