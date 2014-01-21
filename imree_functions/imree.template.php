@@ -16,7 +16,7 @@ class page {
     private $google_uid;
     private $path;
     public function __construct($body_content, $page_title='Admin') {
-        global $google_analytics_account, $imree_absolute_path, $imree_admin_directory;
+        global $google_analytics_account, $imree_curator_absolute_path;
         $this->body_content = $body_content;
         $this->page_title = $page_title;
         $this->javascript_files_array = array();
