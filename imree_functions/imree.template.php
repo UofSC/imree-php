@@ -54,7 +54,7 @@ class page {
             <meta name='viewport' content='width=device-width'>
             ";
             foreach($this->css_files_array as $url) {
-                $string .= "\n\t\t\t<link rel='stylesheet' href='".$this->path . $url . "'>";
+                $string .= "\n\t\t\t<link rel='stylesheet' href='".$this->path . '/' .$url . "'>";
             }
             if(isset($this->css_raw_string) AND strlen($this->css_raw_string)) {
                 $string .= "\n\t\t\t<style>
@@ -62,7 +62,7 @@ class page {
                 </style>";
             }
             foreach($this->javascript_files_array as $url) {
-                $string .= "\n\t\t\t<script src='".$this->path . $url . "'></script>";
+                $string .= "\n\t\t\t<script src='".$this->path . '/' . $url . "'></script>";
             }
             if(isset($this->javascript_raw_string) AND strlen($this->javascript_raw_string)) {
                 $string .= "\n\t\t\t<script>
@@ -101,7 +101,7 @@ class page {
                 Footer Information Here
             </section>
             <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
-            <script>window.jQuery || document.write(\"<script src='js/vendor/jquery-1.10.2.js'><\/script>\")</script>
+            <script>window.jQuery || document.write(\"<script src='".$this->path . '/' ."js/vendor/jquery-1.10.2.js'><\/script>\")</script>
 
             <script src='js/plugins.js'></script>
             <script src='js/main.js'></script>
