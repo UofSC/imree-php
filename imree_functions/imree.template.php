@@ -61,14 +61,6 @@ class page {
                     ".$this->css_raw_string."
                 </style>";
             }
-            foreach($this->javascript_files_array as $url) {
-                $string .= "\n\t\t\t<script src='".$this->path . '/' . $url . "'></script>";
-            }
-            if(isset($this->javascript_raw_string) AND strlen($this->javascript_raw_string)) {
-                $string .= "\n\t\t\t<script>
-                    ".$this->javascript_raw_string."
-                </script>";
-            }
             $string .= " 
         </head>
         ";
@@ -102,19 +94,27 @@ class page {
             </section>
             <script src='//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js'></script>
             <script>window.jQuery || document.write(\"<script src='".$this->path . '/' ."js/vendor/jquery-1.10.2.js'><\/script>\")</script>
-
+            
             <script src='js/plugins.js'></script>
             <script src='js/main.js'></script>
             ";
-        if(strlen($this->google_uid)) {
-            $string .= "
-            <script>
-                var _gaq=[['_setAccount','$this->google_uid'],['_trackPageview']];
-                (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-                g.src='//www.google-analytics.com/ga.js';
-                s.parentNode.insertBefore(g,s)}(document,'script'));
-            </script>";
-        }
+            foreach($this->javascript_files_array as $url) {
+                $string .= "\n\t\t\t<script src='".$this->path . '/' . $url . "'></script>";
+            }
+            if(isset($this->javascript_raw_string) AND strlen($this->javascript_raw_string)) {
+                $string .= "\n\t\t\t<script>
+                    ".$this->javascript_raw_string."
+                </script>";
+            }
+            if(strlen($this->google_uid)) {
+                $string .= "
+                <script>
+                    var _gaq=[['_setAccount','$this->google_uid'],['_trackPageview']];
+                    (function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+                    g.src='//www.google-analytics.com/ga.js';
+                    s.parentNode.insertBefore(g,s)}(document,'script'));
+                </script>";
+            }
         $string .= " 
         </body>\n</html>";
         return $string;
