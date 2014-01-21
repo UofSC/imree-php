@@ -5,48 +5,55 @@
  * to reference this file in the index file of the imree program
  * @author Jason Steelman <uscart@gmail.com>
  * 
+ * 
+ * Move this file "back" one directory
+ * ===================================
+ * By default, this file wants to placed immediately below the imree index file 
+ * so that in the index file "../config.php" will point to this file.
  */
-
-
-/**
- * Placing this file
- * by default, this file wants to placed immediately below the imree index file 
- * so that from within the index file "../config.php" will point to this file
- */
-
 
 /** 
  * Directories
+ * ===========
  * Should be relative to the target index file
  */
-$imree_assets_directory = "imree_assets/";
-$imree_admin_directory = "curator/";
+$imree_assets_directory =   "/var/www/imree_assets/";
+$imree_directory =          "/var/www/imree-php/";
+$imree_admin_directory =    "/var/www/imree-php/curator/";
+$ulogin_directory =         "/var/www/imree-php/external_packages/ulogin/";
+$swift_mailer_path =        "/var/www/imree-php/external_packages/swiftmailer/lib/swift_required.php";
+
+
+// Domain name of your site.
+// This must be the same domain name that the browser uses to 
+// fetch your website, without the protocol specifier (don't use 'http(s)://').
+// For development on the local machine, use 'localhost'.
+// Takes the same format as the 'domain' parameter of the PHP setcookie function.
+define('UL_DOMAIN', 'XXXXXXXXXXXXXXXXXXXXXX');
+
+//Absolute URL to IMREE directory (containing index.php):
+$imree_absolute_path = "http://mysite.com/imree-php/"; 
+
 
 /**
- * Google Analytics
+ * Google Analytics (optional)
+ * ===========================
  * Set the google_analytics_account to FALSE and it will be ignored, otherwise
  * an unset account will generate a JS error in the browser. 
  */
 $google_analytics_account = ""; //UA-XXXXXXX-XX
 
 /**
- * Absolute Directory of index.php
- */
-$imree_absolute_path = "http://localhost/imree-php/";
-
-
-/**
  * Shared Functions Settings
- * ===================================================
- * 
- * These settings are copied from shared_functions/config.sample.php
+ * =========================
+ * These settings are copied from shared_functions/config.sample.php. If this
+ * config file is placed correctly (see step 1), the paths should not need to be
+ * changed.
  */
 
 /**
- * The paths to the function files. By default, we assume that the config
- * file is sitting just outside the IMREE folder. For example, 
- * the config file is moved to /var/www/  with your index file that calls the 
- * config file; then, all the functions are located at /var/www/shared_functions
+ * The paths to the function files 
+ * ===============================
  */
 require_once('imree/shared_functions/functions.api.php');
 require_once('imree/shared_functions/functions.core.php');
@@ -57,16 +64,39 @@ require_once('imree/shared_functions/functions.form.php');
 
 /**
  * Database Connection Information
+ * ===============================
+ * Below are two database connection areas. One is for the IMREE system, the 
+ * other is for the ulogin system. These should use two DIFFERENT accounts
+ * to minimize security risks. 
  */
-$cfg_db_type = "mysql";
-$cfg_db_host = "localhost"; //or mysite.com
-$cfg_db_username = ""; 
-$cfg_db_password = "";
-$cfg_db_name = "";
+$cfg_db_type =          "mysql";
+$cfg_db_host =          "localhost"; //or library.site.com, etc...
+
+//Imree Connection
+$cfg_db_name =          "imree";
+$cfg_db_username =      "XXXXXXXXXXXXXXXXXXXXXX"; 
+$cfg_db_password =      "XXXXXXXXXXXXXXXXXXXXXX";
+
+//ulogin Connection
+$cfg_ulogin_db_name =   "ulogin";
+$cfg_ulogin_username =  "XXXXXXXXXXXXXXXXXXXXXX";
+$cfg_ulogin_password =  "XXXXXXXXXXXXXXXXXXXXXX";
+
+
+/**
+ * Site Crypto Key
+ * ===============
+ * A random string. Make it as random as possible and keep it secure.
+ * This is a crypthographic key that uLogin will use to generate some data
+ * and later verify its identity. The longer the better, should be 40+ 
+ * characters. Once set and your site is live, do not change this.
+ */
+define('UL_SITE_KEY', 'XXXXXXXXXXXXXXXXXXXXXX');
+
 
 /**
  * Recaptcha setup. There is a copy of recaptchalib.php within this project,
- * but you'll need to setup an account.
+ * but you'll need to setup an account at http://www.google.com/recaptcha.
  */
 $re_captcha_library ='imree/shared_functions/recaptchalib.php';
 $re_captcha_key_public = "";
@@ -80,7 +110,6 @@ $re_captcha_key_private = "";
  * visit https://github.com/swiftmailer/swiftmailer
  */
 $reply_email = "no-reply@mysite.com";
-$swift_mailer_path = "imree/shared_functions/swiftmailer/lib/swift_required.php";
 
 
 
@@ -101,11 +130,54 @@ $swift_mailer_path = "imree/shared_functions/swiftmailer/lib/swift_required.php"
  */
 $GLOBALS['session_name'] = 'imree';
 
-
 /**
- * LDAP is only required if you're using user_rights.php 
+ * Should-not be changed settings unless really really odd setup. Documentation
+ * on these settings are found in the ulogin project.
  */
-//$ldap_server = "";
 
+define('UL_PDO_CON_STRING', $cfg_db_type . ":host=" . $cfg_db_host . ";dbname=" . $cfg_ulogin_db_name);
+define('UL_INC_DIR', $ulogin_directory);
+define('UL_USES_AJAX', true);
+define('UL_HTTPS', false);
+define('UL_HSTS', 0);
+define('UL_PREVENT_CLICKJACK', true);
+define('UL_PREVENT_REPLAY', true);
+define('UL_LOGIN_DELAY', 5);
+define('UL_NONCE_EXPIRE', 900);
+define('UL_AUTOLOGIN_EXPIRE', 5356800);
+define('UL_MAX_USERNAME_LENGTH', 100);
+define('UL_USERNAME_CHECK', '~^[\p{L}\p{M}\p{Nd}\._@/+-]*[\p{L}\p{M}\p{Nd}]+[\p{L}\p{M}\p{Nd}\._@/+-]*$~u');
+define('UL_MAX_PASSWORD_LENGTH', 55);
+define('UL_HMAC_FUNC', 'sha256');
+define('UL_PWD_FUNC', '{BCRYPT}');
+define('UL_PWD_ROUNDS', 11);
+define('UL_PROXY_HEADER', '');
+define('UL_DEBUG', true);
+define('UL_GENERIC_ERROR_MSG', 'An error occured. Please try again or contact the administrator.');
+define('UL_SITE_ROOT_DIR', $imree_directory);
+define('UL_SESSION_AUTOSTART', true);
+define('UL_SESSION_EXPIRE', 1200);
+define('UL_SESSION_REGEN_PROB', 0);
+define('UL_SESSION_BACKEND', 'ulPdoSessionStorage');
+define('UL_SESSION_CHECK_REFERER', true);
+define('UL_SESSION_CHECK_IP', true);
+define('UL_LOG', true);
+define('UL_MAX_LOG_AGE', 5356800);
+define('UL_MAX_LOG_RECORDS', 200000);
+define('UL_BF_WINDOW', 300);
+define('UL_BF_IP_ATTEMPTS', 5);
+define('UL_BF_IP_LOCKOUT', 18000);
+define('UL_BF_USER_ATTEMPTS', 10);
+define('UL_BF_USER_LOCKOUT', 18000);
+define('UL_DATETIME_FORMAT', 'c');
+define('UL_AUTH_BACKEND', 'ulPdoLoginBackend');
+define('UL_PDO_CON_INIT_QUERY', "");
 
-
+define('UL_PDO_AUTH_USER', $cfg_ulogin_username);
+define('UL_PDO_AUTH_PWD', $cfg_ulogin_password);
+define('UL_PDO_DELETE_USER', $cfg_ulogin_username);
+define('UL_PDO_DELETE_PWD', $cfg_ulogin_password);
+define('UL_PDO_SESSIONS_USER', $cfg_ulogin_username);
+define('UL_PDO_SESSIONS_PWD', $cfg_ulogin_password);
+define('UL_PDO_LOG_USER', $cfg_ulogin_username);
+define('UL_PDO_LOG_PWD', $cfg_ulogin_password);
