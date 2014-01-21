@@ -27,7 +27,7 @@ $imree_admin_directory = "curator/";
  * Set the google_analytics_account to FALSE and it will be ignored, otherwise
  * an unset account will generate a JS error in the browser. 
  */
-$google_analytics_account = "UA-XXXXXXX-XX";
+$google_analytics_account = ""; //UA-XXXXXXX-XX
 
 /**
  * Absolute Directory of index.php
