@@ -11,5 +11,5 @@ $elements = array(
 
 $string = f_data($elements, db_connect(), "exhibits", "exhibit_id", false);
 
-$page = new page($string, $page_title);
+$page = new page($string, "Some kind of test");
 echo $page;
