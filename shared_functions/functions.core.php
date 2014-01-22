@@ -302,13 +302,13 @@ function send_gmail($to, $subject, $message) {
         ->setPassword($google_password);
 
     $mailer = Swift_Mailer::newInstance($transporter);
-        $message = Swift_Message::newInstance(); 
-        $message->setSubject($subject); 
-        $message->setFrom($google_username . "@gmail.com"); 
-        $message->setTo($to); 
-        $message->setBody($message . "<p>$email_signature</p>", 'text/html'); 
+        $msg = Swift_Message::newInstance(); 
+        $msg->setSubject($subject); 
+        $msg->setFrom($google_username . "@gmail.com"); 
+        $msg->setTo($to); 
+        $msg->setBody($message . "<p>$email_signature</p>", 'text/html'); 
          
-     $mailer->send($message);
+     $mailer->send($msg);
 }
 
 /** 
