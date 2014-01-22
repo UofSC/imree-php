@@ -156,19 +156,23 @@ class page {
                 
                 break;
             case "user_create": 
-                global $reply_email;
+                global $imree_curator_absolute_path;
                 $ulogin = new uLogin();
                 if(filter_input(INPUT_POST, 'new_username',FILTER_VALIDATE_EMAIL)) {
                     $password = random_string(12);
                     if($ulogin->CreateUser(filter_input(INPUT_POST, 'new_username'), $password)) {
                         $this->add_message("New User ".filter_input(INPUT_POST, 'new_username')." added. $password");
+                        send_gmail(filter_input(INPUT_POST, "new_username"),
+                                "You have a new account on IMREE",
+                                "<p>You have been granted access to $imree_curator_absolute_path.</p>
+                                    You can login using your email address (".filter_input(INPUT_POST, 'new_username').") 
+                                    and this temporary password: $password</p>");
                     } else {
                         $this->add_message("Failed to create new user",'error');
                     }
                 } else {
                     $this->add_message("Failed to create new user. Invalid Email supplied.",'error');
                 }
-                send_email(filter_input(INPUT_POST, "new_username"), $reply_email, "You have a new account on IMREE","New Account\n password:$password","<p>New Account</p> <p>password:$password</p>");
                 break;
             default:
                 $this->add_message("We've encoutered an error. That request cannot be processed because it doesn't exist.",'error');

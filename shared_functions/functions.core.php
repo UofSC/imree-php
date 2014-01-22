@@ -294,7 +294,7 @@ function send_email($to,$from,$subject='',$text='',$html=''){
  * @param type $message
  */
 function send_gmail($to, $subject, $message) {
-    global $google_username, $google_password, $swift_mailer_path;
+    global $google_username, $google_password, $swift_mailer_path, $email_signature;
     require_once($swift_mailer_path); // Mailer library 
     
     $transporter = Swift_SmtpTransport::newInstance('smtp.gmail.com', 465, 'ssl')
@@ -306,7 +306,7 @@ function send_gmail($to, $subject, $message) {
         $message->setSubject($subject); 
         $message->setFrom($google_username . "@gmail.com"); 
         $message->setTo($to); 
-        $message->setBody($message, 'text/html'); 
+        $message->setBody($message . "<p>$email_signature</p>", 'text/html'); 
          
      $mailer->send($message);
 }
