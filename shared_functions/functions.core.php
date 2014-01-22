@@ -306,20 +306,9 @@ function send_gmail($to, $subject, $message) {
         $message->setSubject($subject); 
         $message->setFrom($google_username . "@gmail.com"); 
         $message->setTo($to); 
-        $message->setBody(strip_tags($message)); 
-        $message->addPart( 
-            "<?xml version='1.0' encoding='utf-8'?> 
-            <!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN' 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'> 
-            <html xmlns='http://www.w3.org/1999/xhtml'> 
-            <head> 
-            <title>$subject</title> 
-            <meta http-equiv='Content-Type' content='text/html; charset=utf-8' /> 
-            </head> 
-            <body>".$message."</body> 
-            </html>", 
-            'text/html'); 
+        $message->setBody($message, 'text/html'); 
          
-      $mailer->send($message);
+     $mailer->send($message);
 }
 
 /** 

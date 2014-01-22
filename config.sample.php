@@ -111,7 +111,11 @@ $re_captcha_key_private = "";
  * the github repository as a merged sub-tree. For the full documentation
  * visit https://github.com/swiftmailer/swiftmailer
  */
-$reply_email = "no-reply@mysite.com";
+$send_email_using_gmail =   true;
+$google_from_name =         "UniversityLibraries No-Reply";
+$google_username =          "XXXXXXXXXXXXXXXXXXXXXX";
+$google_password =          "XXXXXXXXXXXXXXXXXXXXXX";
+
 
 
 
