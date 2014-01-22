@@ -6,8 +6,11 @@ require_once('../../config.php'); //assumes the config file is placed immediatel
 
 $string = "
     <form action='#' method='POST'>
-        <input type='hidden' name='action' value='user_create'>
-        <label for='new_username'>New Email</label><input type='text' name='new_username' >
+        <fieldset><legend>New User</legend>
+            <input type='hidden' name='action' value='user_create'>
+            <label for='new_username'>New Email</label><input type='text' name='new_username' >
+            <button type='submit'>Create new user</button>
+        </fieldset>
     </form>  
     ";
 

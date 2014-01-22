@@ -14,8 +14,10 @@
 */ 
 function init(){ 
     global $session_name; 
-     
-    session_start();  
+    
+    if(session_id() === "") {
+        session_start();  
+    }
     $GLOBALS['errors'] = Array(); //Create a global array in which we can store error messages 
     $GLOBALS['login_errors'] = Array(); //Create a global array in which we can store login related error messages 
 

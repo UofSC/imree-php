@@ -36,7 +36,7 @@ class page {
         $this->google_uid = $google_analytics_account;
         $this->path = $imree_curator_absolute_path;
         $this->messages = array();
-        
+                
         if(filter_input(INPUT_POST, "action")){
             $this->process_user_action(filter_input(INPUT_POST, "action"));
         }
@@ -85,6 +85,7 @@ class page {
     }
     
     public function say_body_header() {
+        global $imree_curator_absolute_path;
         $string = "
         <body>
             <!--[if lt IE 7]>
@@ -93,7 +94,12 @@ class page {
             <navigation>
                 <ul>
                     <li><a href='index.php'>Home</a></li>";
+                   
                     if(isset($_SESSION['loggedIn']) AND $_SESSION['loggedIn'] === true) {
+                        $string .= "<li><a href='".$imree_curator_absolute_path."exhibits.php''>Exhibits</a></li>";
+                        $string .= "<li><a href='".$imree_curator_absolute_path."myAccount.php''>My Account</a></li>";
+                        $string .= "<li><a href='".$imree_curator_absolute_path."users.php''>Users</a></li>";
+                        $string .= "<li><a href='".$imree_curator_absolute_path."logout.php' class='logout-link'>Logout</a></li>";
                         
                     } else {
                         $string .= "<li><a href='#' class='login-link'>Login</a></li>";
@@ -153,8 +159,58 @@ class page {
     public function process_user_action($action) {
         switch ($action) {
             case "login":
+                if(filter_input(INPUT_POST, 'user', FILTER_VALIDATE_EMAIL)) {
+                    $ulogin = new uLogin();
+                    if (isset($_POST['nonce']) && ulNonce::Verify('login', $_POST['nonce'])) {
+                        if (isset($_POST['autologin'])) {
+                            $_SESSION['appRememberMeRequested'] = true;
+                        } else {
+                            unset($_SESSION['appRememberMeRequested']);
+                        }
+                        $ulogin->Authenticate($_POST['user'], $_POST['pwd']);
+                        if ($ulogin->IsAuthSuccess()) {
+                            $_SESSION['uid'] = $ulogin->AuthResult;
+                            $_SESSION['username'] = $_POST['user'];
+                            $_SESSION['loggedIn'] = true;
+
+                            if (isset($_SESSION['appRememberMeRequested']) && ($_SESSION['appRememberMeRequested'] === true)) {
+                                // Enable remember-me
+                                if ( !$ulogin->SetAutologin($_SESSION['username'], true)) {
+                                    $this->add_message("The autologin feature is not working at this time.");
+                                }
+                                unset($_SESSION['appRememberMeRequested']);
+                            } else {
+                                // Disable remember-me
+                                if ( !$ulogin->SetAutologin($_SESSION['username'], false)) {
+                                    $this->add_message("The autologin feature is not working at this time.");
+                                }
+                            }
+                        }
+                    } else {
+                        $this->add_message("You cannot refresh this page to log in again. Please retype your username and password to log in.");
+                    }
+                } else {
+                    $this->add_message("The username you provided does not appear to be a vaild email address.", 'error');
+                }
+                break;
+                
+                
+            case "user_change_password": 
+                if(filter_input(INPUT_POST, 'new_password1') === filter_input(INPUT_POST, 'new_password2')) {
+                    if($_SESSION['loggedIn'] === true) {
+                        $ulogin = new uLogin();
+                        $ulogin->SetPassword($_SESSION['uid'], filter_input(INPUT_POST,'new_password1'));
+                        $this->add_message("Your password has been updated. You'll need it the next time you log in.");
+                    } else {
+                        $this->add_message("You must first <a href='#' class='login-link'>Log In</a>.",'error');
+                    }
+                } else {
+                    $this->add_message("The passwords you enetered did not match.",'error');
+                }
+                
                 
                 break;
+                
             case "user_create": 
                 global $imree_curator_absolute_path;
                 $ulogin = new uLogin();
@@ -183,4 +239,6 @@ class page {
     public function add_message($content, $type='message') {
         $this->messages[] = array('content'=>$content, 'type'=>$type);
     }
+    
+    
 }

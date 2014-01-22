@@ -191,3 +191,5 @@ define('UL_PDO_LOG_USER', $cfg_ulogin_username);
 define('UL_PDO_LOG_PWD', $cfg_ulogin_password);
 
 require_once($ulogin_directory . 'main.inc.php');
+
+init();
