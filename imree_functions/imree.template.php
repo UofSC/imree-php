@@ -13,6 +13,7 @@ class page {
     public $extra_head_raw;
     public $body_content;
     public $page_title;
+    private $messages;
     private $google_uid;
     private $path;
     public function __construct($body_content, $page_title='Admin') {
@@ -29,11 +30,16 @@ class page {
         $this->javascript_files_array[] = 'js/main.js';
         $this->css_files_array = array();
         $this->css_files_array[] = "css/normalize.min.css";
-        $this->css_files_array[] = "css/main.css";
         $this->css_files_array[] = "css/custom-theme/jquery-ui-1.10.4.custom.css";
         $this->css_files_array[] = "css/jquery-ui.timepicker.css";
+        $this->css_files_array[] = "css/main.css";
         $this->google_uid = $google_analytics_account;
         $this->path = $imree_curator_absolute_path;
+        $this->messages = array();
+        
+        if(filter_input(INPUT_POST, "action")){
+            $this->process_user_action(filter_input(INPUT_POST, "action"));
+        }
     }
     public function say_html() {
         return $this->say_head() . $this->say_body_header() . $this->say_body_content() . $this->say_body_footer();
@@ -86,9 +92,23 @@ class page {
             <![endif]-->
             <navigation>
                 <ul>
-                    <li><a href='index.php'>Home</a></li>
+                    <li><a href='index.php'>Home</a></li>";
+                    if(isset($_SESSION['loggedIn']) AND $_SESSION['loggedIn'] === true) {
+                        
+                    } else {
+                        $string .= "<li><a href='#' class='login-link'>Login</a></li>";
+                    }
+                    $string .= "
                 </ul>
-            </navigation>
+            </navigation>";
+            if(count($this->messages)) {
+                $string .= "<section id='messages'>";
+                foreach($this->messages as $message) {
+                    $string .= "<div class='".$message['type']."'>".$message['content']."</div>";
+                }
+                $string .= "</section>";
+            }
+            $string .= "
             <section id='contents'>";
         return $string;
     }
@@ -113,7 +133,7 @@ class page {
                 s.parentNode.insertBefore(g,s)}(document,'script'));
             </script>";
         }
-        $string .= " 
+        $string .= $this->login_form()." 
         </body>\n</html>";
         return $string;
     }
@@ -122,12 +142,41 @@ class page {
         return "
         <form action='#' method='POST' id='login_form' class='hidden'>
 	    <label for='user'>Email</label><input type='text' name='user'>
-            <label for='pwd'>Password</label><input type='password' name='pwd'>
+            <label for='pwd'>Password</label><input type='password' name='pwd'><br>
             <label for='autologin'>Remember Me</label><input type='checkbox' name='autologin' value='1'>
             <input type='hidden' name='action' value='login'>
-            <input type='hidden' id='nonce' name='nonce' value=''> ". //echo ulNonce::Create('login'); 
-            "<button type='submit'>Login</button>
-	</form>
+            <input type='hidden' id='nonce' name='nonce' value='".ulNonce::Create('login')."'> 
+        </form>
         ";
+    }
+    
+    public function process_user_action($action) {
+        switch ($action) {
+            case "login":
+                
+                break;
+            case "user_create": 
+                global $reply_email;
+                $ulogin = new uLogin();
+                if(filter_input(INPUT_POST, 'new_username',FILTER_VALIDATE_EMAIL)) {
+                    $password = random_string(12);
+                    if($ulogin->CreateUser(filter_input(INPUT_POST, 'new_username'), $password)) {
+                        $this->add_message("New User ".filter_input(INPUT_POST, 'new_username')." added. $password");
+                    } else {
+                        $this->add_message("Failed to create new user",'error');
+                    }
+                } else {
+                    $this->add_message("Failed to create new user. Invalid Email supplied.",'error');
+                }
+                send_email(filter_input(INPUT_POST, "new_username"), $reply_email, "You have a new account on IMREE","New Account\n password:$password","<p>New Account</p> <p>password:$password</p>");
+                break;
+            default:
+                $this->add_message("We've encoutered an error. That request cannot be processed because it doesn't exist.",'error');
+                break;
+        }
+    }
+    
+    public function add_message($content, $type='message') {
+        $this->messages[] = array('content'=>$content, 'type'=>$type);
     }
 }

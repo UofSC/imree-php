@@ -174,7 +174,8 @@ define('UL_BF_USER_LOCKOUT', 18000);
 define('UL_DATETIME_FORMAT', 'c');
 define('UL_AUTH_BACKEND', 'ulPdoLoginBackend');
 define('UL_PDO_CON_INIT_QUERY', "");
-
+define('UL_PDO_UPDATE_USER', $cfg_ulogin_username);
+define('UL_PDO_UPDATE_PWD', $cfg_ulogin_password);
 define('UL_PDO_AUTH_USER', $cfg_ulogin_username);
 define('UL_PDO_AUTH_PWD', $cfg_ulogin_password);
 define('UL_PDO_DELETE_USER', $cfg_ulogin_username);
