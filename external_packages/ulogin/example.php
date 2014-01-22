@@ -167,65 +167,13 @@ if (isAppLoggedIn()){
 	<?php echo ($msg);?>
 	<h3>uLogin authentication example</h3>
 
-	<form action="example.php" method="POST">
-	<table>
-
-	<tr>
-		<td>
-			Username:
-		</td>
-		<td>
-			<input type="text" name="user">
-		</td>
-	</tr>
-
-	<tr>
-		<td>
-			Password:
-		</td>
-		<td>
-			<input type="password" name="pwd">
-		</td>
-	</tr>
-
-	<tr>
-		<td>
-			Remember me:
-		</td>
-		<td>
-			<input type="checkbox" name="autologin" value="1">
-		</td>
-	</tr>
-
-    <tr>
-		<td>
-			Action:
-		</td>
-		<td>
-			<select name="action">
-			<option>login</option>
-			<option>autologin</option>
-			<option>create</option>
-			</select>
-		</td>
-	</tr>
-
-	<tr>
-		<td>
-			Nonce:
-		</td>
-		<td>
-			<input type="text" id="nonce" name="nonce" value="<?php echo ulNonce::Create('login');?>">
-		</td>
-	</tr>
-
-	<tr>
-		<td>
-		<input type="submit">
-		</td>
-	</tr>
-
-	</table>
+	<form action="example.php" method="POST" class='hidden'>
+	    <label for='user'>Email</label><input type="text" name="user">
+            <label for='pwd'>Password</label><input type="password" name="pwd">
+            <label for='autologin'>Remember Me</label><input type="checkbox" name="autologin" value="1">
+            <input type='hidden' name='action' value='login'>
+            <input type='hidden' id='nonce' name='nonce' value='<?php echo ulNonce::Create('login'); ?>'>
+            <button type="submit">Login</button>
 	</form>
 <?php
 }

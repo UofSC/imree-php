@@ -117,4 +117,17 @@ class page {
         </body>\n</html>";
         return $string;
     }
+    
+    public function login_form() {
+        return "
+        <form action='#' method='POST' id='login_form' class='hidden'>
+	    <label for='user'>Email</label><input type='text' name='user'>
+            <label for='pwd'>Password</label><input type='password' name='pwd'>
+            <label for='autologin'>Remember Me</label><input type='checkbox' name='autologin' value='1'>
+            <input type='hidden' name='action' value='login'>
+            <input type='hidden' id='nonce' name='nonce' value=''> ". //echo ulNonce::Create('login'); 
+            "<button type='submit'>Login</button>
+	</form>
+        ";
+    }
 }
