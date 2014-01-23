@@ -437,13 +437,12 @@ init();
 			}
 			
 			function create_user($conn, $username, $password, $database, $table, $host, $permission = "SELECT, INSERT, UPDATE, DELETE ") {
-				$conn->exec("DROP USER '$username'");
-				
 				if(strtolower($host) === "localhost") {
 					$scope = "localhost";
 				} else {
 					$scope = "%";
 				}
+				$conn->exec("DROP USER '$username'@'$scope'");
 				$conn->exec("CREATE USER '$username'@'$scope' IDENTIFIED BY '$password';");
 				$conn->exec("GRANT $permission ON $database.$table TO '$username'@'$scope';");
 				
