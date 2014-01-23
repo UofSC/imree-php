@@ -41,6 +41,9 @@ class page {
             $this->process_user_action(filter_input(INPUT_POST, "action"));
         }
     }
+    public function append_content($string) {
+        $this->body_content .= $string;
+    }
     public function say_html() {
         return $this->say_head() . $this->say_body_header() . $this->say_body_content() . $this->say_body_footer();
     }
@@ -97,6 +100,7 @@ class page {
                    
                     if(isset($_SESSION['loggedIn']) AND $_SESSION['loggedIn'] === true) {
                         $string .= "<li><a href='".$imree_curator_absolute_path."exhibits.php''>Exhibits</a></li>";
+                        $string .= "<li><a href='".$imree_curator_absolute_path."people.php''>People</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."myAccount.php''>My Account</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."users.php''>Users</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."logout.php' class='logout-link'>Logout</a></li>";

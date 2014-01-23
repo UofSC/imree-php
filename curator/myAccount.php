@@ -1,6 +1,13 @@
 <?php
 require_once '../../config.php';
-$string = "
+$string = "";
+$page = new page("", "My IMREE");
+
+if(logged_in()) {
+    /**
+     * This page needs to hook into the page class instead of using the f_data functions.
+     */
+    $string .= "
     <form action='#' method='POST'>
         <fieldset><legend>Change Password</legend>
             <input type='hidden' name='action' value='user_change_password' >
@@ -10,5 +17,10 @@ $string = "
         </fieldset>
     </form>
     ";
-$page = new page($string, "My IMREE");
+} else {
+    $string .= "<div>You need to login to use this page.";
+}
+
+$page->append_content($string);
+
 echo $page;
