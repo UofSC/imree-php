@@ -52,8 +52,8 @@ and open the template in the editor.
 				);
 				
 				foreach($require_fields as $field) {
-					if(!isset($_POST[$field]) AND strlen($_POST['field']) < 1) {
-						$errors[] = $field . " is required";
+					if(!isset($_POST[$field]) OR strlen($_POST[$field]) < 1) {
+                                            $errors[] = $field . " is required";
 					}
 				}
 				
@@ -247,11 +247,11 @@ and open the template in the editor.
 						}
 						
 						$imree_username = "imree-php-conn";
-						$imree_password = random_string(26);
+						$imree_password = random_string(18);
 						create_user($db,$imree_username, $imree_password, 'imree', '*', $_POST['db_host']);
 
 						$UL_PDO_UPDATE_USER = "ulogin_update";
-						$UL_PDO_UPDATE_PWD = random_string(26);
+						$UL_PDO_UPDATE_PWD = random_string(18);
 						if($_POST['db_host'] === 'localhost') {
 							$host = "localhost";
 						} else {
@@ -271,18 +271,17 @@ $cfg = '<?php
  * For full documentation, or to create a custom config file, see /imree-php/config.sample.php
 */
 
-$config_version =				0.0001;
+$config_version =				0.0002;
 
-$imree_assets_directory =		"imree_assets/";
+$imree_assets_directory =                       "imree_assets/";
 $imree_directory =				"imree-php/";
 $imree_admin_directory =			"imree-php/curator/";
 $ulogin_directory =				"imree-php/external_packages/ulogin";
-$swift_mailer_path =			"imree-php/external_packages/swiftmailer/lib/swift_required.php";
+$swift_mailer_path =                            "imree-php/external_packages/swiftmailer/lib/swift_required.php";
 define("UL_DOMAIN",				"'.$_POST['root_domain'].'");
-$imree_absolute_path =			"'.$_POST['imree_absolute_path'].'";
-$imree_curator_absolute_path =	"'.$_POST['imree_absolute_path'].'curator/";
-$google_analytics_account =		"'.$_POST['google_analytics_account'].'";
-$google_analytics_account =		"'.$_POST['google_analytics_account'].'";
+$imree_absolute_path =                          "'.$_POST['imree_absolute_path'].'";
+$imree_curator_absolute_path =                  "'.$_POST['imree_absolute_path'].'curator/";
+$google_analytics_account =                     "'.$_POST['google_analytics_account'].'";
 $cfg_db_type =					"'.$_POST['db_type'].'";
 $cfg_db_host =					"'.$_POST['db_host'].'";
 //Imree Connection
@@ -290,23 +289,30 @@ $cfg_db_name =					"imree";
 $cfg_db_username =				"'.$imree_username.'"; 
 $cfg_db_password =				"'.$imree_password.'";
 $re_captcha_key_public =			"'.$_POST['re_captcha_key_public'].'";
-$re_captcha_key_private =		"'.$_POST['re_captcha_key_private'].'";
-$re_captcha_library =			"imree-php/shared_functions/recaptchalib.php";
+$re_captcha_key_private =                       "'.$_POST['re_captcha_key_private'].'";
+$re_captcha_library =                           "imree-php/shared_functions/recaptchalib.php";
 $google_from_name =				"'.$_POST['google_from'].'";
 $google_username =				"'.$_POST['google_username'].'";
 $google_password =				"'.$_POST['google_password'].'";
 $email_signature =				"'.$_POST['google_signature'].'";
-$GLOBALS["session_name"] =		"imree";
+$GLOBALS["session_name"] =                      "imree";
+
+$current_file_parts = pathinfo(__FILE__);
+$absolute_dir = $current_file_parts["dirname"] . "/" . $ulogin_directory;
 
 require_once("imree-php/shared_functions/functions.api.php");
 require_once("imree-php/shared_functions/functions.core.php");
 require_once("imree-php/shared_functions/functions.db.php");
 require_once("imree-php/shared_functions/functions.form.php");
+require_once("imree-php/imree_functions/imree.asset.php");
+require_once("imree-php/imree_functions/imree.core.php");
+require_once("imree-php/imree_functions/imree.children.php");
+require_once("imree-php/imree_functions/imree.group.php");
 require_once("imree-php/imree_functions/imree.template.php");
 
 define("UL_SITE_KEY", "'.random_string(64).'");
 define("UL_PDO_CON_STRING", $cfg_db_type . ":host=" . $cfg_db_host . ";dbname=ulogin");
-define("UL_INC_DIR", $ulogin_directory);
+define("UL_INC_DIR", $absolute_dir);
 define("UL_USES_AJAX", true);
 define("UL_HTTPS", false);
 define("UL_HSTS", 0);
@@ -353,8 +359,8 @@ define("UL_PDO_SESSIONS_PWD", "'.$UL_PDO_AUTH_PWD.'");
 define("UL_PDO_LOG_USER", "'.$UL_PDO_AUTH_USER.'");
 define("UL_PDO_LOG_PWD", "'.$UL_PDO_AUTH_PWD.'");
 
-require_once($ulogin_directory . "/pdo/include.inc.php");
-require_once($ulogin_directory . "/main.inc.php");
+require_once($absolute_dir . "/pdo/include.inc.php");
+require_once($absolute_dir . "/main.inc.php");
 init();
 
 ';						
@@ -397,10 +403,10 @@ init();
 			</fieldset>
 			<fieldset>
 				<legend>IMREE Admin Account</legend>
-				<p>We're going to create an admin account for this installation of IMREE but we need to know what username and password you'd like to use for that. All other users in this system will be required to use an email as their username and we suggest the admin account be an email incase you need to reset your password. The email address should be an account that only IMREE admin(s) has(have) access to.</p>
-				<label for='imree_admin_user'>IMREE Admin Username</label><input id='imree_admin_user' name='imree_admin_user' type='text' value='admin'><br>
-				<label for='imree_admin_pass'>Database Admin Password</label><input id='imree_admin_pass' name='imree_admin_pass' type='password' ><br>
-				<label for='imree_admin_pass_copy'>Database Admin Password</label><input id='imree_admin_pass_copy' name='imree_admin_pass_copy' type='password' ><br>
+				<p>We're going to create an admin account for this installation of IMREE but we need to know what username and password you'd like to use for that. All usernames MUST BE an email address (although, the admin account is never confirmed as an active account).</p>
+				<label for='imree_admin_user'>IMREE Admin Username</label><input id='imree_admin_user' name='imree_admin_user' type='text' value='name@domain.com'><br>
+				<label for='imree_admin_pass'>IMREE Admin Password</label><input id='imree_admin_pass' name='imree_admin_pass' type='password' ><br>
+				<label for='imree_admin_pass_copy'>IMREE Admin Password</label><input id='imree_admin_pass_copy' name='imree_admin_pass_copy' type='password' ><br>
 			</fieldset>
 			<fieldset>
 				<legend>Domain</legend>
