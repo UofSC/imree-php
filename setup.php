@@ -16,6 +16,21 @@ and open the template in the editor.
 			input {
 				width:250px;
 			}
+			.success {
+				display:block;
+				background-color:rgb(150,255,210);
+				border:1px solid #00aa00;
+				padding:.5em;
+				margin:.5em;
+			}
+			.error {
+				display:block;
+				font-size:1.2em;
+				background-color:#FF7943;
+				border:1px solid #FF0000;
+				padding:.5em;
+				margin:.5em;
+			}
 		</style>
 	</head>
 	<body>
@@ -26,8 +41,37 @@ and open the template in the editor.
 			
 			echo "<h1>Starting IMREE Setup</h1>";
 			
+			/**
+			 * Test for Mod Rewrite
+			 */
+			$url = $_SERVER['REQUEST_URI']; //returns the current URL
+			$parts = explode('/',$url);
+			$dir = $_SERVER['SERVER_NAME'];
+			for ($i = 0; $i < count($parts) - 1; $i++) {	 $dir .= $parts[$i] . "/"; }
+			if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') { 
+				$protocol = 'http://';
+			} else {
+				$protocol = 'https://';
+			}
+			try{
+				@$test_redirect_content = file_get_contents($protocol.$dir.'file/abc'); //return '1' if succesful
+			} catch (Exception $e) {
+				$test_redirect_content = '0';
+			}
+			if($test_redirect_content !== "1") {
+				echo "<p class='error'>MOD REWRITE Disabled! Your server is either not using mod-rewrite, your server has blocked directory-level overrides (.htaccess files), or both. We use mod-rewrite for the file display features and pretty urls. We can setup your IMREE anyway, but it won't be very useful until this resolved.</p>";
+			} else {
+				echo "<p class='success'>Mod Rewrite Enabled.</p>";
+			}
+			
+			
+			/**
+			 * Test if we can write to ../
+			 */
 			if(file_put_contents("../config.php","") === false) {
-				die("ERROR: PHP Cannot write to '../config.php'. the imree-php folder works best when it is NOT the root directory of your webserver. You can also solve this problem by creating a config.php file in setup.php's folder's parent's folder (../) and set its permissions to something more relaxed. Be sure to change the permissions back if/when setup.php is complete. ");
+				die("<p class='error'>RROR: PHP Cannot write to '../config.php'. the imree-php folder works best when it is NOT the root directory of your webserver. You can also solve this problem by creating a config.php file in setup.php's folder's parent's folder (../) and set its permissions to something more relaxed. Be sure to change the permissions back if/when setup.php is complete.</p>");
+			} else {
+				echo "<p class='success'>../config.php is writeable.</p>";
 			}
 			unlink('../config.php');
 					
@@ -249,9 +293,9 @@ CREATE TABLE IF NOT EXISTS `subjects` (
 							");
 
 						if((int)$db->errorCode() === 0) {
-							echo "<p>Created databases imree, ulogin with table structures</p>";
+							echo "<p class='success'>Created databases imree, ulogin with table structures</p>";
 						} else {
-							echo "<div>There was a problem creating imree, ulogin databases with table structures: ".print_r($db->errorInfo(), true)."</div>";
+							echo "<div class='error'>There was a problem creating imree, ulogin databases with table structures: ".print_r($db->errorInfo(), true)."</div>";
 						}
 						
 						$imree_username = "imree-php-conn";
@@ -383,12 +427,12 @@ init();
 						
 						$ulogin = new uLogin();
 						if($ulogin->CreateUser($_POST['imree_admin_user'], $_POST['imree_admin_pass'])) {
-							echo "<p>User ".$_POST['imree_admin_user']." created succesfully.";
+							echo "<p class='success'>User ".$_POST['imree_admin_user']." created succesfully.";
 						} else {
 							$errors[] = "We could not create the imree admin account. You may need to rerun this setup script as there is no other way to create the admin account.";
 						}
 						
-						echo "<p>Configuration Complete. Please visit <a href='curator/index.php'>your new IMREE</a></p>";
+						echo "<p class='success'>Configuration Complete. Please visit <a href='curator/index.php'>your new IMREE</a></p>";
 						
 					} else {
 						$errors[] = "Could not connect to database.";
@@ -404,39 +448,39 @@ init();
 		<form action='setup.php' method='POST'>
 			<fieldset>
 				<legend>Database Connections</legend>
-				<label for='db_type'>Database Type</label><input id='db_type' name='db_type' type='text' value='mysql' ><br>
-				<label for='db_host'>Database Host</label><input id='db_host' name='db_host' type='text' value='localhost'><br>
+				<label for='db_type'>Database Type</label><input id='db_type' name='db_type' type='text' value='<?php echo isset($_POST['db_type']) ? $_POST['db_type'] : 'mysql'; ?>' ><br>
+				<label for='db_host'>Database Host</label><input id='db_host' name='db_host' type='text' value='<?php echo isset($_POST['db_host']) ? $_POST['db_host'] : 'localhost'; ?>'><br>
 				<p>The following information will NOT be saved in the config file. It is used to create new users and database tables for you.</p>
-				<label for='db_admin_username'>Database Admin Username</label><input id='db_admin_username' name='db_admin_username' type='text' ><br>
-				<label for='db_admin_password'>Database Admin Password</label><input id='db_admin_password' name='db_admin_password' type='password' ><br>
+				<label for='db_admin_username'>Database Admin Username</label><input id='db_admin_username' name='db_admin_username' type='text' value='<?php echo isset($_POST['db_admin_username']) ? $_POST['db_admin_username'] : ''; ?>' ><br>
+				<label for='db_admin_password'>Database Admin Password</label><input id='db_admin_password' name='db_admin_password' type='password' value='<?php echo isset($_POST['db_admin_password']) ? $_POST['db_admin_password'] : ''; ?>' ><br>
 			</fieldset>
 			<fieldset>
 				<legend>IMREE Admin Account</legend>
 				<p>We're going to create an admin account for this installation of IMREE but we need to know what username and password you'd like to use for that. All usernames MUST BE an email address (although, the admin account is never confirmed as an active account).</p>
-				<label for='imree_admin_user'>IMREE Admin Username</label><input id='imree_admin_user' name='imree_admin_user' type='text' value='name@domain.com'><br>
-				<label for='imree_admin_pass'>IMREE Admin Password</label><input id='imree_admin_pass' name='imree_admin_pass' type='password' ><br>
-				<label for='imree_admin_pass_copy'>IMREE Admin Password</label><input id='imree_admin_pass_copy' name='imree_admin_pass_copy' type='password' ><br>
+				<label for='imree_admin_user'>IMREE Admin Username</label><input id='imree_admin_user' name='imree_admin_user' type='text' value='<?php echo isset($_POST['imree_admin_user']) ? $_POST['imree_admin_user'] : 'name@domain.com'; ?>'><br>
+				<label for='imree_admin_pass'>IMREE Admin Password</label><input id='imree_admin_pass' name='imree_admin_pass' type='password' value='<?php echo isset($_POST['imree_admin_pass']) ? $_POST['imree_admin_pass'] : ''; ?>'><br>
+				<label for='imree_admin_pass_copy'>IMREE Admin Password</label><input id='imree_admin_pass_copy' name='imree_admin_pass_copy' type='password' value='<?php echo isset($_POST['imree_admin_pass_copy']) ? $_POST['imree_admin_pass_copy'] : ''; ?>' ><br>
 			</fieldset>
 			<fieldset>
 				<legend>Domain</legend>
 				<p>This must be the same domain name that the browser uses to fetch your website, without the protocol specifier (don't use 'http(s)://'). For development on the local machine, use 'localhost'.  Takes the same format as the 'domain' parameter of the PHP setcookie function.</p>
-				<label for='root_domain'>Website Domain</label><input id='root_domain' name='root_domain' type='text' value='imree.mysite.com' ><br>
+				<label for='root_domain'>Website Domain</label><input id='root_domain' name='root_domain' type='text' value='<?php echo isset($_POST['root_domain']) ? $_POST['root_domain'] : 'imree.mysite.com'; ?>' ><br>
 				<p>The absolute IMREE Path should include the protocol (http(s)), and directory information, and end with a trailing slash</p>
-				<label for='imree_absolute_path'>Absolute IMREE Path</label><input id='imree_absolute_path' name='imree_absolute_path' type='text' value='http://imree.mysite.com/imree-php/' ><br>
+				<label for='imree_absolute_path'>Absolute IMREE Path</label><input id='imree_absolute_path' name='imree_absolute_path' type='text' value='<?php echo isset($_POST['imree_absolute_path']) ? $_POST['imree_absolute_path'] : 'http://imree.mysite.com/imree-php/'; ?>' ><br>
 			</fieldset>
 			<fieldset>
 				<legend>3rd Party Accounts</legend>
 				<p>Your Google Analytics Property ID (i.e. XXXXXXXXX-XX)</p>
-				<label for='google_analytics_account'>Analytics ID</label><input id='google_analytics_account' name='google_analytics_account' type='text' value='' ><br>
+				<label for='google_analytics_account'>Analytics ID</label><input id='google_analytics_account' name='google_analytics_account' type='text' value='<?php echo isset($_POST['google_analytics_account']) ? $_POST['google_analytics_account'] : ''; ?>' ><br>
 				<p>A recaptcha account. <a href='http://www.google.com/recaptcha' target="_blank">http://www.google.com/recaptcha</a></p>
-				<label for='re_captcha_key_public'>Recaptcha Public Key</label><input id='re_captcha_key_public' name='re_captcha_key_public' type='text' value='' ><br>
-				<label for='re_captcha_key_private'>Recaptcha Private Key</label><input id="re_captcha_key_private" name='re_captcha_key_private' type='text' value='' ><br>
+				<label for='re_captcha_key_public'>Recaptcha Public Key</label><input id='re_captcha_key_public' name='re_captcha_key_public' type='text' value='<?php echo isset($_POST['re_captcha_key_public']) ? $_POST['re_captcha_key_public'] : ''; ?>' ><br>
+				<label for='re_captcha_key_private'>Recaptcha Private Key</label><input id="re_captcha_key_private" name='re_captcha_key_private' type='text' value='<?php echo isset($_POST['re_captcha_key_private']) ? $_POST['re_captcha_key_private'] : ''; ?>' ><br>
 				<p>For ease of installation. IMREE sends email through a gmail address. This can be changed in shared_function/functions.core.php under send_gmail().</p>
-				<label for='google_from'>From Name</label><input id='google_from' name='google_from' type='text' value='Library - no-reply' ><br>
+				<label for='google_from'>From Name</label><input id='google_from' name='google_from' type='text' value='<?php echo isset($_POST['google_from']) ? $_POST['google_from'] : 'Library - no-reply'; ?>' ><br>
 				<p>Your google username EXCLUDES the @gmail.com. We just want the username, not the full email address</p>
-				<label for='google_username'>Google Username</label><input id='google_username' name='google_username' type='text' value='' ><br>
-				<label for='google_password'>Google Password</label><input id='google_password' name='google_password' type='password' value='' ><br>
-				<label for='google_signature'>Email Signature Line</label><input id='google_signature' name='google_signature' type='text' value='-IMREE Admin Team' ><br>
+				<label for='google_username'>Google Username</label><input id='google_username' name='google_username' type='text' value='<?php echo isset($_POST['google_username']) ? $_POST['google_username'] : ''; ?>' ><br>
+				<label for='google_password'>Google Password</label><input id='google_password' name='google_password' type='password' value='<?php echo isset($_POST['google_password']) ? $_POST['google_password'] : ''; ?>' ><br>
+				<label for='google_signature'>Email Signature Line</label><input id='google_signature' name='google_signature' type='text' value='<?php echo isset($_POST['google_signature']) ? $_POST['google_signature'] : '-IMREE Admin Team'; ?>' ><br>
 			</fieldset>
 			<input type='hidden' name='action' value='setup' >
 			<button type='submit'>Create Configuration File</button>
@@ -444,6 +488,9 @@ init();
 		
 				<?php
 			}
+			
+			
+			/** Below are helper functions to make the code above as cleaner **/
 			
 			function create_user($conn, $username, $password, $database, $table, $host, $permission = "SELECT, INSERT, UPDATE, DELETE ") {
 				if(strtolower($host) === "localhost") {
@@ -457,6 +504,45 @@ init();
 				
 			}
 			
+			
+			if(!function_exists('get_headers'))
+			{
+			    function get_headers($url,$format=0)
+			    {
+				   $url=parse_url($url);
+				   $end = "\r\n\r\n";
+				   $fp = fsockopen($url['host'], (empty($url['port'])?80:$url['port']), $null_var1, $null_var2, 30);
+				   if ($fp)
+				   {
+					  $out  = "GET / HTTP/1.1\r\n";
+					  $out .= "Host: ".$url['host']."\r\n";
+					  $out .= "Connection: Close\r\n\r\n";
+					  $var  = '';
+					  fwrite($fp, $out);
+					  while (!feof($fp))
+					  {
+						 $var.=fgets($fp, 1280);
+						 if(strpos($var,$end))
+							break;
+					  }
+					  fclose($fp);
+
+					  $var=preg_replace("/\r\n\r\n.*\$/",'',$var);
+					  $var=explode("\r\n",$var);
+					  if($format)
+					  {
+						 foreach($var as $i)
+						 {
+							if(preg_match('/^([a-zA-Z -]+): +(.*)$/',$i,$parts))
+							    $v[$parts[1]]=$parts[2];
+						 }
+						 return $v;
+					  }
+					  else
+						 return $var;
+				   }
+			    }
+			}
 			
 		?>
 	</body>

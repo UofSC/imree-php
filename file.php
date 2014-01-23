@@ -4,6 +4,11 @@
 if(!isset($_GET['file_id']) OR !$_GET['file_id']) {
 	header("location: http://google.com/");
 }
+
+//This is an injection to test if mod_rewrite is working for imree-php/file/abc in the setup.php process
+if($_GET['file_id'] === 'abc') {
+	die('1');
+}
 require_once('../config.php');
 
 $original_request = explode("?",$_SERVER['REQUEST_URI']);
