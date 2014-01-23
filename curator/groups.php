@@ -1,21 +1,28 @@
 <?php
 
 require_once '../../config.php';
-$page = new page("", "People");
+$page = new page("", "Group");
 
 if(logged_in()) {
-   
+    
+    $group_parent_options = new f_data_element_options();
+		$group_parent_options->normalized_table = "groups";
+		$group_parent_options->normalized_table_none_label = "none";
+		$group_parent_options->normalized_table_none_value = "";
+		$group_parent_options->normalized_table_primary_key_column = "group_id";
+		$group_parent_options->normalized_table_primary_label_column = "group_name";
+	
     $elements = array(
-        new f_data_element('First Name','person_name_first','text'),
-        new f_data_element('Last Name','person_name_last','text'),
-        new f_data_element('Title','person_title','text'),
+        new f_data_element('Group Name','group_name','text'),
+        new f_data_element('Type','group_type','select',array('gallery'=>'gallery','grid'=>'grid','list'=>'list','narrative'=>'narrative','linear'=>'linear','timeline'=>'timeline','unset'=>'unset'),'unset'),
+        new f_data_element('Parent','group_parent_id','select','','0','',$group_parent_options),
     );
     
     if(isset($_GET['row_id'])) {
-        $string = f_data($elements, db_connect(), "people", "person_id", $_GET['row_id']);
+        $string = f_data($elements, db_connect(), "groups", "group_id", $_GET['row_id']);
     } else {
-        $string = f_data_list(db_connect(), "people", "person_id", array('person_name_last','person_name_first'));
-        $string .= f_data($elements, db_connect(), "people", "person_id", false);
+        $string = f_data_list(db_connect(), "groups", "group_id", "group_name");
+        $string .= f_data($elements, db_connect(), "groups", "group_id", false);
     }
     
     

@@ -99,8 +99,12 @@ class page {
                     <li><a href='index.php'>Home</a></li>";
                    
                     if(isset($_SESSION['loggedIn']) AND $_SESSION['loggedIn'] === true) {
+				    $string .= "<li><a href='".$imree_curator_absolute_path."assets.php''>Assets</a></li>";
+				    $string .= "<li><a href='".$imree_curator_absolute_path."events.php''>Events</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."exhibits.php''>Exhibits</a></li>";
-                        $string .= "<li><a href='".$imree_curator_absolute_path."people.php''>People</a></li>";
+                        $string .= "<li><a href='".$imree_curator_absolute_path."groups.php''>Groups</a></li>";
+				    $string .= "<li><a href='".$imree_curator_absolute_path."people.php''>People</a></li>";
+				    $string .= "<li><a href='".$imree_curator_absolute_path."subjects.php''>Subjects</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."myAccount.php''>My Account</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."users.php''>Users</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."logout.php' class='logout-link'>Logout</a></li>";

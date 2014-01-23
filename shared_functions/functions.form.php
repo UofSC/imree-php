@@ -330,10 +330,13 @@ function f_input($id,$type,$value='',$selected='0',$class='',$output='echo',$opt
 						$file_id = $value; //enables direct access to files tables for forms that edit files
 						$url = $files_url . $value;
 					}
-					$file = tcl_file_properties($file_id);
-					capitans_log("image file id: ".$file_id);
-					if(substr($file['page_file_type'], 0, 5) == "image") {
-						$return .= "<a href='$url' target='_blank' class='img-scaleable'><img src='$url?size=150' /></a>";
+					if(function_exists("tcl_file_properties")) {
+						$file = tcl_file_properties($file_id);
+						if(substr($file['page_file_type'], 0, 5) == "image") {
+							$return .= "<a href='$url' target='_blank' class='img-scaleable'><img src='$url?size=150' /></a>";
+						} else {
+							$return .= $value;
+						}
 					} else {
 						$return .= $value;
 					}
@@ -835,7 +838,7 @@ function f_upload_file($upload_table_array, $file_array_from_post, $conn, $data_
  * @return string The HTML form. Needs to be echoed somehow. 
  */
 function f_data($input_array, $conn, $data_table, $primary_key, $row_id=false,$form_id='something_unique', $method = "POST", $insert_callback = false, $update_callback = false, $form_action = "#", $resource_var=false, $validator_function=false, $allow_delete =false, $delete_url="", $delete_callback_url=false, $delete_callback=false, $use_captcha=false) {
-	global $errors, $require_return_over_echo, $re_captcha_library, $re_captcha_key_private, $re_captcha_key_public;
+	global $errors, $require_return_over_echo, $re_captcha_library, $re_captcha_key_private, $re_captcha_key_public, $files_url;
 	$require_return_over_echo = true;
 	$string = "";
 	$form_name = "f_data_".  rawurlencode($form_id);
@@ -932,8 +935,10 @@ function f_data($input_array, $conn, $data_table, $primary_key, $row_id=false,$f
 							}
 							if($result) {
 								$file_id = $conn->lastInsertId();
-								ul_new_category_assignment($file_id, 11);
-								$arr[$element->id] = 'http://library.sc.edu/file/'.$file_id;
+								if(function_exists("ul_new_category_assignment")) {
+									ul_new_category_assignment($file_id, 11);
+								}
+								$arr[$element->id] = $files_url.$file_id;
 							} else {
 								$arr[$element->id] = "";
 							}

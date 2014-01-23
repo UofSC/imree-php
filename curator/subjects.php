@@ -1,21 +1,22 @@
 <?php
 
 require_once '../../config.php';
-$page = new page("", "People");
+$page = new page("", "Subjects");
 
 if(logged_in()) {
+    
    
     $elements = array(
-        new f_data_element('First Name','person_name_first','text'),
-        new f_data_element('Last Name','person_name_last','text'),
-        new f_data_element('Title','person_title','text'),
+        new f_data_element('Subject Title (internal)','subject_title','text'),
+        new f_data_element('Subject Title (external)','subject_title_display','text'),
+        new f_data_element('GeoLocation','subject_geolocation','text'),
     );
     
     if(isset($_GET['row_id'])) {
-        $string = f_data($elements, db_connect(), "people", "person_id", $_GET['row_id']);
+        $string = f_data($elements, db_connect(), "subjects", "subject_id", $_GET['row_id']);
     } else {
-        $string = f_data_list(db_connect(), "people", "person_id", array('person_name_last','person_name_first'));
-        $string .= f_data($elements, db_connect(), "people", "person_id", false);
+        $string = f_data_list(db_connect(), "subjects", "subject_id", "subject_title");
+        $string .= f_data($elements, db_connect(), "subjects", "subject_id", false);
     }
     
     

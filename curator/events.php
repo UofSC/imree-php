@@ -1,21 +1,31 @@
 <?php
 
 require_once '../../config.php';
-$page = new page("", "People");
+$page = new page("", "Events");
 
 if(logged_in()) {
-   
+    
+    $event_parent_options = new f_data_element_options();
+		$event_parent_options->normalized_table = "events";
+		$event_parent_options->normalized_table_none_label = "none";
+		$event_parent_options->normalized_table_none_value = "";
+		$event_parent_options->normalized_table_primary_key_column = "event_id";
+		$event_parent_options->normalized_table_primary_label_column = "event_name";
+	
     $elements = array(
-        new f_data_element('First Name','person_name_first','text'),
-        new f_data_element('Last Name','person_name_last','text'),
-        new f_data_element('Title','person_title','text'),
+        new f_data_element('Event Name','event_name','text'),
+        new f_data_element('Date Start','event_date_start','datetime'),
+	   new f_data_element('Date Start is approximate','event_date_start_approx','checkbox','1'),
+	   new f_data_element('Date End','event_date_end','datetime'),
+	   new f_data_element('Date End is approximate','event_date_end_approx','checkbox','1'),
+        new f_data_element('Parent','event_parent_id','select','','0','',$event_parent_options),
     );
     
     if(isset($_GET['row_id'])) {
-        $string = f_data($elements, db_connect(), "people", "person_id", $_GET['row_id']);
+        $string = f_data($elements, db_connect(), "events", "event_id", $_GET['row_id']);
     } else {
-        $string = f_data_list(db_connect(), "people", "person_id", array('person_name_last','person_name_first'));
-        $string .= f_data($elements, db_connect(), "people", "person_id", false);
+        $string = f_data_list(db_connect(), "events", "event_id", "event_name");
+        $string .= f_data($elements, db_connect(), "events", "event_id", false);
     }
     
     
