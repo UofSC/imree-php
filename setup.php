@@ -85,112 +85,120 @@ and open the template in the editor.
 								SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
 								SET time_zone = '+00:00';
 
-								DROP DATABASE IF EXISTS imree;
-								CREATE DATABASE imree; 
-								USE imree;
-								CREATE TABLE IF NOT EXISTS `assets` (
-									`asset_id` int(11) NOT NULL AUTO_INCREMENT,
-									`asset_name` varchar(255) NOT NULL,
-									`asset_type` enum('image','video','audio','text') NOT NULL,
-									`asset_media_url` varchar(255) NOT NULL,
-									`asset_thumb_url` varchar(255) NOT NULL,
-									`asset_parent_id` int(11) NOT NULL,
-									`asset_date_added` int(11) NOT NULL,
-									`asset_date_created` datetime NOT NULL,
-									`asset_date_start` datetime NOT NULL,
-									`asset_date_end` datetime NOT NULL,
-									PRIMARY KEY (`asset_id`)
-								 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+								
+CREATE TABLE IF NOT EXISTS `assets` (
+  `asset_id` int(11) NOT NULL AUTO_INCREMENT,
+  `asset_name` varchar(255) NOT NULL,
+  `asset_type` enum('image','video','audio','text') NOT NULL,
+  `asset_media_url` varchar(255) NOT NULL,
+  `asset_thumb_url` varchar(255) NOT NULL,
+  `asset_parent_id` int(11) NOT NULL,
+  `asset_date_added` datetime NOT NULL,
+  `asset_date_created` datetime NOT NULL,
+  PRIMARY KEY (`asset_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `asset_event_assignments` (
-									  `asset_event_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-									  `asset_id` int(11) NOT NULL,
-									  `event_id` int(11) NOT NULL,
-									  PRIMARY KEY (`asset_event_assignment_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `asset_data` (
+  `asset_data_id` int(11) NOT NULL AUTO_INCREMENT,
+  `asset_data_title` varchar(255) NOT NULL,
+  `asset_data_name` varchar(255) NOT NULL,
+  `asset_data_type` varchar(255) NOT NULL,
+  `asset_data_contents` longblob NOT NULL,
+  `asset_data_contents_date` datetime NOT NULL,
+  `asset_data_date_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `asset_data_access_restricted` int(4) NOT NULL DEFAULT '0',
+  `asset_data_size` varchar(255) NOT NULL,
+  `asset_data_user` varchar(255) NOT NULL,
+  PRIMARY KEY (`asset_data_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-								CREATE TABLE IF NOT EXISTS `asset_group_assignments` (
-									`asset_group_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-									`asset_id` int(11) NOT NULL,
-									`group_id` int(11) NOT NULL,
-									PRIMARY KEY (`asset_group_assignment_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `asset_event_assignments` (
+  `asset_event_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `asset_id` int(11) NOT NULL,
+  `event_id` int(11) NOT NULL,
+  PRIMARY KEY (`asset_event_assignment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `asset_subject_assignments` (
-									`asset_subject_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-									`asset_id` int(11) NOT NULL,
-									`subject_id` int(11) NOT NULL,
-									PRIMARY KEY (`asset_subject_assignment_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `asset_group_assignments` (
+  `asset_group_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `asset_id` int(11) NOT NULL,
+  `group_id` int(11) NOT NULL,
+  PRIMARY KEY (`asset_group_assignment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `events` (
-									`event_id` int(11) NOT NULL AUTO_INCREMENT,
-									`event_name` int(11) NOT NULL,
-									`event_date_start` datetime NOT NULL,
-									`event_date_end` datetime NOT NULL,
-									`event_date_start_approx` tinyint(1) NOT NULL DEFAULT '1',
-									`event_date_end_approx` tinyint(1) NOT NULL DEFAULT '1',
-									`event_parent_id` int(11) NOT NULL,
-									PRIMARY KEY (`event_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `asset_subject_assignments` (
+  `asset_subject_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `asset_id` int(11) NOT NULL,
+  `subject_id` int(11) NOT NULL,
+  PRIMARY KEY (`asset_subject_assignment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `exhibits` (
-									`exhibit_id` int(11) NOT NULL AUTO_INCREMENT,
-									`exhibit_name` varchar(255) NOT NULL,
-									`exhibit_date_start` datetime NOT NULL,
-									`exhibit_date_end` datetime NOT NULL,
-									`exhibit_department_id` int(11) NOT NULL,
-									`theme_id` int(11) NOT NULL,
-									PRIMARY KEY (`exhibit_id`)
-								) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+CREATE TABLE IF NOT EXISTS `events` (
+  `event_id` int(11) NOT NULL AUTO_INCREMENT,
+  `event_name` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `event_date_start` datetime NOT NULL,
+  `event_date_end` datetime NOT NULL,
+  `event_date_start_approx` tinyint(1) NOT NULL DEFAULT '1',
+  `event_date_end_approx` tinyint(1) NOT NULL DEFAULT '1',
+  `event_parent_id` int(11) NOT NULL,
+  PRIMARY KEY (`event_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `groups` (
-									`group_id` int(11) NOT NULL AUTO_INCREMENT,
-									`group_name` varchar(255) NOT NULL,
-									`group_type` enum('gallery','grid','list','narrative','linear','timeline','unset') NOT NULL DEFAULT 'gallery',
-									`group_parent_id` int(11) NOT NULL,
-									PRIMARY KEY (`group_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `exhibits` (
+  `exhibit_id` int(11) NOT NULL AUTO_INCREMENT,
+  `exhibit_name` varchar(255) NOT NULL,
+  `exhibit_date_start` datetime NOT NULL,
+  `exhibit_date_end` datetime NOT NULL,
+  `exhibit_department_id` int(11) NOT NULL,
+  `theme_id` int(11) NOT NULL,
+  PRIMARY KEY (`exhibit_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `group_exhibit_assignments` (
-									`group_exhibit_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-									`group_id` int(11) NOT NULL,
-									`exhibit_id` int(11) NOT NULL,
-									PRIMARY KEY (`group_exhibit_assignment_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `groups` (
+  `group_id` int(11) NOT NULL AUTO_INCREMENT,
+  `group_name` varchar(255) NOT NULL,
+  `group_type` enum('gallery','grid','list','narrative','linear','timeline','unset') NOT NULL DEFAULT 'gallery',
+  `group_parent_id` int(11) NOT NULL,
+  PRIMARY KEY (`group_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `people` (
-									`person_id` int(11) NOT NULL AUTO_INCREMENT,
-									`person_name_last` varchar(255) NOT NULL,
-									`person_name_first` varchar(255) NOT NULL,
-									`person_title` varchar(255) NOT NULL,
-									`person_department_id` int(11) NOT NULL,
-									PRIMARY KEY (`person_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `group_exhibit_assignments` (
+  `group_exhibit_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `group_id` int(11) NOT NULL,
+  `exhibit_id` int(11) NOT NULL,
+  PRIMARY KEY (`group_exhibit_assignment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `person_role_assignment` (
-								  `person_role_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-								  `person_id` int(11) NOT NULL,
-								  `role_id` int(11) NOT NULL,
-								  `exhibit_id` int(11) NOT NULL,
-								  PRIMARY KEY (`person_role_assignment_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `people` (
+  `person_id` int(11) NOT NULL AUTO_INCREMENT,
+  `person_name_last` varchar(255) NOT NULL,
+  `person_name_first` varchar(255) NOT NULL,
+  `person_title` varchar(255) NOT NULL,
+  `person_department_id` int(11) NOT NULL,
+  PRIMARY KEY (`person_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `roles` (
-								  `role_id` int(11) NOT NULL AUTO_INCREMENT,
-								  `role_title` varchar(255) NOT NULL,
-								  PRIMARY KEY (`role_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `person_role_assignment` (
+  `person_role_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `person_id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  `exhibit_id` int(11) NOT NULL,
+  PRIMARY KEY (`person_role_assignment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-								CREATE TABLE IF NOT EXISTS `subjects` (
-								  `subject_id` int(11) NOT NULL AUTO_INCREMENT,
-								  `subject_title` varchar(255) NOT NULL,
-								  `subject_title_display` varchar(255) NOT NULL,
-								  `subject_date_start` datetime NOT NULL,
-								  `subject_date_end` datetime NOT NULL,
-								  `subject_geolocation` varchar(255) NOT NULL,
-								  PRIMARY KEY (`subject_id`)
-								) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
+CREATE TABLE IF NOT EXISTS `roles` (
+  `role_id` int(11) NOT NULL AUTO_INCREMENT,
+  `role_title` varchar(255) NOT NULL,
+  PRIMARY KEY (`role_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `subjects` (
+  `subject_id` int(11) NOT NULL AUTO_INCREMENT,
+  `subject_title` varchar(255) NOT NULL,
+  `subject_title_display` varchar(255) NOT NULL,
+  `subject_geolocation` varchar(255) NOT NULL,
+  PRIMARY KEY (`subject_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 
 
@@ -276,6 +284,7 @@ $config_version =				0.0002;
 $imree_assets_directory =                       "imree_assets/";
 $imree_directory =				"imree-php/";
 $imree_admin_directory =			"imree-php/curator/";
+$files_url =					 "'.$_POST['imree_absolute_path'].'file/";
 $ulogin_directory =				"imree-php/external_packages/ulogin";
 $swift_mailer_path =                            "imree-php/external_packages/swiftmailer/lib/swift_required.php";
 define("UL_DOMAIN",				"'.$_POST['root_domain'].'");
@@ -379,7 +388,7 @@ init();
 							$errors[] = "We could not create the imree admin account. You may need to rerun this setup script as there is no other way to create the admin account.";
 						}
 						
-						echo "<p>Configuration Complete. Please visit <a href='index.php'>your new IMREE</a></p>";
+						echo "<p>Configuration Complete. Please visit <a href='curator/index.php'>your new IMREE</a></p>";
 						
 					} else {
 						$errors[] = "Could not connect to database.";

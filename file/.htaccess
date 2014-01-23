@@ -1,0 +1,4 @@
+Options +FollowSymLinks
+
+RewriteEngine on
+RewriteRule ^(.*)[\?](.*)|^(.*) ../file.php?file_id=$3$1&$2
