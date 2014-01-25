@@ -2,6 +2,7 @@
 
 require_once '../../config.php';
 $page = new page("", "Assets");
+$string = "";
 
 if(logged_in()) {
     
@@ -25,7 +26,6 @@ if(logged_in()) {
 		$asset_file_options->data_table_user = "asset_data_user";
 		
     
-    
     $elements = array(
         new f_data_element('Asset Name','asset_name','text'),
 	   new f_data_element('Asset Type','asset_type','select',array('image'=>'image','video'=>'video','audio'=>'audio','text'=>'text')),
@@ -37,9 +37,13 @@ if(logged_in()) {
     );
     
     if(isset($_GET['row_id'])) {
-        $string = f_data($elements, db_connect(), "assets", "asset_id", $_GET['row_id']);
+        $conn = db_connect();
+        $string .= f_data($elements, $conn, "assets", "asset_id", $_GET['row_id']);
+        $string .= f_data_assignments_one2many($conn, "asset_event_assignments", "asset_id", "event_id", $_GET['row_id'], "events", "event_id", "event_name", "event_assignments");
+        $string .= f_data_assignments_one2many($conn, "asset_group_assignments", "asset_id", "group_id", $_GET['row_id'], "groups", "group_id", "group_name", "group_assignments");
+        $string .= f_data_assignments_one2many($conn, "asset_subject_assignments", "asset_id", "subject_id", $_GET['row_id'], "subjects", "subject_id", "subject_title", "subject_assignments");
     } else {
-        $string = f_data_list(db_connect(), "assets", "asset_id", "asset_name");
+        $string .= f_data_list(db_connect(), "assets", "asset_id", "asset_name");
         $string .= f_data($elements, db_connect(), "assets", "asset_id", false);
     }
     

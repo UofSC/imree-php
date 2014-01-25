@@ -4,9 +4,16 @@ $string = "";
 $page = new page("", "My IMREE");
 
 if(logged_in()) {
-    /**
-     * This page needs to hook into the page class instead of using the f_data functions.
-     */
+     if(isset($_POST['action']) AND $_POST['action'] === 'user_change_password') {
+        if(filter_input(INPUT_POST, 'new_password1') === filter_input(INPUT_POST, 'new_password2')) {
+            $ulogin = new uLogin();
+            $ulogin->SetPassword($_SESSION['uid'], filter_input(INPUT_POST,'new_password1'));
+            $page->add_message("Your password has been updated. You'll need it the next time you log in.");
+        } else {
+            $page->add_message("The passwords you enetered did not match.",'error');
+        }
+    }
+     
     $string .= "
     <form action='#' method='POST'>
         <fieldset><legend>Change Password</legend>

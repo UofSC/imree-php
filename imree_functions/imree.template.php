@@ -99,14 +99,14 @@ class page {
                     <li><a href='index.php'>Home</a></li>";
                    
                     if(isset($_SESSION['loggedIn']) AND $_SESSION['loggedIn'] === true) {
-				    $string .= "<li><a href='".$imree_curator_absolute_path."assets.php''>Assets</a></li>";
-				    $string .= "<li><a href='".$imree_curator_absolute_path."events.php''>Events</a></li>";
+			$string .= "<li><a href='".$imree_curator_absolute_path."assets.php''>Assets</a></li>";
+			$string .= "<li><a href='".$imree_curator_absolute_path."events.php''>Events</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."exhibits.php''>Exhibits</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."groups.php''>Groups</a></li>";
-				    $string .= "<li><a href='".$imree_curator_absolute_path."people.php''>People</a></li>";
-				    $string .= "<li><a href='".$imree_curator_absolute_path."subjects.php''>Subjects</a></li>";
+			$string .= "<li><a href='".$imree_curator_absolute_path."people.php''>People</a></li>";
+                        $string .= "<li><a href='".$imree_curator_absolute_path."roles.php''>Roles</a></li>";
+                        $string .= "<li><a href='".$imree_curator_absolute_path."subjects.php''>Subjects</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."myAccount.php''>My Account</a></li>";
-                        $string .= "<li><a href='".$imree_curator_absolute_path."users.php''>Users</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."logout.php' class='logout-link'>Logout</a></li>";
                         
                     } else {
@@ -202,45 +202,8 @@ class page {
                 }
                 break;
                 
-                
-            case "user_change_password": 
-                if(filter_input(INPUT_POST, 'new_password1') === filter_input(INPUT_POST, 'new_password2')) {
-                    if($_SESSION['loggedIn'] === true) {
-                        $ulogin = new uLogin();
-                        $ulogin->SetPassword($_SESSION['uid'], filter_input(INPUT_POST,'new_password1'));
-                        $this->add_message("Your password has been updated. You'll need it the next time you log in.");
-                    } else {
-                        $this->add_message("You must first <a href='#' class='login-link'>Log In</a>.",'error');
-                    }
-                } else {
-                    $this->add_message("The passwords you enetered did not match.",'error');
-                }
-                
-                
-                break;
-                
-            case "user_create": 
-                global $imree_curator_absolute_path;
-                $ulogin = new uLogin();
-                if(filter_input(INPUT_POST, 'new_username',FILTER_VALIDATE_EMAIL)) {
-                    $password = random_string(12);
-                    if($ulogin->CreateUser(filter_input(INPUT_POST, 'new_username'), $password)) {
-                        $this->add_message("New User ".filter_input(INPUT_POST, 'new_username')." added. $password");
-                        send_gmail(filter_input(INPUT_POST, "new_username"),
-                                "You have a new account on IMREE",
-                                "<p>You have been granted access to $imree_curator_absolute_path.</p>
-                                    You can login using your email address (".filter_input(INPUT_POST, 'new_username').") 
-                                    and this temporary password: $password</p>");
-                    } else {
-                        $this->add_message("Failed to create new user",'error');
-                    }
-                } else {
-                    $this->add_message("Failed to create new user. Invalid Email supplied.",'error');
-                }
-                break;
             default:
-                $this->add_message("We've encoutered an error. That request cannot be processed because it doesn't exist.",'error');
-                break;
+               break;
         }
     }
     
