@@ -2,6 +2,7 @@
 
 require_once '../../config.php';
 $page = new page("", "Group");
+$string = "";
 
 if(logged_in()) {
     
@@ -19,7 +20,11 @@ if(logged_in()) {
     );
     
     if(isset($_GET['row_id'])) {
-        $string = f_data($elements, db_connect(), "groups", "group_id", $_GET['row_id']);
+        $conn = db_connect();
+        $string .= f_data($elements, $conn, "groups", "group_id", $_GET['row_id'])." 
+            <fieldset><legend>Group->Asset Assignments</legend>
+            ".f_data_assignments_one2many($conn, "asset_group_assignments", "group_id", "asset_id", $_GET['row_id'], "assets", "asset_id", "asset_name", "asset_assignment_form")
+            ."</fieldset>";
     } else {
         $string = f_data_list(db_connect(), "groups", "group_id", "group_name");
         $string .= f_data($elements, db_connect(), "groups", "group_id", false);
