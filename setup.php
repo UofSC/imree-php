@@ -125,10 +125,14 @@ and open the template in the editor.
 				if(count($errors) === 0) {
 					if(isset($db) AND $db != null) {
 						require_once('shared_functions/functions.core.php');
-						$db->exec("
-								SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
-								SET time_zone = '+00:00';
+						$db->exec("DROP DATABASE IF EXISTS ulogin;");
+                                                $db->exec("DROP DATABASE IF EXISTS imree;");
+                                                $db->exec("
+SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO';
+SET time_zone = '+00:00';
 
+CREATE DATABASE imree; 
+USE imree;
 								
 CREATE TABLE IF NOT EXISTS `assets` (
   `asset_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -219,6 +223,7 @@ CREATE TABLE IF NOT EXISTS `people` (
   `person_name_first` varchar(255) NOT NULL,
   `person_title` varchar(255) NOT NULL,
   `person_department_id` int(11) NOT NULL,
+  `ul_user_id` int(11) NOT NULL,
   PRIMARY KEY (`person_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -246,7 +251,7 @@ CREATE TABLE IF NOT EXISTS `subjects` (
 
 
 
-								DROP DATABASE IF EXISTS ulogin;
+								
 								CREATE DATABASE ulogin; 
 								USE ulogin;
 								CREATE TABLE IF NOT EXISTS `ul_blocked_ips` (
@@ -423,17 +428,35 @@ init();
 						}
 						$d = dir("../");
 						set_include_path($d->path);
-						require_once("../config.php");
 						
-						$ulogin = new uLogin();
-						if($ulogin->CreateUser($_POST['imree_admin_user'], $_POST['imree_admin_pass'])) {
-							echo "<p class='success'>User ".$_POST['imree_admin_user']." created succesfully.";
-						} else {
-							$errors[] = "We could not create the imree admin account. You may need to rerun this setup script as there is no other way to create the admin account.";
-						}
+                                                
+                                                
+                                                require_once("../config.php");
+                                                $now = date_format(new DateTime(), UL_DATETIME_FORMAT);
+                                                $hashed_password = ulPassword::Hash($_POST['imree_admin_pass'], UL_PWD_FUNC);
+                                                
+                                                $db->exec("
+                                                    USE ulogin;
+                                                    INSERT INTO ul_logins SET 
+                                                        username=".$db->quote($_POST['imree_admin_user']).", 
+                                                        password=".$db->quote($hashed_password).", 
+                                                        date_created=".$db->quote($now).", 
+                                                        block_expires=".$db->quote($now).";");
+                                                $user_id = $db->lastInsertId();
+                                                if($user_id > 0) {
+                                                    echo "<p class='success'>User ".$_POST['imree_admin_user']." created succesfully.";
+                                                    $db->exec("
+                                                        USE imree;
+                                                        INSERT INTO imree.people SET person_name_last = 'Admin', person_name_first = 'IMREE', person_title = 'system admin', ul_user_id='".$user_id."';");
+                                                } else {
+                                                    print_r($db->errorInfo());
+                                                    echo "<p class='error'>The authentication system was unable to create an administrative user for you</p>";
+                                                }
 						
-						echo "<p class='success'>Configuration Complete. Please visit <a href='curator/index.php'>your new IMREE</a></p>";
-						
+                                                echo "<div class='success'><h2>Setup Complete</h2>
+                                                    <p>Visit your <a href='index.php'>imree homepage</a> or the <a href='curator/index.php'>curator site</a>?
+                                                    </div>";
+                                                
 					} else {
 						$errors[] = "Could not connect to database.";
 					}

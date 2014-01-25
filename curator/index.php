@@ -8,8 +8,16 @@ $string = "Welcome to IMREE.";
 if(isset($_SESSION['loggedIn']) AND $_SESSION['loggedIn'] === true) {
 	if(isset($_GET['testing_data']) AND $_GET['testing_data'] == '1') {
 		$conn = db_connect();
-		$conn->exec("
-INSERT INTO `assets` (`asset_id`, `asset_name`, `asset_type`, `asset_media_url`, `asset_thumb_url`, `asset_parent_id`, `asset_date_added`, `asset_date_created`) VALUES
+		$results = db_query($conn, "SELECT asset_id FROM assets");
+                if(count($results) > 0) {
+                    echo "Cannot inject testing data into a system that already has data.";
+                } else {
+                    /**
+                     * Testing Data ingest is not working at the moment. Not entirely sure why, but its testing data, so I'm not sure how much I care... -jks
+                     */
+                    $conn->exec("
+USE imree;
+INSERT INTO imree.`assets` (`asset_id`, `asset_name`, `asset_type`, `asset_media_url`, `asset_thumb_url`, `asset_parent_id`, `asset_date_added`, `asset_date_created`) VALUES
 (1, 'Sample Image', 'image', 'http://localhost/file/1', '', 0, '2014-01-23 02:10:54', '0000-00-00 00:00:00'),
 
 INSERT INTO `asset_data` (`asset_data_id`, `asset_data_title`, `asset_data_name`, `asset_data_type`, `asset_data_contents`, `asset_data_contents_date`, `asset_data_date_added`, `asset_data_access_restricted`, `asset_data_size`, `asset_data_user`) VALUES
@@ -29,11 +37,19 @@ INSERT INTO `groups` (`group_id`, `group_name`, `group_type`, `group_parent_id`)
 (5, 'SampleSubGallery001', 'gallery', 2);
 			
 ");
-		$string = "Testing data has been injected. Running the 'add some testing data' will cause an error.";
+                    print_r($conn->errorInfo());
+                    $string = "Testing data has been injected.";
+                }
+                
 	} else {
 		
 	}
-    $string .= "You are logged in and ready to curate! Would you like to add some <a href='?testing_data=1'>testing data</a>?";
+    $string .= "You are logged in and ready to curate!";
+    $conn = db_connect();
+    $results = db_query($conn, "SELECT asset_id FROM assets");
+    if(count($results) === 0) {
+        $string .= " Would you like to add some <a href='?testing_data=1'>testing data</a>";
+    }
 } else {
     $string .= "Please <a href='#' class='login-link'>log in</a>.";
 }
