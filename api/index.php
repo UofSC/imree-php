@@ -16,13 +16,15 @@ echo "<?xml version='1.0' encoding='UTF-8' ?>";
 
 
 function children($results) {
-    foreach($results as $item) {
-        echo "<item>";
+    $string = "";
+	foreach($results as $item) {
+        $string .= "<item>";
         foreach($item as $key=>$val) {
-            echo "<".  htmlspecialchars($key).">".htmlspecialchars($val)."</".htmlspecialchars($key).">";
+            $string .= "<".  htmlspecialchars($key).">".htmlspecialchars($val)."</".htmlspecialchars($key).">";
         }
-        echo "</item>";
+        $string .= "</item>";
     }
+    return $string;
 }
 
 $command = isset($_POST["command"]) ? filter_input(INPUT_POST, "command") : filter_input(INPUT_GET, "command");
