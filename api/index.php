@@ -65,7 +65,7 @@ if($command) {
         }
     } else if($command === "signage_items") {
         $results = db_query($conn, "
-            SELECT * FROM signage_feed_id
+            SELECT * FROM signage_feeds
             LEFT JOIN signage_feed_device_assignments USING (signage_device_id)
             LEFT JOIN signage_feeds USING (signage_feed_id)
             WHERE signage_feed_id.signage_device_IP = ".db_escape($_SERVER['REMOTE_ADDR']));
