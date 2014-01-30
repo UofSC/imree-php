@@ -27,6 +27,11 @@ function children($results) {
     return $string;
 }
 
+function DS_chirp($ip) {
+	global $conn;
+	db_exec($conn, "UPDATE signage_devices SET signage_device_last_chirp = '".date("Y-m-d H:i:s")."' WHERE signage_device_IP = ".  db_escape($ip));
+}
+
 $command = isset($_POST["command"]) ? filter_input(INPUT_POST, "command") : filter_input(INPUT_GET, "command");
 $command_parameter = isset($_POST["command_parameter"]) ? filter_input(INPUT_POST, "command_parameter") : filter_input(INPUT_GET, "command_parameter");
 if($command) {
@@ -62,15 +67,18 @@ if($command) {
         error_log(print_r($results, 1));
         if(count($results) > 0 ) {
             echo "<response><success>true</success>\n<result>\n<signage_mode>signage</signage_mode>\n</result></response>";
+		  DS_chirp($ip);
         } else {
             echo "<response><success>true</success>\n<result>\n<signage_mode>imree</signage_mode>\n</result></response>";
         }
     } else if($command === "signage_items") {
-        $results = db_query($conn, "
+	    $ip = $_SERVER['REMOTE_ADDR'];
+	    DS_chirp($ip);
+	    $results = db_query($conn, "
              SELECT * FROM signage_devices
             LEFT JOIN signage_feed_device_assignments USING (signage_device_id)
             LEFT JOIN signage_feeds USING (signage_feed_id)
-            WHERE signage_devices.signage_device_IP = ".db_escape($_SERVER['REMOTE_ADDR']));
+            WHERE signage_devices.signage_device_IP = ".db_escape($ip));
         echo "<response><success>true</success>\n<result>".children($results)."</result></response>";
     } else {
         die("That command does not exist");
