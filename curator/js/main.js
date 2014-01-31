@@ -18,4 +18,8 @@ $(document).ready(function() {
         });
         $('#login_form').removeClass('hidden');
     });
+	
+	//entry point
+	$('navigation ul').menu();
+	
 });

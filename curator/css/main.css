@@ -80,6 +80,7 @@ label {
     margin-top:.2em;
     padding-top: .2em;
     font-size:.9em;
+	background-color:#C66;
     
 }
  input {
@@ -91,7 +92,22 @@ input[type="checkbox"] {
     height:1.2em;  
 }
 
-
+/* Clearfix for the menu */
+.ui-menu:after {
+    content: ".";
+    display: block;
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+}
+.ui-menu .ui-menu-item {
+    display: inline-block;
+    float: left;
+    margin: 0;
+    padding: 0;
+    width: auto;
+}
 
 
 
