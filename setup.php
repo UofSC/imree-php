@@ -249,8 +249,35 @@ CREATE TABLE IF NOT EXISTS `subjects` (
   PRIMARY KEY (`subject_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `signage_devices` (
+  `signage_device_id` int(11) NOT NULL AUTO_INCREMENT,
+  `signage_device_name` varchar(255) NOT NULL,
+  `signage_device_IP` varchar(255) NOT NULL,
+  `signage_device_last_chirp` datetime NOT NULL,
+  `signage_device_location_id` int(11) NOT NULL,
+  PRIMARY KEY (`signage_device_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `signage_feeds` (
+  `signage_feed_id` int(11) NOT NULL AUTO_INCREMENT,
+  `signage_feed_name` varchar(255) NOT NULL,
+  `signage_feed_url` varchar(255) NOT NULL,
+  `signage_feed_node_item` varchar(255) NOT NULL,
+  `signage_feed_node_headline` varchar(255) NOT NULL,
+  `signage_feed_node_img` varchar(255) NOT NULL,
+  `signage_feed_node_desc` varchar(255) NOT NULL,
+  `signage_feed_node_location` varchar(255) NOT NULL,
+  `signage_feed_node_datetime` varchar(255) NOT NULL,
+  `signage_feed_priority` enum('1','2','3','4','5') NOT NULL DEFAULT '5',
+  PRIMARY KEY (`signage_feed_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `signage_feed_device_assignments` (
+  `signage_feed_device_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
+  `signage_device_id` int(11) NOT NULL,
+  `signage_feed_id` int(11) NOT NULL,
+  PRIMARY KEY (`signage_feed_device_assignment_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 								
 								CREATE DATABASE ulogin; 
 								USE ulogin;
