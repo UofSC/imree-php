@@ -103,6 +103,7 @@ class page {
 			$string .= "<li><a href='".$imree_curator_absolute_path."events.php''>Events</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."exhibits.php''>Exhibits</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."groups.php''>Groups</a></li>";
+                        $string .= "<li><a href='".$imree_curator_absolute_path."metadata.php''>Metadata</a></li>";
 			$string .= "<li><a href='".$imree_curator_absolute_path."people.php''>People</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."roles.php''>Roles</a></li>";
                         $string .= "<li><a href='".$imree_curator_absolute_path."subjects.php''>Subjects</a></li>";

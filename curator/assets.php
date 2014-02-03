@@ -24,10 +24,10 @@ if(logged_in()) {
 		$asset_file_options->data_table_type = "asset_data_type";
 		$asset_file_options->data_table_updated = "asset_data_contents_date";
 		$asset_file_options->data_table_user = "asset_data_user";
-		
+                
     
     $elements = array(
-        new f_data_element('Asset Name','asset_name','text'),
+           new f_data_element('Asset Name','asset_name','text'),
 	   new f_data_element('Asset Type','asset_type','select',array('image'=>'image','video'=>'video','audio'=>'audio','text'=>'text')),
 	   new f_data_element('Asset URL','asset_media_url','file','','0','',$asset_file_options),
 	   new f_data_element('Asset Thumb URL','asset_thumb_url','text'),
@@ -38,16 +38,25 @@ if(logged_in()) {
     
     if(isset($_GET['row_id'])) {
         $conn = db_connect();
+        
         $string .= f_data($elements, $conn, "assets", "asset_id", $_GET['row_id']);
+        
         $string .= "<fieldset><legend>Event Assignments</legend>";
-	   $string .= f_data_assignments_one2many($conn, "asset_event_assignments", "asset_id", "event_id", $_GET['row_id'], "events", "event_id", "event_name", "event_assignments");
+	$string .= f_data_assignments_one2many($conn, "asset_event_assignments", "asset_id", "event_id", $_GET['row_id'], "events", "event_id", "event_name", "event_assignments");
         $string .= "</fieldset>
-		   <fieldset><legend>Group Assignements</legend>";
-	   $string .= f_data_assignments_one2many($conn, "asset_group_assignments", "asset_id", "group_id", $_GET['row_id'], "groups", "group_id", "group_name", "group_assignments");
+            
+		   <fieldset><legend>Group Assignments</legend>";
+	$string .= f_data_assignments_one2many($conn, "asset_group_assignments", "asset_id", "group_id", $_GET['row_id'], "groups", "group_id", "group_name", "group_assignments");
         $string .= "</fieldset>
-		   <fieldset><legend>Subject Assignements</legend>";
-	   $string .= f_data_assignments_one2many($conn, "asset_subject_assignments", "asset_id", "subject_id", $_GET['row_id'], "subjects", "subject_id", "subject_title", "subject_assignments");
-	   $string .= "</fieldset>";
+            
+		   <fieldset><legend>Subject Assignments</legend>";
+	$string .= f_data_assignments_one2many($conn, "asset_subject_assignments", "asset_id", "subject_id", $_GET['row_id'], "subjects", "subject_id", "subject_title", "subject_assignments");
+	$string .= "</fieldset>
+        
+                    <fieldset><legend>Metadata Assignments</legend>";
+	$string .= f_data_assignments_one2many($conn, "asset_metadata_assignments", "asset_id", "metadata_id", $_GET['row_id'], "metadata", "metadata_id", "metadata_type", "metadata_assignments");
+	$string .= "</fieldset>";
+        
     } else {
         $string .= f_data_list(db_connect(), "assets", "asset_id", "asset_name");
         $string .= f_data($elements, db_connect(), "assets", "asset_id", false);
