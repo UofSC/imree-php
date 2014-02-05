@@ -13,21 +13,47 @@
 #$results = array();
         
 #NOTE TO SELF: Get DB stuff working again locally
-// put your code here
-        
-//0. Function Display Form
-echo "<form action='razuna_ingest.php' method='get'>";
-echo "<p>Your name: <input type='text' name='name' /></p>";
-echo "<p>Your age: <input type='text' name='age' /></p>";
-echo "<p><input type='submit' /></p>";
-echo "</form>";
+#IN THE MEAN TIME USE THE CODE BELOW
+#
+require_once('/../shared_functions/functions.api.php');
+require_once('/../shared_functions/functions.core.php');
+require_once('/../shared_functions/functions.db.php');
+#require_once('/../shared_functions/functions.catalog.php');
+require_once('/../shared_functions/functions.form.php');
 
+// put your code here
+ global $search;       
+//0. Function Display Form
+
+    if(form_submitted())
+    {//form has been submitted perform the appropriate checks 
+    
+        
+    } 
+     else 
+    {//form has not been submitted
+      //Create an option to show an advanced search
+        if ($search == "ADV") //not sure if I will implement advanced and simple search ... talk to JSON about this
+        {
+
+        }
+        else 
+        //Default show the user the simple search
+        {
+
+        }
+    }
+    
+    
 //1.Function Search Razuna
 
 //2.Function Display Results
 
 //3.Function Submit Selected info to IMREE DB
 
+    //Check the DB to see if the records exist if not add them
+
+    //return success or any errors
 
 ?>
     
