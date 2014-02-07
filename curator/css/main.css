@@ -110,7 +110,13 @@ input[type="checkbox"] {
 }
 
 
-
+#header {
+	background-image: url(http://imree.tcl.sc.edu/imree-php/curator/image/generic_logo.gif);
+	background-repeat: no-repeat;
+	height: 208px;
+	padding-left: 208px;
+	font-size: 3.5em;
+}
 
 
 
