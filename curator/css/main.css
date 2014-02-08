@@ -7,7 +7,7 @@ button,
 input,
 select,
 textarea {
-    color: #222;
+    color: #ffffff;
 }
 
 body {
@@ -74,14 +74,15 @@ textarea {
 
 
 label {
-    width:10em;
-    display:block;
-    float:left;
-    margin-top:.2em;
-    padding-top: .2em;
-    font-size:.9em;
-	background-color:#C66;
-    
+	width: 10em;
+	display: block;
+	float: left;
+	margin-top: 0.2em;
+	padding-top: 0.2em;
+	font-size: 0.9em;
+	background-color: #082d3e
+	
+	;	
 }
  input {
     margin:.2em;
@@ -100,6 +101,8 @@ input[type="checkbox"] {
     visibility: hidden;
     line-height: 0;
     height: 0;
+	
+	
 }
 .ui-menu .ui-menu-item {
     display: inline-block;
@@ -107,6 +110,7 @@ input[type="checkbox"] {
     margin: 0;
     padding: 0;
     width: auto;
+	
 }
 
 
@@ -114,7 +118,13 @@ input[type="checkbox"] {
 	background-image: url(http://imree.tcl.sc.edu/imree-php/curator/image/generic_logo.gif);
 	background-repeat: no-repeat;
 	height: 208px;
-	padding-left: 208px;
+	padding-left: 350px;
+	padding-top: 50px;
+    border: 1px solid #666;
+	
+	
+	
+	
 	font-size: 3.5em;
 }
 
@@ -144,7 +154,7 @@ input[type="checkbox"] {
    ========================================================================== */
 
 .ir {
-    background-color: transparent;
+
     border: 0;
     overflow: hidden;
     *text-indent: -9999px;
