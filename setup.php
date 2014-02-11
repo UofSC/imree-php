@@ -394,6 +394,7 @@ require_once("imree-php/imree_functions/imree.core.php");
 require_once("imree-php/imree_functions/imree.children.php");
 require_once("imree-php/imree_functions/imree.group.php");
 require_once("imree-php/imree_functions/imree.template.php");
+require_once("imree-php/external_packages/Deepzoom/ImageCreator.php");
 
 define("UL_SITE_KEY", "'.random_string(64).'");
 define("UL_PDO_CON_STRING", $cfg_db_type . ":host=" . $cfg_db_host . ";dbname=ulogin");

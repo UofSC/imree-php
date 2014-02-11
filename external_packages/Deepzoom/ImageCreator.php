@@ -35,8 +35,8 @@
 /**
  * @see Thumbnail
  */
-require 'Oz/Deepzoom/thumbnail.inc.php';
-require 'Oz/Deepzoom/Descriptor.php';
+require 'thumbnail.inc.php';
+require 'Descriptor.php';
 
 /**
  * Creates Deep Zoom images
