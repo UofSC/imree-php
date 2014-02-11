@@ -278,6 +278,20 @@ CREATE TABLE IF NOT EXISTS `signage_feed_device_assignments` (
   `signage_feed_id` int(11) NOT NULL,
   PRIMARY KEY (`signage_feed_device_assignment_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `asset_metadata_assignments` (
+  `asset_metadata_assignments_id` int(11) NOT NULL AUTO_INCREMENT,
+  `asset_id` int(11) NOT NULL,
+  `metadata_id` int(11) NOT NULL,
+  PRIMARY KEY (`asset_metadata_assignments_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `metadata` (
+  `metadata_id` int(11) NOT NULL AUTO_INCREMENT,
+  `metadata_type` varchar(255) NOT NULL,
+  `metadata_value` text NOT NULL,
+  PRIMARY KEY (`metadata_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 								
 								CREATE DATABASE ulogin; 
 								USE ulogin;
