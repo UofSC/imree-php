@@ -290,8 +290,9 @@ CREATE TABLE IF NOT EXISTS `metadata` (
   `metadata_id` int(11) NOT NULL AUTO_INCREMENT,
   `metadata_type` varchar(255) NOT NULL,
   `metadata_value` text NOT NULL,
-  PRIMARY KEY (`metadata_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+  PRIMARY KEY (`metadata_id`),
+  FULLTEXT KEY `metadata_value` (`metadata_value`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 								
 								CREATE DATABASE ulogin; 
 								USE ulogin;
