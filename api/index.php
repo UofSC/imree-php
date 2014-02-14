@@ -59,8 +59,12 @@ if($command) {
                 echo "<response><success>false</success></response>";
             }
         }
+        
+        
     } else if($command === "item") {
         die("The item command doesn't exist yet. sry - management");
+        
+        
     } else if($command === "signage_mode") {
         $ip = $_SERVER['REMOTE_ADDR'];
         $results = db_query($conn, "SELECT * FROM signage_devices WHERE signage_device_ip = ".db_escape($ip));
@@ -71,15 +75,35 @@ if($command) {
         } else {
             echo "<response><success>true</success>\n<result>\n<signage_mode>imree</signage_mode>\n</result></response>";
         }
+        
+        
     } else if($command === "signage_items") {
-	    $ip = $_SERVER['REMOTE_ADDR'];
-	    DS_chirp($ip);
-	    $results = db_query($conn, "
-             SELECT * FROM signage_devices
-            LEFT JOIN signage_feed_device_assignments USING (signage_device_id)
-            LEFT JOIN signage_feeds USING (signage_feed_id)
-            WHERE signage_devices.signage_device_IP = ".db_escape($ip));
+        $ip = $_SERVER['REMOTE_ADDR'];
+        DS_chirp($ip);
+        $results = db_query($conn, "
+         SELECT * FROM signage_devices
+        LEFT JOIN signage_feed_device_assignments USING (signage_device_id)
+        LEFT JOIN signage_feeds USING (signage_feed_id)
+        WHERE signage_devices.signage_device_IP = ".db_escape($ip));
         echo "<response><success>true</success>\n<result>".children($results)."</result></response>";
+    } else if($command === "search") {
+        if(!$command_parameter) {
+             $errors[] = "command_parameter not set. The command parameter must be set to the desired search query.";
+        } else {
+            //@todo: call contentDM and razuna search items once those gizmos are written
+             $results = db_query($conn, "SELECT assets.* FROM assets
+                LEFT JOIN asset_metadata_assignments USING (asset_id)
+                LEFT JOIN metadata USING (metadata_id)
+                WHERE MATCH(metadata.metadata_value) AGAINST (".db_escape($command_parameter).")
+                GROUP BY assets.asset_id"
+             );
+              echo "<response><success>true</success><result>
+              <children>
+                        ".children($results)." 
+              </children></result></response>";
+        }
+        
+        
     } else {
         die("That command does not exist");
     }
