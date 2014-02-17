@@ -104,7 +104,7 @@ if($command) {
         }
     
     } else if($command = "exhibits") {
-	    $results = db_query($conn, "SELECT * FROM exibits");
+	    $results = db_query($conn, "SELECT * FROM exhibits");
 	    echo "<response><success>true</success>\n<result>".children($results)."</result></response>";
         
     } else {
