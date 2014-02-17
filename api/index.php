@@ -102,7 +102,10 @@ if($command) {
                         ".children($results)." 
               </children></result></response>";
         }
-        
+    
+    } else if($command = "exhibits") {
+	    $results = db_query($conn, "SELECT * FROM exibits");
+	    echo "<response><success>true</success>\n<result>".children($results)."</result></response>";
         
     } else {
         die("That command does not exist");
