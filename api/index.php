@@ -103,9 +103,16 @@ if($command) {
               </children></result></response>";
         }
     
-    } else if($command = "exhibits") {
+    } else if($command === "exhibits") {
 	    $results = db_query($conn, "SELECT * FROM exhibits");
 	    echo "<response><success>true</success>\n<result>".children($results)."</result></response>";
+        
+    } else if($command === "login") {
+	    $values = json_decode($command_parameter);
+	    $ulogin = new uLogin();
+	    
+	    $ulogin->Authenticate($values->username, $values->password);
+	    $str .= "<response><success>true</success>\n<result>".($ulogin->AuthResult ? $ulogin->AuthResult : 'false')."</result></response>";
         
     } else {
         die("That command does not exist");
