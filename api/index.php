@@ -27,6 +27,17 @@ function children($results) {
     return $string;
 }
 
+function quick_auth() {
+	global $username, $password, $str;
+	$ulogin = new uLogin();
+	$ulogin->Authenticate($username, $password);
+	if($ulogin->AuthResult) {
+		return true;
+	} else {
+		$str .= "<response><success>fail</success><error>auth_fail</error></response>";
+	}
+}
+
 function DS_chirp($ip) {
 	global $conn;
 	db_exec($conn, "UPDATE signage_devices SET signage_device_last_chirp = '".date("Y-m-d H:i:s")."' WHERE signage_device_IP = ".  db_escape($ip));
@@ -34,6 +45,9 @@ function DS_chirp($ip) {
 
 $command = isset($_POST["command"]) ? filter_input(INPUT_POST, "command") : filter_input(INPUT_GET, "command");
 $command_parameter = isset($_POST["command_parameter"]) ? filter_input(INPUT_POST, "command_parameter") : filter_input(INPUT_GET, "command_parameter");
+$username = filter_input(INPUT_POST, "username");
+$password = filter_input(INPUT_POST, "password");
+
 if($command) {
     if($command === "group") {
         if(!$command_parameter) {
@@ -68,7 +82,6 @@ if($command) {
     } else if($command === "signage_mode") {
         $ip = $_SERVER['REMOTE_ADDR'];
         $results = db_query($conn, "SELECT * FROM signage_devices WHERE signage_device_ip = ".db_escape($ip));
-        error_log(print_r($results, 1));
         if(count($results) > 0 ) {
             $str .= "<response><success>true</success>\n<result>\n<signage_mode>signage</signage_mode>\n</result></response>";
 		  DS_chirp($ip);
@@ -114,6 +127,22 @@ if($command) {
 	    $ulogin->Authenticate($values->username, $values->password);
 	    $str .= "<response><success>true</success>\n<result>".($ulogin->AuthResult ? $ulogin->AuthResult : 'false')."</result></response>";
         
+    } else if($command === "query") {
+	    if(quick_auth()) {
+		    $str .= "<response><success>true</success>\n";
+		    $values = json_decode($command_parameter);
+		    $columns = "";
+		    if(!$values->columns) {
+			    foreach($values->columns as $column) {
+				    $columns .= $column . ", ";
+			    }
+			    $columns = substr($columns, 0, -2);
+		    } else {
+			    $columns = "*";
+		    }
+		    $results = db_query($conn, "SELECT $columns FROM ".$values->table." WHERE ".$values->table_key_column_name." = ".db_escape($values->row_id));
+		    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+	    }
     } else {
         die("That command does not exist");
     }
