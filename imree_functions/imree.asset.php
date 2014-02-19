@@ -49,3 +49,8 @@ class imree_asset {
     }
     
 }
+
+
+function asset_add($title, $name, $data_type, $data_contents, $size=0) {
+    
+}
