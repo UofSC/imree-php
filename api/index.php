@@ -129,7 +129,6 @@ if($command) {
         
     } else if($command === "query") {
 	    if(quick_auth()) {
-		    $str .= "<response><success>true</success>\n";
 		    $values = json_decode($command_parameter);
 		    $columns = "";
 		    if(!$values->columns) {
