@@ -12,8 +12,8 @@ require_once('../../config.php');
  * make search url
  *      creates a url for traversing contentDM
  * @param type $alias
- * @param type $search_string - /word^word^word/
- * @param type $fields - field!otherField
+ * @param type $search_string - Use spaces in between strings
+ * @param type $fields - Use spaces in between fields
  * @param type $sort - sort field
  * @param type $max_recs - number of records returned
  * @param type $start_num 
@@ -57,17 +57,35 @@ if(logged_in()) {
     $search_limit = Array("img" => "image only", "vid" => "video only","doc" => "document only","aud" => "audio only");
     
     //Testing code
-    $url = make_search_url("seeger", "all", "pointer", "title", 5);
+    $url = make_search_url("all", "img", "find", "collection", 50);
     var_dump($url);
     
     $accessURL = fopen($url, "r");
     var_dump($accessURL);
     
+    
     while(!(feof($accessURL)))
     {
-        $results .= fgets($accessURL, 9999);
+        $pointer = fgets($accessURL, 9999);
         
-    }
+        if(strpos($pointer, 'find'))
+        {
+            /* Need to change this to remove all
+             * abc's and special characters
+             * after storing file extension 
+             * make one line
+             */
+            $pointer = str_replace("<", "" , $pointer);
+            $pointer = str_replace(">", "" , $pointer);
+            $pointer = str_replace("find", "" , $pointer);
+            $pointer = str_replace("/", "" , $pointer);
+            $pointer = str_replace("![CDATA[", "" , $pointer);
+            $pointer = trim($pointer);
+            
+            $results .= $pointer; 
+        }
+    } 
+    
     var_dump($results);
     
 //cleanup stuff     
