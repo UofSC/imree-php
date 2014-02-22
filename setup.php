@@ -278,6 +278,21 @@ CREATE TABLE IF NOT EXISTS `signage_feed_device_assignments` (
   `signage_feed_id` int(11) NOT NULL,
   PRIMARY KEY (`signage_feed_device_assignment_id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `asset_metadata_assignments` (
+  `asset_metadata_assignments_id` int(11) NOT NULL AUTO_INCREMENT,
+  `asset_id` int(11) NOT NULL,
+  `metadata_id` int(11) NOT NULL,
+  PRIMARY KEY (`asset_metadata_assignments_id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `metadata` (
+  `metadata_id` int(11) NOT NULL AUTO_INCREMENT,
+  `metadata_type` varchar(255) NOT NULL,
+  `metadata_value` text NOT NULL,
+  PRIMARY KEY (`metadata_id`),
+  FULLTEXT KEY `metadata_value` (`metadata_value`)
+) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
 								
 								CREATE DATABASE ulogin; 
 								USE ulogin;
@@ -394,6 +409,7 @@ require_once("imree-php/imree_functions/imree.core.php");
 require_once("imree-php/imree_functions/imree.children.php");
 require_once("imree-php/imree_functions/imree.group.php");
 require_once("imree-php/imree_functions/imree.template.php");
+require_once("imree-php/external_packages/Deepzoom/ImageCreator.php");
 
 define("UL_SITE_KEY", "'.random_string(64).'");
 define("UL_PDO_CON_STRING", $cfg_db_type . ":host=" . $cfg_db_host . ";dbname=ulogin");

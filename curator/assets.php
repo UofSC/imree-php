@@ -57,6 +57,15 @@ if(logged_in()) {
 	$string .= f_data_assignments_one2many($conn, "asset_metadata_assignments", "asset_id", "metadata_id", $_GET['row_id'], "metadata", "metadata_id", "metadata_type", "metadata_assignments");
 	$string .= "</fieldset>";
         
+        
+        if(isset($_GET['make_openzoom']) AND $_GET['make_openzoom'] === "true") {
+            $img = new Oz_Deepzoom_ImageCreator();
+            $img->create("/var/www/media/openzoomtest/fair.jpg", "/var/www/media/openzoomtest/fair/description.xml");
+        }
+        $string .= "<fieldset><legend>Openzoom Tester</legend>
+            <a href='?row_id=".$_GET['row_id']."&make_openzoom=true'>Make Openzoomable image</a>
+            </fieldset>";
+        
     } else {
         $string .= f_data_list(db_connect(), "assets", "asset_id", "asset_name");
         $string .= f_data($elements, db_connect(), "assets", "asset_id", false);

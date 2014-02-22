@@ -35,7 +35,7 @@
 /**
  * @see Oz_Deezoom_Exception
  */
-require 'Oz/Deepzoom/Exception.php';
+require 'Exception.php';
 /**
  *
  * 
