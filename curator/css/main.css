@@ -38,11 +38,13 @@ img {
     vertical-align: middle;
 }
 
-Boo, we like borders and things.
+
 fieldset {
-    border: 0;
-    margin: 0;
-    padding: 0;
+    border: 10;
+    margin: 10;
+    padding: 10;
+
+	
 }
 */
 
@@ -210,6 +212,14 @@ input[type="checkbox"] {
 }
 
 /* Remove underline from links*/
+
+
+a.nounderline:link  
+{  
+ text-decoration:none;  
+}  
+
+
 /* ==========================================================================
    Print styles
    ========================================================================== */
@@ -221,6 +231,15 @@ input[type="checkbox"] {
         box-shadow: none !important;
         text-shadow: none !important;
     }
+	
+	a {
+                display:block;
+                width:150px;
+                float:left;
+                margin:auto
+				padding: inherit;
+				
+}
 
     a,
     a:visited {
