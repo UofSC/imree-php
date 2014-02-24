@@ -38,7 +38,6 @@ img {
     vertical-align: middle;
 }
 
-/**
 Boo, we like borders and things.
 fieldset {
     border: 0;
@@ -210,6 +209,7 @@ input[type="checkbox"] {
     *zoom: 1;
 }
 
+/* Remove underline from links*/
 /* ==========================================================================
    Print styles
    ========================================================================== */
