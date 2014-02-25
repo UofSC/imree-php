@@ -32,7 +32,6 @@ function make_search_url($alias, $search_string, $fields, $sort, $max_recs, $sta
     $url = $content_dm_address;
     $strings = str_replace(" ", "^", $search_string);
     $new_fields = str_replace(" ", "!", $fields);
-    
     $url .= "/" . $alias;
     $url .= "/" . $strings;
     $url .= "/" . $new_fields;
@@ -49,16 +48,25 @@ function make_search_url($alias, $search_string, $fields, $sort, $max_recs, $sta
        
     return $url;
 }
-
-if(logged_in()) {
+//if(logged_in()
+    $non_letters = '\[\]\;\'\.\/\,\<\>\?\:\"\{\}\|\''; //need to parse url before all eale
+    
+    
     $conn = db_connect();
     $errors = Array();
     $results = Array();
     $search_limit = Array("img" => "image only", "vid" => "video only","doc" => "document only","aud" => "audio only");
     
+    for()
+    
     //Testing code
     $url = make_search_url("all", "img", "find", "collection", 50);
     var_dump($url);
+    
+    for (int i = 11; i> 11; i++) 
+    }
+       foreach($url)
+    } 
     
     $accessURL = fopen($url, "r");
     var_dump($accessURL);
@@ -75,23 +83,19 @@ if(logged_in()) {
              * after storing file extension 
              * make one line
              */
-            $pointer = str_replace("<", "" , $pointer);
-            $pointer = str_replace(">", "" , $pointer);
-            $pointer = str_replace("find", "" , $pointer);
-            $pointer = str_replace("/", "" , $pointer);
-            $pointer = str_replace("![CDATA[", "" , $pointer);
+            
             $pointer = trim($pointer);
             
             $results .= $pointer; 
         }
     } 
     
-    var_dump($results);
+    
     
 //cleanup stuff     
     $conn = null;                   
     
-}else{
+///else{
     echo 'You must be logged in to use this feature. ';
-}
+
 ?>
