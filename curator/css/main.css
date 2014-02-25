@@ -47,7 +47,7 @@ fieldset {
 
 	
 }
-*/
+
 
 textarea {
     resize: vertical;
@@ -238,7 +238,7 @@ a.nounderline:link
                 display:block;
                 width:150px;
                 float:left;
-                margin:auto
+                margin:auto;
 				padding: inherit;
 				
 }
@@ -284,23 +284,6 @@ a.nounderline:link
         max-width: 100% !important;
     }
 
-    @page {
-        margin: 0.5cm;
-    }
+   
 
-    p,
-    h2,
-    h3 {
-        orphans: 3;
-        widows: 3;
-    }
-
-    h2,
-    h3 {
-        page-break-after: avoid;
-    }
 	
-	{ a: display:block
-	width:150px
-	float:left }
-}
