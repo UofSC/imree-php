@@ -127,6 +127,14 @@ if($command) {
 	    $ulogin->Authenticate($values->username, $values->password);
 	    $str .= "<response><success>true</success>\n<result>".($ulogin->AuthResult ? $ulogin->AuthResult : 'false')."</result></response>";
         
+    } else if($command === "user_rights") {
+	    if(quick_aut()) {
+		    $str .= "<response><success>true</success>\n
+			    <result>
+				   <item><right>system_admin</right></item>
+			    </result>
+			 </response>";
+		} 
     } else if($command === "query") {
 	    if(quick_auth()) {
 		    $values = json_decode($command_parameter);
