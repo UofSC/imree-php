@@ -12,8 +12,8 @@ require_once('../../config.php');
  * make search url
  *      creates a url for traversing contentDM
  * @param type $alias
- * @param type $search_string - /word^word^word/
- * @param type $fields - field!otherField
+ * @param type $search_string - Use spaces in between strings
+ * @param type $fields - Use spaces in between fields
  * @param type $sort - sort field
  * @param type $max_recs - number of records returned
  * @param type $start_num 
@@ -32,7 +32,6 @@ function make_search_url($alias, $search_string, $fields, $sort, $max_recs, $sta
     $url = $content_dm_address;
     $strings = str_replace(" ", "^", $search_string);
     $new_fields = str_replace(" ", "!", $fields);
-    
     $url .= "/" . $alias;
     $url .= "/" . $strings;
     $url .= "/" . $new_fields;
@@ -49,31 +48,54 @@ function make_search_url($alias, $search_string, $fields, $sort, $max_recs, $sta
        
     return $url;
 }
-
-if(logged_in()) {
+//if(logged_in()
+    $non_letters = '\[\]\;\'\.\/\,\<\>\?\:\"\{\}\|\''; //need to parse url before all eale
+    
+    
     $conn = db_connect();
     $errors = Array();
     $results = Array();
     $search_limit = Array("img" => "image only", "vid" => "video only","doc" => "document only","aud" => "audio only");
     
+    for()
+    
     //Testing code
-    $url = make_search_url("seeger", "all", "pointer", "title", 5);
+    $url = make_search_url("all", "img", "find", "collection", 50);
     var_dump($url);
+    
+    for (int i = 11; i> 11; i++) 
+    }
+       foreach($url)
+    } 
     
     $accessURL = fopen($url, "r");
     var_dump($accessURL);
     
+    
     while(!(feof($accessURL)))
     {
-        $results .= fgets($accessURL, 9999);
+        $pointer = fgets($accessURL, 9999);
         
-    }
-    var_dump($results);
+        if(strpos($pointer, 'find'))
+        {
+            /* Need to change this to remove all
+             * abc's and special characters
+             * after storing file extension 
+             * make one line
+             */
+            
+            $pointer = trim($pointer);
+            
+            $results .= $pointer; 
+        }
+    } 
+    
+    
     
 //cleanup stuff     
     $conn = null;                   
     
-}else{
+///else{
     echo 'You must be logged in to use this feature. ';
-}
+
 ?>

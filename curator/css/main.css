@@ -7,7 +7,7 @@ button,
 input,
 select,
 textarea {
-    color: #222;
+	color: #ffffff;
 }
 
 body {
@@ -21,7 +21,7 @@ body {
 }
 
 ::selection {
-    background: #b3d4fc;
+    background: #082d3e;
     text-shadow: none;
 }
 
@@ -30,6 +30,7 @@ hr {
     height: 1px;
     border: 0;
     border-top: 1px solid #ccc;
+	
     margin: 1em 0;
     padding: 0;
 }
@@ -38,14 +39,15 @@ img {
     vertical-align: middle;
 }
 
-/**
-Boo, we like borders and things.
+
 fieldset {
-    border: 0;
-    margin: 0;
-    padding: 0;
+    border: 10;
+    margin: 10;
+    padding: 10;
+
+	
 }
-*/
+
 
 textarea {
     resize: vertical;
@@ -74,14 +76,15 @@ textarea {
 
 
 label {
-    width:10em;
-    display:block;
-    float:left;
-    margin-top:.2em;
-    padding-top: .2em;
-    font-size:.9em;
-	background-color:#C66;
-    
+	width: 10em;
+	display: block;
+	float: left;
+	margin-top: 0.2em;
+	padding-top: 0.2em;
+	font-size: 0.9em;
+	background-color: #082d3e
+	
+	;	
 }
  input {
     margin:.2em;
@@ -100,13 +103,17 @@ input[type="checkbox"] {
     visibility: hidden;
     line-height: 0;
     height: 0;
+	
+	
 }
 .ui-menu .ui-menu-item {
-    display: inline-block;
-    float: left;
-    margin: 0;
-    padding: 0;
-    width: auto;
+	display: inline-block;
+	float: left;
+	margin: 0;
+	padding: 0;
+	width: auto;
+	background-color: #0C6;
+	border-bottom: 1em;
 }
 
 
@@ -114,8 +121,13 @@ input[type="checkbox"] {
 	background-image: url(http://imree.tcl.sc.edu/imree-php/curator/image/generic_logo.gif);
 	background-repeat: no-repeat;
 	height: 208px;
-	padding-left: 208px;
+	padding-left: 350px;
+	padding-top: 60px;
+	border: 1px solid #666;
 	font-size: 3.5em;
+	background-color: #082D3E;
+	border-bottom: 1em;
+	border-color: #13658B;
 }
 
 
@@ -144,7 +156,7 @@ input[type="checkbox"] {
    ========================================================================== */
 
 .ir {
-    background-color: transparent;
+	background-color: transparent; 
     border: 0;
     overflow: hidden;
     *text-indent: -9999px;
@@ -201,6 +213,15 @@ input[type="checkbox"] {
     *zoom: 1;
 }
 
+/* Remove underline from links*/
+
+
+a.nounderline:link  
+{  
+ text-decoration:none;  
+}  
+
+
 /* ==========================================================================
    Print styles
    ========================================================================== */
@@ -212,12 +233,20 @@ input[type="checkbox"] {
         box-shadow: none !important;
         text-shadow: none !important;
     }
+	
+	a {
+                display:block;
+                width:150px;
+                float:left;
+                margin:auto;
+				padding: inherit;
+				
+}
 
     a,
     a:visited {
         text-decoration: underline;
-    }
-
+   
     a[href]:after {
         content: " (" attr(href) ")";
     }
@@ -238,7 +267,7 @@ input[type="checkbox"] {
 
     pre,
     blockquote {
-        border: 1px solid #999;
+        border: 2px solid #999;
         page-break-inside: avoid;
     }
 
@@ -255,19 +284,6 @@ input[type="checkbox"] {
         max-width: 100% !important;
     }
 
-    @page {
-        margin: 0.5cm;
-    }
+   
 
-    p,
-    h2,
-    h3 {
-        orphans: 3;
-        widows: 3;
-    }
-
-    h2,
-    h3 {
-        page-break-after: avoid;
-    }
-}
+	

@@ -37,6 +37,81 @@
                 <ul>
                     <li><a href='index.php'>Home</a></li><li><a href='http://imree.tcl.sc.edu/imree-php/curator/assets.php''>Assets</a></li><li><a href='http://imree.tcl.sc.edu/imree-php/curator/events.php''>Events</a></li><li><a href='http://imree.tcl.sc.edu/imree-php/curator/exhibits.php''>Exhibits</a></li><li><a href='http://imree.tcl.sc.edu/imree-php/curator/groups.php''>Groups</a></li><li><a href='http://imree.tcl.sc.edu/imree-php/curator/people.php''>People</a></li><li><a href='http://imree.tcl.sc.edu/imree-php/curator/roles.php''>Roles</a></li><li><a href='http://imree.tcl.sc.edu/imree-php/curator/subjects.php''>Subjects</a></li><li><a href='http://imree.tcl.sc.edu/imree-php/curator/myAccount.php''>My Account</a></li><li><a href='http://imree.tcl.sc.edu/imree-php/curator/logout.php' class='logout-link'>Logout</a></li>
                 </ul>
+                <p>&nbsp;</p>
+                <ul>
+                  <li>
+                    <form action='#' method='POST' enctype='multipart/form-data' id='somethingunique'>
+                      <label for='asset_name'>Asset Name</label>
+                      <input type='text' name='asset_name' id='asset_name' />
+                      <br class='clearAll' />
+                      <label for='asset_type'>Asset Type</label>
+                      <select name='asset_type' id='asset_type'>
+                        <option value='image'>image</option>
+                        <option value='video'>video</option>
+                        <option value='audio'>audio</option>
+                        <option value='text'>text</option>
+                      </select>
+                      <br class='clearAll' />
+                      <label for='asset_media_url'>Asset URL</label>
+                      <input type='file' name='asset_media_url' id='asset_media_url' />
+                      <br class='clearAll' />
+                      <label for='asset_thumb_url'>Asset Thumb URL</label>
+                      <input type='text' name='asset_thumb_url' id='asset_thumb_url' />
+                      <br class='clearAll' />
+                      <label for='asset_parent_id'>Asset Parent</label>
+                      <select name='asset_parent_id' id='asset_parent_id'>
+                        <option value=''>no parent item</option>
+                        <option value='9'>Amazons and their Men</option>
+                        <option value='8'>Assassins</option>
+                        <option value='14'>Balls</option>
+                        <option value='15'>Bird</option>
+                        <option value='29'>BR_BoxerSoldiers</option>
+                        <option value='30'>BR_ChinaCartoon</option>
+                        <option value='31'>BR_QingImperialArmy</option>
+                        <option value='28'>BR_Troopsof8Nations</option>
+                        <option value='19'>FR_Execution_of_Marie_Antoinette</option>
+                        <option value='18'>FR_Liberty</option>
+                        <option value='17'>FR_Prise_de_la_Bastille</option>
+                        <option value='16'>FR_Revolution</option>
+                        <option value='12'>Grass</option>
+                        <option value='24'>HYW_Battle</option>
+                        <option value='25'>HYW_EdwardIII</option>
+                        <option value='27'>HYW_EnglishLongbow</option>
+                        <option value='26'>HYW_JoanOfArc</option>
+                        <option value='1'>Jacob's Engagement 1</option>
+                        <option value='2'>Jacob's Engagement 2</option>
+                        <option value='3'>Jacob's Engagement 3</option>
+                        <option value='10'>Kitty Kitty Kitty</option>
+                        <option value='4'>Left Hand, Third Finger</option>
+                        <option value='13'>Panda</option>
+                        <option value='5'>Smokey Joes</option>
+                        <option value='7'>Spring Awakening</option>
+                        <option value='20'>TR_Hong_Xiuquan</option>
+                        <option value='21'>TR_NavalBattle</option>
+                        <option value='23'>TR_prisoners</option>
+                        <option value='22'>TR_RegainingRuizhou</option>
+                        <option value='6'>Wedding Killer</option>
+                        <option value='11'>What an evening</option>
+                        <option value='32'>WWII_BombingOfGuernica</option>
+                        <option value='33'>WWII_BritishBombing</option>
+                        <option value='34'>WWII_Hitler</option>
+                        <option value='35'>WWII_ShanghaiGunNest</option>
+                      </select>
+                      <br class='clearAll' />
+                      <input type='hidden' name='asset_date_added' id='asset_date_added' value='2014-01-31 13:40:59'/>
+                      <label for='asset_date_created'>Date Created</label>
+                      <input type='text' name='asset_date_created' id='asset_date_created' value='01/31/2014' />
+                      <script type='text/javascript'> 
+                                    if(typeof($('#asset_date_created').datepicker) != 'undefined') { 
+                                        $('#asset_date_created').datepicker({ numberOfMonths: 3 });
+                                    }
+                                </script>
+                      <br class='clearAll' />
+                      <input type='hidden' name="f_data_something_unique" value='1' />
+                      <button id='asubmitbutton' type='submit'>Submit</button>
+                    </form>
+                    </li>
+                </ul>
             </navigation>
             <section id='contents'><ul><li><a href=''>Amazons and their Men</a></li>
 <li><a href=''>Assassins</a></li>
@@ -73,75 +148,7 @@
 <li><a href=''>WWII_BritishBombing</a></li>
 <li><a href=''>WWII_Hitler</a></li>
 <li><a href=''>WWII_ShanghaiGunNest</a></li>
-</ul><div class='f_data_confirmation'></div><form action='#' method='POST' enctype='multipart/form-data' id='somethingunique'>
-<label for='asset_name'>Asset Name</label><input type='text' name='asset_name' id='asset_name' />
-
-<br class='clearAll' />
-<label for='asset_type'>Asset Type</label><select name='asset_type' id='asset_type'><option value='image'>image</option>
-<option value='video'>video</option>
-<option value='audio'>audio</option>
-<option value='text'>text</option>
-</select>
-
-<br class='clearAll' />
-<label for='asset_media_url'>Asset URL</label><input type='file' name='asset_media_url' id='asset_media_url' />
-
-<br class='clearAll' />
-<label for='asset_thumb_url'>Asset Thumb URL</label><input type='text' name='asset_thumb_url' id='asset_thumb_url' />
-
-<br class='clearAll' />
-<label for='asset_parent_id'>Asset Parent</label><select name='asset_parent_id' id='asset_parent_id'><option value=''>no parent item</option>
-<option value='9'>Amazons and their Men</option>
-<option value='8'>Assassins</option>
-<option value='14'>Balls</option>
-<option value='15'>Bird</option>
-<option value='29'>BR_BoxerSoldiers</option>
-<option value='30'>BR_ChinaCartoon</option>
-<option value='31'>BR_QingImperialArmy</option>
-<option value='28'>BR_Troopsof8Nations</option>
-<option value='19'>FR_Execution_of_Marie_Antoinette</option>
-<option value='18'>FR_Liberty</option>
-<option value='17'>FR_Prise_de_la_Bastille</option>
-<option value='16'>FR_Revolution</option>
-<option value='12'>Grass</option>
-<option value='24'>HYW_Battle</option>
-<option value='25'>HYW_EdwardIII</option>
-<option value='27'>HYW_EnglishLongbow</option>
-<option value='26'>HYW_JoanOfArc</option>
-<option value='1'>Jacob's Engagement 1</option>
-<option value='2'>Jacob's Engagement 2</option>
-<option value='3'>Jacob's Engagement 3</option>
-<option value='10'>Kitty Kitty Kitty</option>
-<option value='4'>Left Hand, Third Finger</option>
-<option value='13'>Panda</option>
-<option value='5'>Smokey Joes</option>
-<option value='7'>Spring Awakening</option>
-<option value='20'>TR_Hong_Xiuquan</option>
-<option value='21'>TR_NavalBattle</option>
-<option value='23'>TR_prisoners</option>
-<option value='22'>TR_RegainingRuizhou</option>
-<option value='6'>Wedding Killer</option>
-<option value='11'>What an evening</option>
-<option value='32'>WWII_BombingOfGuernica</option>
-<option value='33'>WWII_BritishBombing</option>
-<option value='34'>WWII_Hitler</option>
-<option value='35'>WWII_ShanghaiGunNest</option>
-</select>
-
-<br class='clearAll' />
-<input type='hidden' name='asset_date_added' id='asset_date_added' value='2014-01-31 13:40:59'/>
-
-
-<label for='asset_date_created'>Date Created</label><input type='text' name='asset_date_created' id='asset_date_created' value='01/31/2014' />
-				<script type='text/javascript'> 
-                                    if(typeof($('#asset_date_created').datepicker) != 'undefined') { 
-                                        $('#asset_date_created').datepicker({ numberOfMonths: 3 });
-                                    }
-                                </script>
-<br class='clearAll' />
-			<input type='hidden' name="f_data_something_unique" value='1' />
-			<button id='asubmitbutton' type='submit'>Submit</button> 
-			</form>
+</ul><div class='f_data_confirmation'></div>
             </section>
             <section id='footer'>
                 Footer Information Here
