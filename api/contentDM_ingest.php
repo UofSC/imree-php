@@ -27,7 +27,7 @@ require_once('../../config.php');
  * @return type $url
  */
 //function works
-function make_search_url($alias, $search_string, $fields, $sort, $max_recs, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
+function QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
     global $content_dm_address;
     $url = $content_dm_address;
     $strings = str_replace(" ", "^", $search_string);
@@ -48,54 +48,68 @@ function make_search_url($alias, $search_string, $fields, $sort, $max_recs, $sta
        
     return $url;
 }
-//if(logged_in()
-    $non_letters = '\[\]\;\'\.\/\,\<\>\?\:\"\{\}\|\''; //need to parse url before all eale
+
+/**
+ * ITEM_make_search_url
+ * 
+ * @param type $collection
+ * @param type $pointer
+ * @param type $format
+ * @return string
+ */    
+function ITEM_make_search_url($collection = "all", $pointer, $format = "xml"){
     
+    $url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetItemInfo";
+    $url .= "/" . $collection;
+    $url .= "/" . $pointer;
+    $url .= "/" . $format;
+    $alias = Array();
+    
+    return $url;
+    
+}
     
     $conn = db_connect();
     $errors = Array();
     $results = Array();
     $search_limit = Array("img" => "image only", "vid" => "video only","doc" => "document only","aud" => "audio only");
     
-    for()
+  
     
-    //Testing code
-    $url = make_search_url("all", "img", "find", "collection", 50);
-    var_dump($url);
     
-    for (int i = 11; i> 11; i++) 
-    }
-       foreach($url)
-    } 
+    $url = QUERY_make_search_url("all", "all", "find", "collection", 50);
+  //  var_dump($url);
+    
     
     $accessURL = fopen($url, "r");
-    var_dump($accessURL);
+  //  var_dump($accessURL);
     
-    
-    while(!(feof($accessURL)))
+    $pointer = fgets($accessURL, 9999);
+    while(!(feof($accessURL))) //until url is finished
     {
-        $pointer = fgets($accessURL, 9999);
-        
-        if(strpos($pointer, 'find'))
-        {
-            /* Need to change this to remove all
-             * abc's and special characters
-             * after storing file extension 
-             * make one line
-             */
-            
-            $pointer = trim($pointer);
-            
-            $results .= $pointer; 
-        }
-    } 
-    
-    
-    
-//cleanup stuff     
-    $conn = null;                   
-    
-///else{
-    echo 'You must be logged in to use this feature. ';
+      if(strpos($pointer, 'find'))
+      {  
+        $pointer = str_replace('<find><![CDATA[', "", $pointer);
+        $pointer = str_replace(']]></find>', "", $pointer);
+        $pointer = substr("$pointer", 0, -5);   
+        $results .= $pointer; 
+        $pointer = trim($pointer);  
+      }  
+    }
+
+
+echo      "<html>
+            <head>
+                <title>PHP Test</title>
+            </head>
+            <body>";
+                echo var_dump($results),
+                "\n",
+                "http://digital.tcl.sc.edu/81/dmwebservices/index.php?q=dmGetCollectionList/xml";
+                echo "
+            </body>
+           </html>";
+
+
 
 ?>
