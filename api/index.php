@@ -155,7 +155,29 @@ if($command) {
     }
     
 } else {
-    $str .= "<h1>IMREE API</h1><p>This API is not yet documented.</p>";
+    $str .= "<h1>IMREE API</h1><p>This API gets user command and command parameter to perform login or interaction with database.</p>";
+    $str .= "<br><hr><h2>Command description and command parameters required:</h2><hr>";
+    $str .= "<h3>Command: group</h3><p>Command parameters:</p>";
+    $str .= "<ul><li>Group ID</li></ul><br>";
+    $str .= "<hr><h3>Command: item(This command doesn't exist yet)</h3><br>";
+    $str .= "<hr><h3>Command: signage_mode</h3><p>Command parameters:</p><p>None</p><br>";
+    $str .= "<hr><h3>Command: signage_items</h3>";
+    $str .= "<p>Command parameters:</p>";
+    $str .= "<p>None</p><br>";
+    $str .= "<hr><h3>Command: search</h3>";
+    $str .= "<p>Command parameters:</p>";
+    $str .= "<ul><li>Item Name</li></ul><br>";
+    $str .= "<hr><h3>Command: exhibits</h3>";
+    $str .= "<p>Command parameters:</p>";
+    $str .= "<p>None</p><br>";
+    $str .= "<hr><h3>Command: login</h3>";
+    $str .= "<p>Command parameters:</p>";
+    $str .= "<ul><li>Username</li><li>Password</li></ul><br>";
+    $str .= "<hr><h3>Command: user_rights</h3>";
+    $str .= "<p>Command parameters:</p>";
+    $str .= "<p>None</p><br>";
+    $str .= "<hr><h3>Command: query</h3>";
+    $str .= "<ul><li>Column names</li><li>Table name</li><li>Table key column name</li><li>Row ID</li></ul><br><hr>";  
 }
 
 echo $str;
