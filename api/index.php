@@ -101,7 +101,7 @@ if($command) {
         $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
     } else if($command === "search") {
         if(!$command_parameter) {
-             $errors[] = "command_parameter not set. The command parameter must be set to the desired search query.";
+             $errors[] = "command_parameter not set. The command parameter must be set to the desired search term.";
         } else {
             //@todo: call contentDM and razuna search items once those gizmos are written
              $results = db_query($conn, "SELECT assets.* FROM assets
