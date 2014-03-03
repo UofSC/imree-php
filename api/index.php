@@ -147,9 +147,16 @@ if($command) {
 		    } else {
 			    $columns = "*";
 		    }
-		    $results = db_query($conn, "SELECT $columns FROM ".$values->table." WHERE ".$values->table_key_column_name." = ".db_escape($values->row_id));
+		    
+		    if(isset($values->where)) {
+			    $results = db_query($conn, "SELECT $columns FROM ".$values->table." WHERE ".$values->where);
+			   // error_log( "SELECT $columns FROM ".$values->table." WHERE ".$values->where);
+		    } else if(isset($values->table_key_column_name, $values->row_id)) {
+			    $results = db_query($conn, "SELECT $columns FROM ".$values->table." WHERE ".$values->table_key_column_name." = ".db_escape($values->row_id));
+			   // error_log("SELECT $columns FROM ".$values->table." WHERE ".$values->table_key_column_name." = ".db_escape($values->row_id));
+		    }
 		    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
-	    }
+	    } 
     } else {
         die("That command does not exist");
     }
