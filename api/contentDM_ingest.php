@@ -8,6 +8,23 @@ require_once('../../config.php');
  * @Date: 02/17/2014
  */
 
+
+function CDM_INGEST_query($query, $records=200)
+{
+    $url = CDM_INGEST_QUERY_make_search_url("all", $query, "pointer", "collection", $records);
+    var_dump($url);
+    $items = CDM_INGEST_get_pointers('all');
+    $Everything = Array();
+    
+    $count = 0;
+    foreach($items as $point => $col){
+        $Everything[$count] = CDM_INGEST_get_item($col, $point);
+        $count++;
+    }
+   
+    return $Everything; 
+}
+
 /*******************************************************************************
  * make search url
  *      creates a url for traversing contentDM
@@ -26,7 +43,7 @@ require_once('../../config.php');
  * @param type $format
  * @return type $url
  */
-function QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
+function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
     global $content_dm_address;
     $url = $content_dm_address;
     $strings = str_replace(" ", "^", $search_string);
@@ -57,7 +74,7 @@ function QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs
  * @return string
  */    
 //doesnt work yet
-function get_item($collection, $pointer, $format = "xml"){
+function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     
     $url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetItemInfo";
     $url .= "/" . $collection;
@@ -113,7 +130,7 @@ function get_item($collection, $pointer, $format = "xml"){
  * @param type $collection
  * @return $collections - and array of the collections
  */
-function get_collection_list(){
+function CDM_INGEST_get_collection_list(){
     
     $collections = Array();
     $url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetCollectionList/xml";
@@ -141,10 +158,10 @@ function get_collection_list(){
  * @param $collection
  * @return $pointers - array of pointers
  */
-function get_pointers($alias)
+function CDM_INGEST_get_pointers($alias)
 {
     $pointers = Array();
-    $url = QUERY_make_search_url($alias, "all", "find", "collection", 200);
+    $url = CDM_INGEST_QUERY_make_search_url($alias, "all", "find", "collection", 200);
     $accessURL = fopen($url, "r");
     while(!(feof($accessURL))) //until url is finished
     {
@@ -177,21 +194,7 @@ function get_pointers($alias)
  * 
  * @param $records - Number of items the user wants 
  */
-function get_items($records=200)
-{
-    $url = QUERY_make_search_url("all", "all", "pointer", "collection", $records);
-    var_dump($url);
-    $items = get_pointers('all');
-    $Everything = Array();
-    
-    $count = 0;
-    foreach($items as $point => $col){
-        $Everything[$count] = get_item($col, $point);
-        $count++;
-    }
-   
-    return $Everything; 
-}
+
 ?>
 
 
