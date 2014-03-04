@@ -34,7 +34,8 @@ require_once('/../shared_functions/functions.form.php');
         //build the file url from the search query
         $base="http://imree.tcl.sc.edu:8080/razuna/global/api2/search.cfc?method=searchassets";
         $api="&api_key=822756B3669444D59D2C2333E449FFBA";
-        $q_string= "&searchfor=".$_POST["query_string"];       
+        #$q_string= "&searchfor=".$_POST["query_string"]; //old query string assigment has an issue with spaces
+        $q_string= "&searchfor=".str_replace(' ', '%20', $_POST["query_string"]); //new query string assignment replaces the spaces in the post data with %20 
         
         if (!isset($_POST["show_ass"])) //check to see if any search limiters have been set and add them to the file url
         {
@@ -47,14 +48,14 @@ require_once('/../shared_functions/functions.form.php');
         
         $url =  $base.$api.$q_string.$show_ass; //create the url to pass to the "function"
         
-        echo $_POST["query_string"]; //testing ps
+        echo $q_string; //testing p
         print "\n<br>";
         
         if (isset($_POST["show_ass"])) //testing ps
         {   echo $_POST["show_ass"];
         }
         else {
-            echo "O show_ass is a no show.";
+            echo "Default search. No radio button was selected.";
         }
         
         print "\n<br>";
@@ -64,9 +65,27 @@ require_once('/../shared_functions/functions.form.php');
         $contents = utf8_encode($contents);  //encode them
         $results = json_decode($contents,true); //pass the results to json for nifty array handling
         print "\n<br>";
-        print_r ($results); //testing ps
+        #print_r ($results); //testing ps
         
+        $curatorarray=array(); //create a blank array to put the results into a form for the curator interface
+        
+        foreach ($results["DATA"] as $item)
+            {
+            $item_array= array();
+            
+            $item_array['id'] = $item[0];
+            $item_array['title'] = $item[1];
+            $item_array['thumbnail_url'] = $item[20];
+            $item_array['repository'] = "Razuna";
+            
+            $curator_array[]=$item_array;
+            }
+            
+        print_r ($curator_array);
         //to do
+        //assign $results to a new array which is formed to be compatible with the content DM and other DBs
+        //return the array to the API
+        //
         //print records in a human readable form
         //select records
         //ingest records to IMREE DB
