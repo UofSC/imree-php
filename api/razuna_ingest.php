@@ -100,28 +100,14 @@ require_once('/../shared_functions/functions.form.php');
         f_input("SUMBIT","submit");
         echo "</form>";
       
-//Create an option to show an advanced search
-      /*  if ($search == "ADV") //not sure if I will implement advanced and simple search ... talk to JSON about this
-        {
-
-        }
-        else 
-        //Default show the user the simple search
-        {
-
-        }*/
     }
     
+    //this function adds spaces to the RAZUNA QUERY SO THAT THE RAZUNA API WILL NOT RETURN AN ERROR
+    function add_spaces($str)
+    {
+        $str = str_replace(' ', '%20', $str);
+        return $str;
+    }
     
-//1.Function Search Razuna
-
-//2.Function Display Results
-
-//3.Function Submit Selected info to IMREE DB
-
-    //Check the DB to see if the records exist if not add them
-
-    //return success or any errors
-
 ?>
     
