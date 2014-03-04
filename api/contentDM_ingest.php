@@ -63,12 +63,45 @@ function get_item($collection, $pointer, $format = "xml"){
     $url .= "/" . $collection;
     $url .= "/" . $pointer;
     $url .= "/" . $format;
-    $alias = Array();
-    
-    $accessURL = fopen($url, "r");
     
     
-    
+    $accessURL = fopen($url, "r"); 
+    while(!(feof($accessURL))) //until url is finished
+    {
+      $item = fgets($accessURL, 9999);
+      $item_info['URL'] = $url;
+      $item_info['pointer'] = $pointer;
+      $item_info['collection'] = $collection;
+      if(strpos($item, 'title'))
+      {
+        $item = strip_tags($item);
+        $item = str_replace('/', "", $item);
+        $item = trim($item);
+        $item_info["title"] = $item; 
+      }if(strpos($item, 'type'))
+      {
+        $item = strip_tags($item);
+        $item = str_replace('/', "", $item);
+        $item = trim($item);
+        $item_info["type"] = $item; 
+      }
+      if(strpos($item, 'cdmfilesizeformatted'))
+      {
+        $item = strip_tags($item);
+        $item = str_replace('/', "", $item);
+        $item = trim($item);
+        $item_info["size"] = $item; 
+      }
+      if(strpos($item, 'format'))
+      {
+        $item = strip_tags($item);
+        $item = str_replace('/', "", $item);
+        $item = trim($item);
+        $item_info["format"] = $item; 
+      }
+      
+    }
+    return $item_info;
 }
 
 /*******************************************************************************
@@ -102,13 +135,15 @@ function get_collection_list(){
 /*******************************************************************************
  * function get_all_items
  * 
+ * Gets the pointers from as many objects it can
+ * 
  * @param $collection
- * @return
+ * @return $pointers - array of pointers
  */
 function get_pointers($alias)
 {
     $pointers = Array();
-    $url = QUERY_make_search_url($alias, "all", "find", "collection", 200);
+    $url = QUERY_make_search_url($alias, "all", "find", "collection", 1024);
     echo $url;
     $accessURL = fopen($url, "r");
     while(!(feof($accessURL))) //until url is finished
@@ -137,10 +172,15 @@ function get_pointers($alias)
     return $pointers;
 }
 
-//doesnt work yet
-function get_items($records=50)
+/*******************************************************************************
+ * get_items function
+ * 
+ * @param $records - Number of items the user wants 
+ */
+function get_items($records=200)
 {
-    $url = QUERY_make_search_url("all", "all", "find", "collection", $records);
+    $url = QUERY_make_search_url("all", "all", "pointer", "collection", $records);
+    var_dump($url);
     $items = get_pointers('all');
     $Everything = Array();
     
@@ -152,33 +192,7 @@ function get_items($records=50)
    
     return $Everything; 
 }
-echo var_dump(get_items($records=50));
-
-
-//$temp = get_collection_list();
-
-   /* 
-    $conn = db_connect();
-    $errors = Array();
-    $results = Array();
-    $search_limit = Array("img" => "image only", "vid" => "video only","doc" => "document only","aud" => "audio only"); */
-    
-  
- /*   
-    
-    $url = QUERY_make_search_url("all", "all", "find", "collection", 50);
-    $accessURL = fopen($url, "r");
-    while(!(feof($accessURL))) //until url is finished
-    {
-      $pointer = fgets($accessURL, 9999);
-      if(strpos($pointer, 'find'))
-      {  
-        $pointer = str_replace('<find><![CDATA[', "", $pointer);
-        $pointer = str_replace(']]></find>', "", $pointer);
-        $pointer = substr("$pointer", 0, -5);   
-        $results .= $pointer; 
-        $pointer = trim($pointer);  
-      }  
-    }*/
+var_dump(get_items(200));
+?>
 
 
