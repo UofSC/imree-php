@@ -1,88 +1,39 @@
 <?php
-
 /** RAZUNA_INGEST
  *  This file searches the RAZUNA repository for CURATORS and pulls back data related to their SEARCH QUERY.
  *  CURATORS select the desired components they would like to bring to the IMREE DB and then they submit to 
  *  INGEST this information into the IMREE MYSQL DB.
  */
 
-//require functions and other NICE STOOF
-#require_once('../../config.php');
-#$conn = db_connect();
-#$errors = array();
-#$results = array();
-        
+#require the shared functions and other useful content for the api
 #NOTE TO SELF: Get DB stuff working again locally
 #IN THE MEAN TIME USE THE CODE BELOW
 #
 require_once('/../shared_functions/functions.api.php');
 require_once('/../shared_functions/functions.core.php');
 require_once('/../shared_functions/functions.db.php');
-#require_once('/../shared_functions/functions.catalog.php');
 require_once('/../shared_functions/functions.form.php');
+#require_once('/../shared_functions/functions.catalog.php');
+#require_once('../../config.php');
 
 // put your code here
- global $search;       
-//0. Function Display Form
+ #global $search;       
 
  $target = htmlspecialchars($_SERVER["PHP_SELF"]);
  $search_limit = array("img" => "image only", "vid" => "video only","doc" => "document only","aud" => "audio only");
- #$query_string="";
  
     if(form_submitted())
-    {//form has been submitted perform the appropriate checks 
-        //build the file url from the search query
-        $base="http://imree.tcl.sc.edu:8080/razuna/global/api2/search.cfc?method=searchassets";
-        $api="&api_key=822756B3669444D59D2C2333E449FFBA";
-        #$q_string= "&searchfor=".$_POST["query_string"]; //old query string assigment has an issue with spaces
-        $q_string= "&searchfor=".str_replace(' ', '%20', $_POST["query_string"]); //new query string assignment replaces the spaces in the post data with %20 
-        
-        if (!isset($_POST["show_ass"])) //check to see if any search limiters have been set and add them to the file url
-        {
-            $show_ass="";
-        }
-        else
-        {
-            $show_ass="&show=".$_POST["show_ass"];
-        }
-        
-        $url =  $base.$api.$q_string.$show_ass; //create the url to pass to the "function"
-        
-        #echo $q_string; //testing p
-        #print "\n<br>";
-        
-        if (isset($_POST["show_ass"])) //testing ps
-        {   #echo $_POST["show_ass"];
-        }
-        else {
-            echo "Default search. No radio button was selected.";
-        }
-        
-        #print "\n<br>";
-        #echo $url; //testing ps
-        
-        $contents = file_get_contents($url); //get the contents of the search from razuna
-        $contents = utf8_encode($contents);  //encode them
-        $results = json_decode($contents,true); //pass the results to json for nifty array handling
-        #print "\n<br>";
-        #print_r ($results); //testing ps
-        
-        $curatorarray=array(); //create a blank array to put the results into a form for the curator interface
-        
-        foreach ($results["DATA"] as $item)
-            {
-            $item_array= array();
-            
-            $item_array['id'] = $item[0];
-            $item_array['title'] = $item[1];
-            $item_array['thumbnail_url'] = $item[20];
-            $item_array['repository'] = "Razuna";
-            
-            $curator_array[]=$item_array;
-            }
-            
-        print_r ($curator_array);
+    {
+        //if the form has been submitted (see if statement above) perform the functions below 
+        //For each step see the functions below
+        //1. Replace white space in the search query with %20
+        //2. Prepare the QUERY STRING portion of the url 
+        //3. Build the file url using the BASE var, the API Key, the QUERY STRING AND any search limiters ($show_ass)   
+        //4. Pass the url to JSON AND CREATE THE RAZUNA array
+        //5. Convert the RAZUNA ARRAY to the data model of the new IMREE array, return the final array to AIR
        
+        return_array(filter_input(INPUT_POST, 'query_string'));
+        
     } 
      else 
     {   //form has not been submitted
@@ -101,12 +52,73 @@ require_once('/../shared_functions/functions.form.php');
         echo "</form>";
       
     }
+    /* START WITH YOUR FUNCTIONS DOWN HERE */
     
-    //this function adds spaces to the RAZUNA QUERY SO THAT THE RAZUNA API WILL NOT RETURN AN ERROR
+    //this function adds spaces to the RAZUNA QUERY SO THAT THE RAZUNA API WILL NOT RETURN AN ERROR WHEN IT PERFORMS A SEARCH
+    //it accepts a string argument and returns it
     function add_spaces($str)
     {
         $str = str_replace(' ', '%20', $str);
         return $str;
+    }
+    
+    //this function creates a QUERY STRING TO SUBMIT TO RAZUNA
+    //it accepts string arguments
+    function create_qstring($str)
+    {
+        $str ="&searchfor=".add_spaces($str); //this func call replaces white space with %20 and builds search string for passing to RAZUNA
+        return $str;
+    }
+
+    //this function creates the URL by adding in the BASE_URL STRING, RAZUNA API KEY STRING, the QUERY STRING, AND ANY RAZUNA SEARCH PARAMETERS TO SUBMIT TO RAZUNA
+    //it accepts string arguments and returns the url variable
+    function create_url($str)
+    {
+        //first check to see if air passed any search limiters        
+        if (!isset($_POST["show_ass"])) //check to see if any search limiters have been set and add them to the file url
+        {
+            $show_ass=""; //if POST show_asset variable is blank set it to blank here so it will add nothing to the URL below
+        }
+        else
+        {
+            $show_ass="&show=".filter_input(INPUT_POST, 'show_ass'); //if POST show_asset variable is not blank then assign it to the $show ass variable along with syntax to retrieve assets of a specific type from RAZUNA
+        }
+        
+        $base="http://imree.tcl.sc.edu:8080/razuna/global/api2/search.cfc?method=searchassets";
+        $api="&api_key=822756B3669444D59D2C2333E449FFBA";
+        $url =  $base.$api.create_qstring($str).$show_ass; //this func call 1. replaces white space with %20, 2. builds the query and three 3. adds the query string to the url
+        return $url;
+    }
+    
+    function pass_url($str)
+    {
+        $contents = file_get_contents(create_url($str)); //this func call performs functions 1-3 above and gets the contents of the search from razuna
+        $encoded = utf8_encode($contents);  //encode them
+        $results = json_decode($encoded,true); //pass the results to json for nifty array handling
+        
+        return $results; //returns a JSON array of search results from RAZUNA
+    }
+    
+    function return_array ($results)
+    {
+        $array = pass_url($results);
+        
+        $curator_array=array(); //create a blank array to put the results into a form for the curator interface
+        
+        foreach ($array["DATA"] as $item)
+            {
+            $item_array= array();
+            
+            $item_array['id'] = $item[0];
+            $item_array['title'] = $item[1];
+            $item_array['thumbnail_url'] = $item[20];
+            $item_array['repository'] = "Razuna";
+            
+            $curator_array[]=$item_array;
+            }
+            
+        print_r ($curator_array);
+        return $curator_array;
     }
     
 ?>
