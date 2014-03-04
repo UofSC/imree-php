@@ -48,23 +48,23 @@ require_once('/../shared_functions/functions.form.php');
         
         $url =  $base.$api.$q_string.$show_ass; //create the url to pass to the "function"
         
-        echo $q_string; //testing p
-        print "\n<br>";
+        #echo $q_string; //testing p
+        #print "\n<br>";
         
         if (isset($_POST["show_ass"])) //testing ps
-        {   echo $_POST["show_ass"];
+        {   #echo $_POST["show_ass"];
         }
         else {
             echo "Default search. No radio button was selected.";
         }
         
-        print "\n<br>";
-        echo $url; //testing ps
+        #print "\n<br>";
+        #echo $url; //testing ps
         
         $contents = file_get_contents($url); //get the contents of the search from razuna
         $contents = utf8_encode($contents);  //encode them
         $results = json_decode($contents,true); //pass the results to json for nifty array handling
-        print "\n<br>";
+        #print "\n<br>";
         #print_r ($results); //testing ps
         
         $curatorarray=array(); //create a blank array to put the results into a form for the curator interface
@@ -82,13 +82,7 @@ require_once('/../shared_functions/functions.form.php');
             }
             
         print_r ($curator_array);
-        //to do
-        //assign $results to a new array which is formed to be compatible with the content DM and other DBs
-        //return the array to the API
-        //
-        //print records in a human readable form
-        //select records
-        //ingest records to IMREE DB
+       
     } 
      else 
     {   //form has not been submitted
