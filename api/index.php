@@ -173,7 +173,12 @@ if($command) {
 		    }
 		    
 	    } 
+    } else if($command==='search') {
+	    require_once 'contentDM_ingest.php';
+	    $results = CDM_INGEST_query($command_parameter, 200);
+	    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
     } else {
+    
         die("That command does not exist");
     }
     
