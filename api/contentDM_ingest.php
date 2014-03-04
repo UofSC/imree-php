@@ -63,14 +63,15 @@ function get_item($collection, $pointer, $format = "xml"){
     $url .= "/" . $collection;
     $url .= "/" . $pointer;
     $url .= "/" . $format;
-    
+    $item_info = Array();
     
     $accessURL = fopen($url, "r"); 
     while(!(feof($accessURL))) //until url is finished
     {
       $item = fgets($accessURL, 9999);
+      $item_info['repository'] = "CDM";
       $item_info['URL'] = $url;
-      $item_info['pointer'] = $pointer;
+      $item_info['id'] = $pointer;
       $item_info['collection'] = $collection;
       if(strpos($item, 'title'))
       {
@@ -143,8 +144,7 @@ function get_collection_list(){
 function get_pointers($alias)
 {
     $pointers = Array();
-    $url = QUERY_make_search_url($alias, "all", "find", "collection", 1024);
-    echo $url;
+    $url = QUERY_make_search_url($alias, "all", "find", "collection", 200);
     $accessURL = fopen($url, "r");
     while(!(feof($accessURL))) //until url is finished
     {
@@ -192,7 +192,6 @@ function get_items($records=200)
    
     return $Everything; 
 }
-var_dump(get_items(200));
 ?>
 
 
