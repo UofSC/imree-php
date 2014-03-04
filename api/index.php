@@ -157,6 +157,22 @@ if($command) {
 		    }
 		    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
 	    } 
+    } else if($command === "update") {
+	    if(quick_auth()) {
+		    $values = json_decode($command_parameter);
+		    $set = "";
+		    foreach($values->columns as $key=>$val) {
+			    $set .= " $key = ".db_escape($val).", ";
+		    }
+		    if(isset($values->where)) {
+			    $query = "UPDATE ".$values->table." SET ".substr($set, 0, -2)." WHERE ".$values->where;
+			    db_exec($conn, $query);
+			    $str .= "<response><success>true</success>\n<result></result></response>";
+		    } else {
+			    $str .= "<response><success>false</success>\n<error>for command=update, we need a 'where' value. if you are trying to insert a row of data, try the command=insert method instead.</error></response>";
+		    }
+		    
+	    } 
     } else {
         die("That command does not exist");
     }
