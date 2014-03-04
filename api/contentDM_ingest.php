@@ -12,7 +12,7 @@ require_once('../../config.php');
 function CDM_INGEST_query($query, $records=200)
 {
     $url = CDM_INGEST_QUERY_make_search_url("all", $query, "pointer", "collection", $records);
-    var_dump($url);
+    
     $items = CDM_INGEST_get_pointers('all');
     $Everything = Array();
     

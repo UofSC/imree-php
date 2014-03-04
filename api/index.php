@@ -173,6 +173,22 @@ if($command) {
 		    }
 		    
 	    } 
+    } else if($command === "insert") {
+	    if(quick_auth()) {
+		    $values = json_decode($command_parameter);
+		    $set = "";
+		    foreach($values->columns as $key=>$val) {
+			    $set .= " $key = ".db_escape($val).", ";
+		    }
+		    if(isset($values->where)) {
+			   $str .= "<response><success>false</success>\n<error>for command=insert, the 'where' value should not be set. if you are trying to update a row of data, try the command=update method instead.</error></response>";
+		    } else {
+			    $query = "INSERT INTO ".$values->table." SET ".substr($set, 0, -2);
+			    db_exec($conn, $query);
+			    $str .= "<response><success>true</success>\n<result></result></response>";
+		    }
+		    
+	    } 
     } else if($command==='search') {
 	    require_once 'contentDM_ingest.php';
 	    $results = CDM_INGEST_query($command_parameter, 200);
