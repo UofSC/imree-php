@@ -43,6 +43,10 @@ function DS_chirp($ip) {
 	db_exec($conn, "UPDATE signage_devices SET signage_device_last_chirp = '".date("Y-m-d H:i:s")."' WHERE signage_device_IP = ".  db_escape($ip));
 }
 
+function IMREE_log($ip, $module_type, $module_id) {
+	//need to do some logging here for assesment feedback
+}
+
 $command = isset($_POST["command"]) ? filter_input(INPUT_POST, "command") : filter_input(INPUT_GET, "command");
 $command_parameter = isset($_POST["command_parameter"]) ? filter_input(INPUT_POST, "command_parameter") : filter_input(INPUT_GET, "command_parameter");
 $username = filter_input(INPUT_POST, "username");
@@ -70,12 +74,12 @@ if($command) {
                         $str .= "</children></result></response>";
                 
             } else {
-                $str .= "<response><success>false</success></response>";
+                $str .= "<response><success>false</success><error>no_results</error></response>";
             }
         }
         
         
-    } else if($command === "item") {
+    } else if($command === "module") { //previously "item"
         die("The item command doesn't exist yet. sry - management");
         
         
@@ -99,26 +103,41 @@ if($command) {
         LEFT JOIN signage_feeds USING (signage_feed_id)
         WHERE signage_devices.signage_device_IP = ".db_escape($ip));
         $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+	   
     } else if($command === "search") {
         if(!$command_parameter) {
              $errors[] = "command_parameter not set. The command parameter must be set to the desired search term.";
         } else {
-            //@todo: call contentDM and razuna search items once those gizmos are written
-             $results = db_query($conn, "SELECT assets.* FROM assets
-                LEFT JOIN asset_metadata_assignments USING (asset_id)
-                LEFT JOIN metadata USING (metadata_id)
-                WHERE MATCH(metadata.metadata_value) AGAINST (".db_escape($command_parameter).")
-                GROUP BY assets.asset_id"
-             );
-              $str .= "<response><success>true</success><result>
-              <children>
-                        ".children($results)." 
-              </children></result></response>";
+          
+		require_once 'contentDM_ingest.php';
+		set_time_limit(90);
+		$CDM_results = CDM_INGEST_query($command_parameter, 20);
+		$str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+		$results = array_merge(db_query($conn, "SELECT assets.* FROM assets
+		   LEFT JOIN asset_metadata_assignments USING (asset_id)
+		   LEFT JOIN metadata USING (metadata_id)
+		   WHERE MATCH(metadata.metadata_value) AGAINST (".db_escape($command_parameter).")
+		   GROUP BY assets.asset_id"
+		), $CDM_results);
+		 $str .= "<response><success>true</success><result>
+		 <children>
+				 ".children($results)." 
+           </children></result></response>";
         }
     
     } else if($command === "exhibits") {
+	    //@todo limit results by user
 	    $results = db_query($conn, "SELECT * FROM exhibits");
 	    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+        
+    } else if($command === "exhibit_data") {
+	    if($command_parameter) {
+			require_once('exhibit_data.php');
+		    $results = exhibit_data($command_parameter);		
+			$str .= "\n<response>\n\t<success>true</success>\n\t<result>\n".array_to_xml($results, true, 2)."\t</result>\n</response>";
+	    } else {
+		    $str .= "<response><success>false</success>\n<error>command_parameter not set. To list a specific exhibit, we need to know which exhibit you're looking for. If you want to list all exhibits, use command=exhibits</error></response>";
+	    }
         
     } else if($command === "login") {
 	    $values = json_decode($command_parameter);
@@ -189,12 +208,7 @@ if($command) {
 		    }
 		    
 	    } 
-    } else if($command==='search') {
-	    require_once 'contentDM_ingest.php';
-	    $results = CDM_INGEST_query($command_parameter, 200);
-	    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
-    } else {
-    
+    }  else {
         die("That command does not exist");
     }
     
