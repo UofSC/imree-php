@@ -14,7 +14,11 @@ $results = array();
 
 $str = "<?xml version='1.0' encoding='UTF-8' ?>";
 
-
+/**
+ * This is a silly function that makes xml elements from an array of children
+ * @param array $results a php array of items
+ * @return string The xml data
+ */
 function children($results) {
     $string = "";
 	foreach($results as $item) {
@@ -27,6 +31,7 @@ function children($results) {
     return $string;
 }
 
+
 function quick_auth() {
 	global $username, $password, $str;
 	$ulogin = new uLogin();
@@ -37,7 +42,11 @@ function quick_auth() {
 		$str .= "<response><success>fail</success><error>auth_fail</error></response>";
 	}
 }
-
+/**
+ * This keeps a log of every time a digital signage device makes a query. More of a "is it on" check than something diagnostically useful
+ * @global type $conn
+ * @param type $ip
+ */
 function DS_chirp($ip) {
 	global $conn;
 	db_exec($conn, "UPDATE signage_devices SET signage_device_last_chirp = '".date("Y-m-d H:i:s")."' WHERE signage_device_IP = ".  db_escape($ip));
@@ -113,6 +122,8 @@ if($command) {
 		set_time_limit(90);
 		$CDM_results = CDM_INGEST_query($command_parameter, 20);
 		$str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+		
+		//Results of all items that match a full-text search
 		$results = array_merge(db_query($conn, "SELECT assets.* FROM assets
 		   LEFT JOIN asset_metadata_assignments USING (asset_id)
 		   LEFT JOIN metadata USING (metadata_id)
@@ -133,7 +144,7 @@ if($command) {
     } else if($command === "exhibit_data") {
 	    if($command_parameter) {
 			require_once('exhibit_data.php');
-		    $results = exhibit_data($command_parameter);		
+		     $results = exhibit_data($command_parameter);		
 			$str .= "\n<response>\n\t<success>true</success>\n\t<result>\n".array_to_xml($results, true, 2)."\t</result>\n</response>";
 	    } else {
 		    $str .= "<response><success>false</success>\n<error>command_parameter not set. To list a specific exhibit, we need to know which exhibit you're looking for. If you want to list all exhibits, use command=exhibits</error></response>";
