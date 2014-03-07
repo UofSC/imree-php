@@ -7,13 +7,13 @@ require_once('../../config.php');
  * @Author: Cole Mendes
  * @Date: 02/17/2014
  */
-/*
-* some notes
-* file_get_contents($url);
-*
-**/
 
-function CDM_INGEST_query($collection='all', $query, $records=200)
+/*******************************************************************************
+ * get_items function
+ * 
+ * @param $records - Number of items the user wants 
+ */
+function CDM_INGEST_query($collection='all', $query='all', $records=200)
 {
     $url = CDM_INGEST_QUERY_make_search_url($collection, $query, "pointer", "collection", $records);
     
@@ -25,7 +25,7 @@ function CDM_INGEST_query($collection='all', $query, $records=200)
         $Everything[$count] = CDM_INGEST_get_item($col, $point);
         $count++;
     }
-   
+    
     return $Everything; 
 }
 
@@ -86,9 +86,8 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     $url .= "/" . $format;
     $item_info = Array();
     
-    $accessURL = fopen($url, "r"); 
-    while(!(feof($accessURL))) //until url is finished
-    {
+    $accessURL = file_get_contents($url); 
+    
       $item = fgets($accessURL, 9999);
       $item_info['repository'] = "CDM";
       $item_info['URL'] = $url;
@@ -122,7 +121,7 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
         $item_info["format"] = $item; 
       }
       
-    }
+    
     return $item_info;
 }
 
@@ -138,9 +137,9 @@ function CDM_INGEST_get_collection_list(){
     
     $collections = Array();
     $url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetCollectionList/xml";
-    $accessURL = fopen($url, "r");
-    while(!(feof($accessURL))) //until url is finished
-    {
+    $accessURL = file_get_contents($url);
+    
+    
         $collection = fgets($accessURL, 9999);
           if(strpos($collection, 'alias'))
           { 
@@ -150,7 +149,7 @@ function CDM_INGEST_get_collection_list(){
             $collections[$collection] = $collection;
             
           }
-    }
+    
     return $collections;
 }
 
@@ -162,43 +161,31 @@ function CDM_INGEST_get_collection_list(){
  * @param $collection
  * @return $pointers - array of pointers
  */
-function CDM_INGEST_get_pointers($alias)
+function CDM_INGEST_get_pointers($alias='all', $maxrecs=200)
 {
     $pointers = Array();
-    $url = CDM_INGEST_QUERY_make_search_url($alias, "all", "find", "collection", 200);
-    $accessURL = fopen($url, "r");
-    while(!(feof($accessURL))) //until url is finished
-    {
-       $stream = fgets($accessURL, 9999);
-      if(strpos($stream, 'collection'))
-      {    
-        
-        $collection = str_replace('<collection><![CDATA[', "", $stream); 
-        $collection = str_replace(']]></collection>', "", $collection);
-        $collection = str_replace('/', "", $collection);
-        $collection = trim($collection);
-       // var_dump($collection);
-        
-      }  
-      if(strpos($stream, 'pointer'))
-      { 
-        $pointer = str_replace('<pointer><![CDATA[', "", $stream); 
-        $pointer = str_replace(']]></pointer>', "", $pointer);
-        $pointer = str_replace('/', "", $pointer);
-        $pointer = trim($pointer);
-        $pointers[$pointer] = $collection;
-      }  
-    } //$pointers now hold all pointer data for a collection based on search params
+    $url = CDM_INGEST_QUERY_make_search_url($alias, "all", "find", "collection", $maxrecs);
+    $collection = Array();
+    $results = Array();
     
-    return $pointers;
+      $stream = file_get_contents($url);
+      preg_match_all("|<pointer><!\[CDATA\[(.*)\]\]></pointer>|", $stream, $pointers);
+      preg_match_all("|<collection><!\[CDATA\[\/(.*)\]\]></collection>|", $stream, $collection);
+      
+      $results["Pointers"] = $pointers[1];
+      $results["Collection"] = $collection[1];
+      
+      
+    return $results;
 }
 
-/*******************************************************************************
- * get_items function
- * 
- * @param $records - Number of items the user wants 
- */
 
+
+
+
+
+ /*$collection = str_replace('<collection><![CDATA[', "", $stream); 
+        $collection = str_replace(']]></collection>', "", $collection);
+        $collection = str_replace('/', "", $collection);
+        $collection = trim($collection);*/
 ?>
-
-
