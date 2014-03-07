@@ -7,13 +7,17 @@ require_once('../../config.php');
  * @Author: Cole Mendes
  * @Date: 02/17/2014
  */
+/*
+* some notes
+* file_get_contents($url);
+*
+**/
 
-
-function CDM_INGEST_query($query, $records=200)
+function CDM_INGEST_query($collection='all', $query, $records=200)
 {
-    $url = CDM_INGEST_QUERY_make_search_url("all", $query, "pointer", "collection", $records);
+    $url = CDM_INGEST_QUERY_make_search_url($collection, $query, "pointer", "collection", $records);
     
-    $items = CDM_INGEST_get_pointers('all');
+    $items = CDM_INGEST_get_pointers($collection);
     $Everything = Array();
     
     $count = 0;
