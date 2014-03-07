@@ -219,6 +219,16 @@ if($command) {
 		    }
 		    
 	    } 
+    } else if ($command === "exhibit_modules_order_update") {
+	    /**
+	     * @todo. command_paramater = exhitbit id. get the current result query for exhibit_data and explicitly SET the module_order to an incremental value based on the current order of the modules
+	     * for that exhibit. This is designed to resolve problems where two modules have the same "order"
+	     */
+	} else if ($command === "exhibit_module_assets_order_update") {
+		/**
+		 * @todo. same as exhibit_modules_order_update, but for assets instead
+		 */
+	    
     }  else {
         die("That command does not exist");
     }
