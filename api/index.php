@@ -155,7 +155,21 @@ if($command) {
 	    $ulogin = new uLogin();
 	    
 	    $ulogin->Authenticate($values->username, $values->password);
-	    $str .= "<response><success>true</success>\n<result>".($ulogin->AuthResult ? $ulogin->AuthResult : 'false')."</result></response>";
+	    if($ulogin->AuthResult) {
+		    $str .= "<response><success>true</success>\n<result><logged_in>true</logged_in>";
+		    $id =  $ulogin->Uid($values->username);
+		    
+		    $user = $permissions = db_query($conn, "SELECT * FROM people WHERE people.ul_user_id = ".db_escape($id));
+		    $str .= "<user>".array_to_xml($user[0], true, 2)."</user>";
+		    
+		    $permissions = db_query($conn, "SELECT people_privileges.* FROM people LEFT JOIN people_privileges USING (person_id) WHERE people.ul_user_id = ".db_escape($id));
+		    $str .= "<permissions>".array_to_xml($permissions, true, 2)."</permissions>";
+		    
+		    $str .= "</result></response>";
+		    
+	    } else {
+		    $str .= "<response><success>true</success>\n<result><logged_in>false</logged_in></result></response>";
+	    }
         
     } else if($command === "user_rights") {
 	    if(quick_aut()) {
