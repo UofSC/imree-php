@@ -164,14 +164,27 @@ function CDM_INGEST_get_pointers($alias='all', $maxrecs=200)
 
 
 function CDM_INGEST_ingest($alias, $pointer) {
-	//do stuff
+	$url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetItemInfo";
+        $url .= "/" . $alias;
+        $url .= "/" . $pointer;
+        $url .= "/xml";
 	
-	$response =  array(
-	    'asset_data'=> file_get_contents('http://....'),
-	    'asset_mimetype' => 'i.e. image/jpeg',
-	    'asset_size' => 234923847,
-	    'title' => 'asdfasdfasdf',
+        $stream = file_get_contents($url);
+        preg_match_all("|<title>(.*)</title>|", $stream, $title);
+        preg_match_all("|<format>(.*)</format>|", $stream, $format);
+        preg_match_all("|<type>(.*)</type>|", $stream, $type);
+        preg_match_all("|<cdmfilesize>(.*)</cdmfilesize>|", $stream, $size);
+        preg_match_all("|<web>(.*)</web>|", $stream, $web);
+        
+	$response = Array(
+	    'asset_data' => $web[1][0],
+            'asset_format' => $format[1][0],
+	    'asset_mimetype' => $type[1][0],
+	    'asset_size' => $size[1][0] . ' Bytes',
+	    'title' => $title[1][0],
 	);
+        
 	return $response;
 }
+var_dump(CDM_INGEST_ingest('access', '356'));
 ?>
