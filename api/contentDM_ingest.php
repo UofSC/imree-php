@@ -49,7 +49,7 @@ function CDM_INGEST_query($query='all', $collection='all', $records=200)
  */
 function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
     global $content_dm_address;
-    $url = $content_dm_address;
+    $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmQuery";
     $strings = str_replace(" ", "^", $search_string);
     $new_fields = str_replace(" ", "!", $fields);
     $url .= "/" . $alias;
