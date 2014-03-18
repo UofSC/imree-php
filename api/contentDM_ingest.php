@@ -161,4 +161,17 @@ function CDM_INGEST_get_pointers($alias='all', $maxrecs=200)
     
     return $results;
 }
+
+
+function CDM_INGEST_ingest($alias, $pointer) {
+	//do stuff
+	
+	$response =  array(
+	    'asset_data'=> file_get_contents('http://....'),
+	    'asset_mimetype' => 'i.e. image/jpeg',
+	    'asset_size' => 234923847,
+	    'title' => 'asdfasdfasdf',
+	);
+	return $response;
+}
 ?>

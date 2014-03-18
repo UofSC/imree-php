@@ -135,7 +135,19 @@ if($command) {
 				 ".children($results)." 
            </children></result></response>";
         }
-    
+    } else if ($command === "ingest") {
+	     $values = json_decode($command_parameter);
+		$repository = $values['repository'];
+		$asset = null;
+		if($repository === 'CDM') {
+			$cdm_alias = $values['cdm_alias'];
+			$cdm_pointer = $values['cdm_pointer'];
+			$asset = CDM_INGEST_ingest($cdm_alias, $cdm_pointer);
+		}
+		
+		print_r($asset);
+		
+	    
     } else if($command === "exhibits") {
 	    //@todo limit results by user
 	    $results = db_query($conn, "SELECT * FROM exhibits");
