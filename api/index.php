@@ -120,7 +120,7 @@ if($command) {
           
 		require_once 'contentDM_ingest.php';
 		set_time_limit(90);
-		$CDM_results = CDM_INGEST_query($command_parameter, 20);
+		$CDM_results = CDM_INGEST_query($command_parameter);
 		$str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
 		
 		//Results of all items that match a full-text search
