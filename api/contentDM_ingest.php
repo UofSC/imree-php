@@ -3,15 +3,18 @@ require_once('../../config.php');
 
 /*******************************************************************************
  * contentDM_ingest
- * Searches CONTENTdm... more to come
+ * Searches ContentDM
  * @Author: Cole Mendes
  * @Date: 02/17/2014
  */
 
 /*******************************************************************************
- * get_items function
+ * CDM_INGEST_query function
  * 
- * @param $records - Number of items the user wants 
+ * @param type $query - actual search query
+ * @param type $collection
+ * @param type $records
+ * @return type
  */
 function CDM_INGEST_query($query='all', $collection='all', $records=200)
 {
@@ -162,7 +165,13 @@ function CDM_INGEST_get_pointers($alias='all', $maxrecs=200)
     return $results;
 }
 
-
+/**
+ * CDM_INGEST_ingest
+ * 
+ * @param type $alias
+ * @param type $pointer
+ * @return string
+ */
 function CDM_INGEST_ingest($alias, $pointer) {
 	$url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetItemInfo";
         $url .= "/" . $alias;
