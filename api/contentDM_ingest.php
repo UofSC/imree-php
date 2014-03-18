@@ -186,5 +186,4 @@ function CDM_INGEST_ingest($alias, $pointer) {
         
 	return $response;
 }
-var_dump(CDM_INGEST_ingest('access', '356'));
 ?>
