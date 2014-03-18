@@ -13,11 +13,11 @@ require_once('../../config.php');
  * 
  * @param $records - Number of items the user wants 
  */
-function CDM_INGEST_query($collection='all', $query='all', $records=200)
+function CDM_INGEST_query($query='all', $collection='all', $records=200)
 {
     $url = CDM_INGEST_QUERY_make_search_url($collection, $query, "pointer", "collection", $records);
     
-    $items = CDM_INGEST_get_pointers($collection);
+    $items = CDM_INGEST_get_pointers($collection, $records);
     $Everything = Array();
     
     $count = 0;
@@ -77,7 +77,6 @@ function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort
  * @param type $format
  * @return string
  */    
-//doesnt work yet
 function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     
     $url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetItemInfo";
@@ -85,43 +84,23 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     $url .= "/" . $pointer;
     $url .= "/" . $format;
     $item_info = Array();
+    $title = Array();
+    $type = Array();
+    $size = Array();
     
-    $accessURL = file_get_contents($url); 
+    $stream = file_get_contents($url);
+    preg_match_all("|<title>(.*)</title>|", $stream, $title);
+    preg_match_all("|<format>(.*)</format>|", $stream, $type);
+    preg_match_all("|<cdmfilesize>(.*)</cdmfilesize>|", $stream, $size);
     
-      $item = fgets($accessURL, 9999);
-      $item_info['repository'] = "CDM";
-      $item_info['URL'] = $url;
-      $item_info['id'] = $pointer;
-      $item_info['collection'] = $collection;
-      if(strpos($item, 'title'))
-      {
-        $item = strip_tags($item);
-        $item = str_replace('/', "", $item);
-        $item = trim($item);
-        $item_info["title"] = $item; 
-      }if(strpos($item, 'type'))
-      {
-        $item = strip_tags($item);
-        $item = str_replace('/', "", $item);
-        $item = trim($item);
-        $item_info["type"] = $item; 
-      }
-      if(strpos($item, 'cdmfilesizeformatted'))
-      {
-        $item = strip_tags($item);
-        $item = str_replace('/', "", $item);
-        $item = trim($item);
-        $item_info["size"] = $item; 
-      }
-      if(strpos($item, 'format'))
-      {
-        $item = strip_tags($item);
-        $item = str_replace('/', "", $item);
-        $item = trim($item);
-        $item_info["format"] = $item; 
-      }
-      
-    
+    $item_info['Title'] = $title[1][0];
+    $item_info['Type'] = $type[1][0];
+    $item_info['Size'] = $size[1][0];
+    $item_info['Repository'] = "CDM";
+    $item_info['URL'] = $url;
+    $item_info['ID'] = $pointer;
+    $item_info['Collection'] = $collection;
+
     return $item_info;
 }
 
@@ -167,25 +146,19 @@ function CDM_INGEST_get_pointers($alias='all', $maxrecs=200)
     $url = CDM_INGEST_QUERY_make_search_url($alias, "all", "find", "collection", $maxrecs);
     $collection = Array();
     $results = Array();
+
+    $stream = file_get_contents($url);
+    preg_match_all("|<pointer><!\[CDATA\[(.*)\]\]></pointer>|", $stream, $pointers);
+    preg_match_all("|<collection><!\[CDATA\[\/(.*)\]\]></collection>|", $stream, $collection);
+
+    $pointers = $pointers[1];
+    $collection = $collection[1];
     
-      $stream = file_get_contents($url);
-      preg_match_all("|<pointer><!\[CDATA\[(.*)\]\]></pointer>|", $stream, $pointers);
-      preg_match_all("|<collection><!\[CDATA\[\/(.*)\]\]></collection>|", $stream, $collection);
-      
-      $results["Pointers"] = $pointers[1];
-      $results["Collection"] = $collection[1];
-      
-      
+    for($i = 0; $i < $maxrecs; $i++)
+    {
+        $results[$pointers[$i]] = $collection[$i];
+    }
+    
     return $results;
 }
-
-
-
-
-
-
- /*$collection = str_replace('<collection><![CDATA[', "", $stream); 
-        $collection = str_replace(']]></collection>', "", $collection);
-        $collection = str_replace('/', "", $collection);
-        $collection = trim($collection);*/
 ?>
