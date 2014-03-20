@@ -16,11 +16,11 @@ require_once('../../config.php');
  * @param type $records
  * @return type
  */
-function CDM_INGEST_query($query='all', $collection='all', $records=200)
+function CDM_INGEST_query($query='0', $collection='all', $records=20)
 {
-    $url = CDM_INGEST_QUERY_make_search_url($collection, $query, "pointer", "collection", $records);
+    $url = CDM_INGEST_QUERY_make_search_url($collection, $query, "find!subjec", "pointer", $records);
     
-    $items = CDM_INGEST_get_pointers($collection, $records);
+    $items = CDM_INGEST_get_pointers($query, $collection, $records);
     $Everything = Array();
     
     $count = 0;
@@ -50,13 +50,17 @@ function CDM_INGEST_query($query='all', $collection='all', $records=200)
  * @param type $format
  * @return type $url
  */
-function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
+function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs=20, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
     global $content_dm_address;
     $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmQuery";
-    $strings = str_replace(" ", "^", $search_string);
+    
+    $query = $search_string;
+    $search_string = "title!subjec^";
+    $query = str_replace(" ", "+", $query);
+    $search_string .= $query . "^all^and";
     $new_fields = str_replace(" ", "!", $fields);
     $url .= "/" . $alias;
-    $url .= "/" . $strings;
+    $url .= "/" . $search_string;
     $url .= "/" . $new_fields;
     $url .= "/" . $sort;
     $url .= "/" . $max_recs;
@@ -98,7 +102,7 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     
     $item_info['Title'] = $title[1][0];
     $item_info['Type'] = $type[1][0];
-    $item_info['Size'] = $size[1][0];
+    $item_info['Size'] = $size[1][0] . " Bytes";
     $item_info['Repository'] = "CDM";
     $item_info['URL'] = $url;
     $item_info['ID'] = $pointer;
@@ -143,13 +147,13 @@ function CDM_INGEST_get_collection_list(){
  * @param $collection
  * @return $pointers - array of pointers
  */
-function CDM_INGEST_get_pointers($alias='all', $maxrecs=200)
+function CDM_INGEST_get_pointers($query, $alias='all', $maxrecs=20)
 {
     $pointers = Array();
-    $url = CDM_INGEST_QUERY_make_search_url($alias, "all", "find", "collection", $maxrecs);
+    $url = CDM_INGEST_QUERY_make_search_url($alias, $query, "find!subjec", "pointer", $maxrecs);
     $collection = Array();
     $results = Array();
-
+    
     $stream = file_get_contents($url);
     preg_match_all("|<pointer><!\[CDATA\[(.*)\]\]></pointer>|", $stream, $pointers);
     preg_match_all("|<collection><!\[CDATA\[\/(.*)\]\]></collection>|", $stream, $collection);
@@ -157,7 +161,7 @@ function CDM_INGEST_get_pointers($alias='all', $maxrecs=200)
     $pointers = $pointers[1];
     $collection = $collection[1];
     
-    for($i = 0; $i < $maxrecs; $i++)
+    for($i = 0; $i < count($pointers); $i++)
     {
         $results[$pointers[$i]] = $collection[$i];
     }
@@ -165,7 +169,7 @@ function CDM_INGEST_get_pointers($alias='all', $maxrecs=200)
     return $results;
 }
 
-/**
+/*******************************************************************************
  * CDM_INGEST_ingest
  * 
  * @param type $alias
@@ -173,24 +177,27 @@ function CDM_INGEST_get_pointers($alias='all', $maxrecs=200)
  * @return string
  */
 function CDM_INGEST_ingest($alias, $pointer) {
-	$url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetItemInfo";
+        global $content_dm_address;
+        $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetItemInfo";
         $url .= "/" . $alias;
         $url .= "/" . $pointer;
         $url .= "/xml";
-	
+        
         $stream = file_get_contents($url);
         preg_match_all("|<title>(.*)</title>|", $stream, $title);
         preg_match_all("|<format>(.*)</format>|", $stream, $format);
         preg_match_all("|<type>(.*)</type>|", $stream, $type);
         preg_match_all("|<cdmfilesize>(.*)</cdmfilesize>|", $stream, $size);
         preg_match_all("|<web>(.*)</web>|", $stream, $web);
+        preg_match_all("|<subjec>(.*)</subjec>|", $stream, $subject);
         
 	$response = Array(
-	    'asset_data' => $web[1][0],
+            'asset_title' => $title[1][0],
+	    'asset_data' => $subject[1][0],
+            'asset_url' => $web[1][0],
             'asset_format' => $format[1][0],
 	    'asset_mimetype' => $type[1][0],
-	    'asset_size' => $size[1][0] . ' Bytes',
-	    'title' => $title[1][0],
+	    'asset_size' => $size[1][0] . ' Bytes'
 	);
         
 	return $response;
