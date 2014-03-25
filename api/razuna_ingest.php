@@ -21,9 +21,8 @@ require_once('/../shared_functions/functions.form.php');
 
  $target = htmlspecialchars($_SERVER["PHP_SELF"]);
  $search_limit = array("img" => "image only", "vid" => "video only","doc" => "document only","aud" => "audio only");
- 
-    if(form_submitted())
-    {
+ function razuna_query($query) {
+    
         //if the form has been submitted (see if statement above) perform the functions below 
         //For each step see the functions below
         //1. Replace white space in the search query with %20
@@ -32,26 +31,9 @@ require_once('/../shared_functions/functions.form.php');
         //4. Pass the url to JSON AND CREATE THE RAZUNA array
         //5. Convert the RAZUNA ARRAY to the data model of the new IMREE array, return the final array to AIR
        
-        return_array(filter_input(INPUT_POST, 'query_string'));
+        return_array($query);
         
     } 
-     else 
-    {   //form has not been submitted
-        //create an input field to type the search query
-        echo "<form method='post' action='$target'>";
-        echo "Simple Search";
-        print "\n";
-        f_input("query_string","text","");
-        print "\n<br>";
-        echo "Limit Search";
-        print "\n";
-        f_input("show_ass","radio", $search_limit);
-        print "\n(Default search is all types)";
-        print "\n<br>";
-        f_input("SUMBIT","submit");
-        echo "</form>";
-      
-    }
     /* START WITH YOUR FUNCTIONS DOWN HERE */
     
     //this function adds spaces to the RAZUNA QUERY SO THAT THE RAZUNA API WILL NOT RETURN AN ERROR WHEN IT PERFORMS A SEARCH
