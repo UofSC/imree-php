@@ -37,7 +37,7 @@ require_once('/../shared_functions/functions.form.php');
     } 
      else 
     {   //form has not been submitted
-        //create a input field to type the search query
+        //create an input field to type the search query
         echo "<form method='post' action='$target'>";
         echo "Simple Search";
         print "\n";
@@ -96,6 +96,7 @@ require_once('/../shared_functions/functions.form.php');
         $encoded = utf8_encode($contents);  //encode them
         $results = json_decode($encoded,true); //pass the results to json for nifty array handling
         
+        #print_r ($results);
         return $results; //returns a JSON array of search results from RAZUNA
     }
     
@@ -113,6 +114,16 @@ require_once('/../shared_functions/functions.form.php');
             $item_array['title'] = $item[1];
             $item_array['thumbnail_url'] = $item[20];
             $item_array['repository'] = "Razuna";
+            $item_array['format'] = $item[7]."/".$item[4];
+            if (!$item[17]=="" AND !$item[16]=="")
+            {$item_array['data']= "KEYWORDS: ". $item[17]." DESCRIPTION: ".$item[16];}
+            elseif (!$item[17]=="" AND $item[16]=="")
+            {$item_array['data']= "KEYWORDS: ". $item[17];}
+            elseif ($item[17]=="" AND !$item[16]=="")
+            {$item_array['data']= "DESCRIPTION: ".$item[16];}
+            else 
+            {$item_array['data']= "";}    
+            
             
             $curator_array[]=$item_array;
             }
