@@ -31,7 +31,7 @@ require_once('/../shared_functions/functions.form.php');
         //4. Pass the url to JSON AND CREATE THE RAZUNA array
         //5. Convert the RAZUNA ARRAY to the data model of the new IMREE array, return the final array to AIR
        
-        return_array($query);
+        return return_array($query);
         
     } 
     /* START WITH YOUR FUNCTIONS DOWN HERE */
