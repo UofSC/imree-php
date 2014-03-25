@@ -183,21 +183,47 @@ function CDM_INGEST_ingest($alias, $pointer) {
         $url .= "/" . $pointer;
         $url .= "/xml";
         
+        $cpd_url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetCompoundObjectInfo";
+        $cpd_url .= "/" . $alias;
+        $cpd_url .= "/" . $pointer;
+        $cpd_url .= "/xml";
+        
+        $cpd_stream = file_get_contents($cpd_url);
         $stream = file_get_contents($url);
+        
+        if(preg_match_all("|<code>(.*)</code>|", $cpd_stream, $check)){ //single
+            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT="
+                    . $alias
+                    . "&CISOPTR="
+                    . $pointer
+                    . "&action=2&DMSCALE=20&DMWIDTH=512&DMHEIGHT=512&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
+        }else{ //compound
+            preg_match_all("|<find>(.*).cpd<\/find>|", $stream, $image);
+            $pointer = $image[1][0];
+            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT="
+                    . $alias
+                    . "&CISOPTR="
+                    . $pointer
+                    . "&action=2&DMSCALE=20&DMWIDTH=512&DMHEIGHT=512&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
+        }
+        
         preg_match_all("|<title>(.*)</title>|", $stream, $title);
-        preg_match_all("|<format>(.*)</format>|", $stream, $format);
         preg_match_all("|<type>(.*)</type>|", $stream, $type);
         preg_match_all("|<cdmfilesize>(.*)</cdmfilesize>|", $stream, $size);
         preg_match_all("|<web>(.*)</web>|", $stream, $web);
         preg_match_all("|<subjec>(.*)</subjec>|", $stream, $subject);
         
+        //change size to integer
+        $size = $size[1][0] + 0;
+        
+        $image_data = file_get_contents($image);
 	$response = Array(
             'asset_title' => $title[1][0],
 	    'asset_data' => $subject[1][0],
-            'asset_url' => $web[1][0],
-            'asset_format' => $format[1][0],
+            'asset_url' => $stream,
+            'asset_source_url' => $image_data,
 	    'asset_mimetype' => $type[1][0],
-	    'asset_size' => $size[1][0] . ' Bytes'
+	    'asset_size' => $size,
 	);
         
 	return $response;
