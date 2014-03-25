@@ -3,6 +3,7 @@
  *  This file searches the RAZUNA repository for CURATORS and pulls back data related to their SEARCH QUERY.
  *  CURATORS select the desired components they would like to bring to the IMREE DB and then they submit to 
  *  INGEST this information into the IMREE MYSQL DB.
+ * @author Ron Brown 
  */
 
 #require the shared functions and other useful content for the api
@@ -13,16 +14,16 @@ require_once('/../shared_functions/functions.api.php');
 require_once('/../shared_functions/functions.core.php');
 require_once('/../shared_functions/functions.db.php');
 require_once('/../shared_functions/functions.form.php');
-#require_once('/../shared_functions/functions.catalog.php');
-#require_once('../../config.php');
 
-// put your code here
- #global $search;       
 
- $target = htmlspecialchars($_SERVER["PHP_SELF"]);
- $search_limit = array("img" => "image only", "vid" => "video only","doc" => "document only","aud" => "audio only");
+
  function razuna_query($query) {
-    
+	 /**
+	  * The following two vars where found between functions, but it doesn't appear they're used. 
+	  */
+	  $target = htmlspecialchars($_SERVER["PHP_SELF"]);
+	  $search_limit = array("img" => "image only", "vid" => "video only","doc" => "document only","aud" => "audio only");
+ 
         //if the form has been submitted (see if statement above) perform the functions below 
         //For each step see the functions below
         //1. Replace white space in the search query with %20
@@ -38,7 +39,7 @@ require_once('/../shared_functions/functions.form.php');
     
     //this function adds spaces to the RAZUNA QUERY SO THAT THE RAZUNA API WILL NOT RETURN AN ERROR WHEN IT PERFORMS A SEARCH
     //it accepts a string argument and returns it
-    function add_spaces($str)
+    function razuna_add_spaces($str)
     {
         $str = str_replace(' ', '%20', $str);
         return $str;
@@ -46,15 +47,15 @@ require_once('/../shared_functions/functions.form.php');
     
     //this function creates a QUERY STRING TO SUBMIT TO RAZUNA
     //it accepts string arguments
-    function create_qstring($str)
+    function razuna_create_qstring($str)
     {
-        $str ="&searchfor=".add_spaces($str); //this func call replaces white space with %20 and builds search string for passing to RAZUNA
+        $str ="&searchfor=".razuna_add_spaces($str); //this func call replaces white space with %20 and builds search string for passing to RAZUNA
         return $str;
     }
 
     //this function creates the URL by adding in the BASE_URL STRING, RAZUNA API KEY STRING, the QUERY STRING, AND ANY RAZUNA SEARCH PARAMETERS TO SUBMIT TO RAZUNA
     //it accepts string arguments and returns the url variable
-    function create_url($str)
+    function razuna_create_url($str)
     {
         //first check to see if air passed any search limiters        
         if (!isset($_POST["show_ass"])) //check to see if any search limiters have been set and add them to the file url
@@ -68,13 +69,13 @@ require_once('/../shared_functions/functions.form.php');
         
         $base="http://imree.tcl.sc.edu:8080/razuna/global/api2/search.cfc?method=searchassets";
         $api="&api_key=822756B3669444D59D2C2333E449FFBA";
-        $url =  $base.$api.create_qstring($str).$show_ass; //this func call 1. replaces white space with %20, 2. builds the query and three 3. adds the query string to the url
+        $url =  $base.$api.razuna_create_qstring($str).$show_ass; //this func call 1. replaces white space with %20, 2. builds the query and three 3. adds the query string to the url
         return $url;
     }
     
-    function pass_url($str)
+    function razuna_pass_url($str)
     {
-        $contents = file_get_contents(create_url($str)); //this func call performs functions 1-3 above and gets the contents of the search from razuna
+        $contents = file_get_contents(razuna_create_url($str)); //this func call performs functions 1-3 above and gets the contents of the search from razuna
         $encoded = utf8_encode($contents);  //encode them
         $results = json_decode($encoded,true); //pass the results to json for nifty array handling
         
@@ -84,7 +85,7 @@ require_once('/../shared_functions/functions.form.php');
     
     function return_array ($results)
     {
-        $array = pass_url($results);
+        $array = razuna_pass_url($results);
         
         $curator_array=array(); //create a blank array to put the results into a form for the curator interface
         
