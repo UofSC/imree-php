@@ -141,7 +141,7 @@ if($command) {
                  */
 		 $str .= "<response><success>true</success><result>
 		 <children>
-				 ".children($results)." 
+				 ".children($CDM_results)." 
            </children></result></response>";
         }
     
