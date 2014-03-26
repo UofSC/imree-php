@@ -85,29 +85,37 @@ function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort
  * @return string
  */    
 function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
-    
+    global $content_dm_address, $content_dm_utils_address;
     $url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetItemInfo";
     $url .= "/" . $collection;
     $url .= "/" . $pointer;
     $url .= "/" . $format;
-    $item_info = Array();
+   
     $title = Array();
     $type = Array();
     $size = Array();
+    $description = Array();
+    $subject = Array();
     
     $stream = file_get_contents($url);
     preg_match_all("|<title>(.*)</title>|", $stream, $title);
     preg_match_all("|<format>(.*)</format>|", $stream, $type);
     preg_match_all("|<cdmfilesize>(.*)</cdmfilesize>|", $stream, $size);
+    preg_match_all("|<descri>(.*)</descri>|", $stream, $description);
+    preg_match_all("|<subjec>(.*)</subjec>|", $stream, $subject);
     
-    $item_info['Title'] = $title[1][0];
-    $item_info['Type'] = $type[1][0];
-    $item_info['Size'] = $size[1][0] . " Bytes";
-    $item_info['Repository'] = "CDM";
-    $item_info['URL'] = $url;
-    $item_info['ID'] = $pointer;
-    $item_info['Collection'] = $collection;
-
+    
+     $item_info = Array(
+         'id' => $pointer,
+         'collection' => $collection,
+         'title' => $title[1][0],
+         'thumbnail_url' => "http://".$content_dm_utils_address."/utils/getthumbnail/collection/$collection/id/$pointer",
+         'repository' => "CDM",
+         'type' => $type[1][0],
+         'metadata' => $description[1][0] . " " . $subject[1][0],
+         'children' => array() ,
+     );
+    
     return $item_info;
 }
 

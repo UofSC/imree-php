@@ -21,10 +21,16 @@ $str = "<?xml version='1.0' encoding='UTF-8' ?>";
  */
 function children($results) {
     $string = "";
-	foreach($results as $item) {
+    foreach($results as $item) {
         $string .= "<item>";
         foreach($item as $key=>$val) {
-            $string .= "<".  htmlspecialchars($key).">".htmlspecialchars($val)."</".htmlspecialchars($key).">";
+            $string .= "<".  htmlspecialchars($key).">";
+            if(is_array($val)) {
+                $string .= children($val);
+            } else {
+                $string .= htmlspecialchars($val);
+            }
+            $string .= "</".htmlspecialchars($key).">";
         }
         $string .= "</item>";
     }
@@ -124,12 +130,15 @@ if($command) {
 		
 		
 		//Results of all items that match a full-text search
+                /**
 		$results = array_merge(db_query($conn, "SELECT assets.* FROM assets
 		   LEFT JOIN asset_metadata_assignments USING (asset_id)
 		   LEFT JOIN metadata USING (metadata_id)
 		   WHERE MATCH(metadata.metadata_value) AGAINST (".db_escape($command_parameter).")
 		   GROUP BY assets.asset_id"
 		), $CDM_results);
+                 * 
+                 */
 		 $str .= "<response><success>true</success><result>
 		 <children>
 				 ".children($results)." 
