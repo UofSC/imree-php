@@ -79,7 +79,7 @@ require_once('/../shared_functions/functions.form.php');
         $encoded = utf8_encode($contents);  //encode them
         $results = json_decode($encoded,true); //pass the results to json for nifty array handling
         
-        #print_r ($results);
+        //print_r ($results);
         return $results; //returns a JSON array of search results from RAZUNA
     }
     
@@ -94,25 +94,111 @@ require_once('/../shared_functions/functions.form.php');
             $item_array= array();
             
             $item_array['id'] = $item[0];
+            $item_array['collection'] = "";
             $item_array['title'] = $item[1];
             $item_array['thumbnail_url'] = $item[20];
             $item_array['repository'] = "Razuna";
-            $item_array['format'] = $item[7]."/".$item[4];
+            $item_array['type'] = $item[7]."/".$item[4];
             if (!$item[17]=="" AND !$item[16]=="")
-            {$item_array['data']= "KEYWORDS: ". $item[17]." DESCRIPTION: ".$item[16];}
+            {$item_array['metadata']= "KEYWORDS: ". $item[17]." DESCRIPTION: ".$item[16];}
             elseif (!$item[17]=="" AND $item[16]=="")
-            {$item_array['data']= "KEYWORDS: ". $item[17];}
+            {$item_array['metadata']= "KEYWORDS: ". $item[17];}
             elseif ($item[17]=="" AND !$item[16]=="")
-            {$item_array['data']= "DESCRIPTION: ".$item[16];}
+            {$item_array['metadata']= "DESCRIPTION: ".$item[16];}
             else 
-            {$item_array['data']= "";}    
+            {$item_array['metadata']= "";}    
+            $item_array['children']="";
             
             
             $curator_array[]=$item_array;
             }
             
-        print_r ($curator_array);
+        //print_r ($curator_array); print the array for testing
+            
         return $curator_array;
+    }
+    
+    function razuna_ingest ($asset_id)  
+    {
+        //Retrieving a razuna asset requires two inputs
+        //1. Razuna API key 
+        //2. Razuna asset id
+        
+        //Note:: Razuna asset type -- Note the asset type field may not be accurate. Check this.
+        //create the url this function uses search assets because get assets requires the asset type and this is assumed to not be known by the function
+        
+        $base="http://imree.tcl.sc.edu:8080/razuna/global/api2/search.cfc?method=searchassets";
+        $api="&api_key=822756B3669444D59D2C2333E449FFBA";
+        $url =  $base.$api."&searchfor=labels:(assetid),(".$asset_id.")";
+                
+        //pass the url to Razuna
+        $contents = file_get_contents($url); //this line passes the ingest parameters to retrieve the specific asset
+        $encoded = utf8_encode($contents);  //encode them
+        $results = json_decode($encoded,true); //pass the results to json for nifty array handling
+       
+        //Parse through the URL 
+        
+        $razuna_ingest_array=array(); //create a blank array to put the results into a form for the curator interface
+        
+        foreach ($results["DATA"] as $item)
+            {
+            $item_array= array();
+            
+            $item_array['asset_title'] = razuna_get_metadata($asset_id, $item[7]); //need to run another query to get the title information?
+            
+            //get the asset_data information by combining the keyword and description information present from Razuna
+            if (!$item[16]=="" AND !$item[15]=="")
+                {$item_array['asset_data']= "KEYWORDS: ". $item[16]." DESCRIPTION: ".$item[15];}
+            elseif (!$item[16]=="" AND $item[15]=="")
+                {$item_array['asset_data']= "KEYWORDS: ". $item[16];}
+            elseif ($item[16]=="" AND !$item[15]=="")
+                {$item_array['asset_data']= "DESCRIPTION: ".$item[15];}
+            else 
+                {$item_array['asset_data']= "";}    
+            
+            $item_array['asset_url'] = $item[19]; 
+            $item_array['asset_source_url'] = ""; //? 
+            $item_array['asset_mimetype']=$item[7]; 
+            $item_array['size']=$item[12]; 
+            $item_array['asset_thumb_url'] = $item[20];
+            
+            $razuna_ingest_array[]=$item_array;
+            }
+            
+        /*Cole's ingest format
+         * $response = Array(
+            'asset_title' => $title[1][0],
+	    'asset_data' => $subject[1][0],
+            'asset_url' => $stream,
+            'asset_source_url' => $image_data,
+	    'asset_mimetype' => $type[1][0],
+	    'asset_size' => $size,
+	); */
+        print_r ($razuna_ingest_array); //print the array for testing
+        
+        return $razuna_ingest_array;
+    }
+    
+    function razuna_get_metadata ($asset_id, $asset_type)
+    {
+        $base="http://imree.tcl.sc.edu:8080/razuna/global/api2/asset.cfc?method=getmetadata";
+        $api="&api_key=822756B3669444D59D2C2333E449FFBA";
+        $a_id="&assetid=".$asset_id;
+        $a_type="&assettype=".$asset_type;
+        $a_metadata="&assetmetadata=title";
+        $url =  $base.$api.$a_id.$a_type.$a_metadata;
+                
+        //pass the url to Razuna
+        $contents = file_get_contents($url); //this line passes the ingest parameters to retrieve the specific asset
+        $encoded = utf8_encode($contents);  //encode them
+        $results = json_decode($encoded,true); //pass the results to json for nifty array handling
+        
+        foreach ($results["DATA"] as $item)
+            {
+            $razuna_metadata= array(); 
+            $razuna_metadata = $item[0]; //need to run another query to get the title information?
+            }
+        return $razuna_metadata;
     }
     
 ?>
