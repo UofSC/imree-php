@@ -137,44 +137,34 @@ require_once('/../shared_functions/functions.form.php');
         $results = json_decode($encoded,true); //pass the results to json for nifty array handling
        
         //Parse through the URL 
-        
-        $razuna_ingest_array=array(); //create a blank array to put the results into a form for the curator interface
-        
+        $razuna_ingest_array = array();
         foreach ($results["DATA"] as $item)
             {
+		   
             $item_array= array();
             
-            $item_array['asset_title'] = razuna_get_metadata($asset_id, $item[7]); //need to run another query to get the title information?
+            
             
             //get the asset_data information by combining the keyword and description information present from Razuna
             if (!$item[16]=="" AND !$item[15]=="")
-                {$item_array['asset_data']= "KEYWORDS: ". $item[16]." DESCRIPTION: ".$item[15];}
+                {$item_array['asset_metadata']= "KEYWORDS: ". $item[16]." DESCRIPTION: ".$item[15];}
             elseif (!$item[16]=="" AND $item[15]=="")
-                {$item_array['asset_data']= "KEYWORDS: ". $item[16];}
+                {$item_array['asset_metadata']= "KEYWORDS: ". $item[16];}
             elseif ($item[16]=="" AND !$item[15]=="")
-                {$item_array['asset_data']= "DESCRIPTION: ".$item[15];}
+                {$item_array['asset_metadata']= "DESCRIPTION: ".$item[15];}
             else 
-                {$item_array['asset_data']= "";}    
+                {$item_array['asset_metadata']= "";}    
             
-            $item_array['asset_url'] = $item[19]; 
-            $item_array['asset_source_url'] = ""; //? 
+		  $item_array['asset_title'] = razuna_get_metadata($asset_id, $item[7]); //need to run another query to get the title information?
+            $item_array['asset_source'] = ""; 
             $item_array['asset_mimetype']=$item[7]; 
-            $item_array['size']=$item[12]; 
-            $item_array['asset_thumb_url'] = $item[20];
+            $item_array['asset_size']=$item[12]; 
+		  $item_array['asset_data']=  file_get_contents($item[19]);
             
             $razuna_ingest_array[]=$item_array;
             }
             
-        /*Cole's ingest format
-         * $response = Array(
-            'asset_title' => $title[1][0],
-	    'asset_data' => $subject[1][0],
-            'asset_url' => $stream,
-            'asset_source_url' => $image_data,
-	    'asset_mimetype' => $type[1][0],
-	    'asset_size' => $size,
-	); */
-        print_r ($razuna_ingest_array); //print the array for testing
+       // print_r ($razuna_ingest_array); //print the array for testing
         
         return $razuna_ingest_array;
     }

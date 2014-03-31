@@ -186,54 +186,34 @@ function CDM_INGEST_get_pointers($query, $alias='all', $maxrecs=20)
  */
 function CDM_INGEST_ingest($alias, $pointer) {
         global $content_dm_address;
-        $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetItemInfo";
-        $url .= "/" . $alias;
-        $url .= "/" . $pointer;
-        $url .= "/xml";
+        $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetItemInfo/".$alias . "/".$pointer."/xml";     
+        $compound_object_info_url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetCompoundObjectInfo/".$alias . "/".$pointer."/xml";
         
-        $cpd_url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetCompoundObjectInfo";
-        $cpd_url .= "/" . $alias;
-        $cpd_url .= "/" . $pointer;
-        $cpd_url .= "/xml";
-        
-        $cpd_stream = file_get_contents($cpd_url);
+        $compound_object_xml = simplexml_load_string(file_get_contents($compound_object_info_url));
         $stream = file_get_contents($url);
         
-        if(preg_match_all("|<code>(.*)</code>|", $cpd_stream, $check)){ //single
-            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT="
-                    . $alias
-                    . "&CISOPTR="
-                    . $pointer
-                    . "&action=2&DMSCALE=20&DMWIDTH=512&DMHEIGHT=512&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
+        if(!isset($compound_object_xml->page)){ //single
+            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT=".$alias."&CISOPTR=".$pointer."&action=2&DMSCALE=100&DMWIDTH=99999&DMHEIGHT=99999&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
         }else{ //compound
-            preg_match_all("|<find>(.*).cpd<\/find>|", $stream, $image);
-            $pointer = $image[1][0];
-            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT="
-                    . $alias
-                    . "&CISOPTR="
-                    . $pointer
-                    . "&action=2&DMSCALE=20&DMWIDTH=512&DMHEIGHT=512&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
+		  $pointer = $compound_object_xml->page[0]->pageptr;
+            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT=". $alias."&CISOPTR=".$pointer."&action=2&DMSCALE=100&DMWIDTH=99999&DMHEIGHT=99999&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
         }
+	   
+        $xml = simplexml_load_string($stream);
         
-        preg_match_all("|<title>(.*)</title>|", $stream, $title);
-        preg_match_all("|<type>(.*)</type>|", $stream, $type);
-        preg_match_all("|<cdmfilesize>(.*)</cdmfilesize>|", $stream, $size);
-        preg_match_all("|<web>(.*)</web>|", $stream, $web);
-        preg_match_all("|<subjec>(.*)</subjec>|", $stream, $subject);
-        
-        //change size to integer
-        $size = $size[1][0] + 0;
-        
-        $image_data = file_get_contents($image);
-	$response = Array(
-            'asset_title' => $title[1][0],
-	    'asset_data' => $subject[1][0],
-            'asset_url' => $stream,
-            'asset_source_url' => $image_data,
-	    'asset_mimetype' => $type[1][0],
-	    'asset_size' => $size,
+	   
+	   
+	   $response = Array(
+		'asset_title' => $xml->title,
+		'asset_metadata' => $xml->subjec,  //not a type-o
+		'asset_source' => $image,
+		'asset_data' => file_get_contents($image),
+		'asset_mimetype' => $xml->format,
+		'asset_size' => $xml->size + 0,
+		
+		//optional, but nice
+		'asset_date' => $xml->date,
 	);
-        
 	return $response;
 }
 ?>
