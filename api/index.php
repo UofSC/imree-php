@@ -144,8 +144,28 @@ if($command) {
 				 ".children($CDM_results)." 
            </children></result></response>";
         }
-    
-    } else if($command === "exhibits") {
+	} else if($command === "ingest") {
+		if(quick_auth()) {
+			require_once 'exhibit_data.php';
+			if(!$command_parameter) {
+				$errors[] = "command_parameter not set. The command parameter must be a json encoded object with three nodes: asset_repository, asset_id, asset_collection.";
+			} else {
+				$parameters = json_decode($command_parameter);
+				if(!isset($parameters->asset_id, $parameters->asset_repository)) {
+					$errors[] = "Invalid command_parameter for command:ingest. The command parameter must be a json encoded object with three nodes: asset_repository, asset_id, asset_collection.";
+				} 
+			}
+			
+			if(count($errors)==0) {
+				$result = IMREE_asset_ingest($parameters->asset_repository, $parameters->asset_id, $parameters->asset_collection);
+				if($result) {
+					$str.= "<response><success>true</success><result><asset_id>".$result."</asset_id></result></response>";
+				} else {
+					$str.= "<response><success>false</success><error>Asset failed to import.</error></response>";
+				}
+			}
+		} 
+	} else if($command === "exhibits") {
 	    //@todo limit results by user
 	    $results = db_query($conn, "SELECT * FROM exhibits");
 	    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
@@ -181,7 +201,7 @@ if($command) {
 	    }
         
     } else if($command === "user_rights") {
-	    if(quick_aut()) {
+	    if(quick_auth()) {
 		    $str .= "<response><success>true</success>\n
 			    <result>
 				   <item><right>system_admin</right></item>

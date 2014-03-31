@@ -67,4 +67,18 @@ function exhibit_child_modules($module_parent_id) {
 
 
 
+/**INGESTION */
+$repositories = array(
+    
+);
+function IMREE_asset_ingest($repository_code, $repository_asset_id, $repository_collection_handle="") {
+	if($repository_code === "CDM") {
+		require_once('contentDM_ingest.php');
+		
+	}
+	
+	return rand(0,50000);
+	
+}
+
 ?>
