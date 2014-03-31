@@ -157,7 +157,7 @@ if($command) {
 			}
 			
 			if(count($errors)==0) {
-				$result = IMREE_asset_ingest($parameters->asset_repository, $parameters->asset_id, $parameters->asset_collection);
+				$result = IMREE_asset_ingest_API_handler($parameters->asset_repository, $parameters->asset_id, $parameters->asset_collection, $parameters->module_id, $username);
 				if($result) {
 					$str.= "<response><success>true</success><result><asset_id>".$result."</asset_id></result></response>";
 				} else {
