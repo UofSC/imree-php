@@ -112,7 +112,9 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     $compound_obj_xml = simplexml_load_string(file_get_contents("http://$content_dm_address/dmwebservices/index.php?q=dmGetCompoundObjectInfo/$collection/$pointer/xml"));
     if(isset($compound_obj_xml->type)) {
 	    foreach ($compound_obj_xml->page as $page) {
-		    $children[] = CDM_INGEST_get_item($collection, $page->pageptr);
+		    $child = CDM_INGEST_get_item($collection, $page->pageptr);
+		    $child['title'] = $page->pagetitle;
+		    $children[] = $child;
 	    }
     }
     
