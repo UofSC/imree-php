@@ -178,7 +178,7 @@ function CDM_INGEST_get_pointers($query, $alias='all', $maxrecs=20)
     
     for($i = 0; $i < count($pointers); $i++)
     {
-		if(trim($parents[$i]) !== "-1") {
+		if(trim($parents[$i]) === "-1") {
 			$results[$pointers[$i]] = $collection[$i];
 		}
     }

@@ -1,6 +1,6 @@
 <?php
 
-function IMREE_asset_ingest($data, $title, $mimetype, $size, $username) {
+function IMREE_asset_ingest($data, $title, $mimetype, $size, $username, $source_repo='', $source_id='', $source_collection='') {
 	$conn = db_connect();
 	$result = db_exec($conn, build_insert_query($conn, "asset_data", array(
 	    'asset_data_title' => $title,
@@ -9,7 +9,10 @@ function IMREE_asset_ingest($data, $title, $mimetype, $size, $username) {
 	    'asset_data_contents_date' => date("Y-m-d H:i:s"),
 	    'asset_data_date_added' => date("Y-m-d H:i:s"),
 	    'asset_data_size' => $size,
-	    'asset_data_username' => $username
+	    'asset_data_username' => $username,
+	    'asset_data_source_repository' => $source_repo,
+	    'asset_data_source_asset_id' => $source_id, 
+	    'asset_data_source_collection_handle' => $source_collection,
 	)));
 	if($result) {
 		return $result['last_id'];
