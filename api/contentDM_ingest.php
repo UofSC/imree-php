@@ -98,6 +98,10 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     $subject = Array();
     
     $stream = file_get_contents($url);
+    
+    $xml = simplexml_load_string($stream);
+    
+    
     preg_match_all("|<title>(.*)</title>|", $stream, $title);
     preg_match_all("|<format>(.*)</format>|", $stream, $type);
     preg_match_all("|<cdmfilesize>(.*)</cdmfilesize>|", $stream, $size);
@@ -161,17 +165,22 @@ function CDM_INGEST_get_pointers($query, $alias='all', $maxrecs=20)
     $url = CDM_INGEST_QUERY_make_search_url($alias, $query, "find!subjec", "pointer", $maxrecs);
     $collection = Array();
     $results = Array();
-    
     $stream = file_get_contents($url);
+    $parents = Array();
+    
     preg_match_all("|<pointer><!\[CDATA\[(.*)\]\]></pointer>|", $stream, $pointers);
     preg_match_all("|<collection><!\[CDATA\[\/(.*)\]\]></collection>|", $stream, $collection);
+    preg_match_all("|<parentobject><!\[CDATA\[(.*)\]\]></parentobject>|", $stream, $parents);
 
     $pointers = $pointers[1];
     $collection = $collection[1];
+    $parents = $parents[1];
     
     for($i = 0; $i < count($pointers); $i++)
     {
-        $results[$pointers[$i]] = $collection[$i];
+		if(trim($parents[$i]) !== "-1") {
+			$results[$pointers[$i]] = $collection[$i];
+		}
     }
     
     return $results;
