@@ -108,14 +108,12 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     preg_match_all("|<descri>(.*)</descri>|", $stream, $description);
     preg_match_all("|<subjec>(.*)</subjec>|", $stream, $subject);
     
+    $children = array();
     $compound_obj_xml = simplexml_load_string(file_get_contents("http://$content_dm_address/dmwebservices/index.php?q=dmGetCompoundObjectInfo/$collection/$pointer/xml"));
     if(isset($compound_obj_xml->type)) {
-	    $children = array();
 	    foreach ($compound_obj_xml->page as $page) {
-		    $children[] = array('title'=>$page->pagetitle, 'pointer'=>$page->pageptr, 'collection'=>$collection);
+		    $children[] = CDM_INGEST_get_item($collection, $page->pageptr);
 	    }
-    } else {
-	    $children = array();
     }
     
      $item_info = Array(
