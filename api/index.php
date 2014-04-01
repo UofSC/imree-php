@@ -275,7 +275,7 @@ if($command) {
     }  else {
         die("That command does not exist");
     }
-    
+    header('Content-Type: application/xml; charset=utf-8');
 } else {
     $str .= "<h1>IMREE API</h1><p>This API gets user command and command parameter to perform login or interaction with database.</p>";
     $str .= "<br><hr><h2>Command description and command parameters required:</h2><hr>";

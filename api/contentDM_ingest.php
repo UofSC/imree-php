@@ -86,7 +86,7 @@ function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort
  */    
 function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     global $content_dm_address, $content_dm_utils_address;
-    $url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetItemInfo";
+    $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetItemInfo";
     $url .= "/" . $collection;
     $url .= "/" . $pointer;
     $url .= "/" . $format;
@@ -108,6 +108,15 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     preg_match_all("|<descri>(.*)</descri>|", $stream, $description);
     preg_match_all("|<subjec>(.*)</subjec>|", $stream, $subject);
     
+    $compound_obj_xml = simplexml_load_string(file_get_contents("http://$content_dm_address/dmwebservices/index.php?q=dmGetCompoundObjectInfo/$collection/$pointer/xml"));
+    if(isset($compound_obj_xml->type)) {
+	    $children = array();
+	    foreach ($compound_obj_xml->page as $page) {
+		    $children[] = array('title'=>$page->pagetitle, 'pointer'=>$page->pageptr, 'collection'=>$collection);
+	    }
+    } else {
+	    $children = array();
+    }
     
      $item_info = Array(
          'id' => $pointer,
@@ -117,7 +126,7 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
          'repository' => "CDM",
          'type' => $type[1][0],
          'metadata' => $description[1][0] . " " . $subject[1][0],
-         'children' => array() ,
+         'children' => $children ,
      );
     
     return $item_info;
@@ -178,7 +187,7 @@ function CDM_INGEST_get_pointers($query, $alias='all', $maxrecs=20)
     
     for($i = 0; $i < count($pointers); $i++)
     {
-		if(trim($parents[$i]) === "-1") {
+		if(trim($parents[$i]) == "-1") {
 			$results[$pointers[$i]] = $collection[$i];
 		}
     }
