@@ -1,6 +1,10 @@
 <?php
 
 function IMREE_asset_ingest($data, $title, $mimetype, $size, $username, $source_repo='', $source_id='', $source_collection='') {
+	if($mimetype === null OR $mimetype === "" OR $mimetype instanceof SimpleXMLElement OR strpos($mimetype, "/") === false) {
+		$finfo = new finfo(FILEINFO_MIME_TYPE);
+		$mimetype = $finfo->buffer($data);
+	}
 	$conn = db_connect();
 	$result = db_exec($conn, build_insert_query($conn, "asset_data", array(
 	    'asset_data_title' => $title,
