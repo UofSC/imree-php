@@ -66,7 +66,10 @@ $command = isset($_POST["command"]) ? filter_input(INPUT_POST, "command") : filt
 $command_parameter = isset($_POST["command_parameter"]) ? filter_input(INPUT_POST, "command_parameter") : filter_input(INPUT_GET, "command_parameter");
 $username = filter_input(INPUT_POST, "username");
 $password = filter_input(INPUT_POST, "password");
+$session_id = filter_input(INPUT_POST, "session_id");
+//error_log("Command: " . $command . " Parameter: " .$command_parameter );
 
+//add command 
 if($command) {
     if($command === "group") {
         if(!$command_parameter) {

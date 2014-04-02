@@ -5,14 +5,14 @@
  */
 
 /**
- * This is (poor) random string generator. Poor in that its using some 
+ * This is a (poor) random string generator. Poor in that its using some 
  * cryptographic functions and is pretty ungodly efficient. For the sake of 
  * being bizzare, $random1 and $random2 function source strings.
  * @author Jason Steelman <uscart@gmail.com>
  * @param int $length the length of random string to return
  * @return string A string of length $length
  */
-function random_string($length = 256) {
+function random_string_gen($length = 256) {
 	if($length == 30) return str_shuffle(MD5(microtime()));
 	$random1 = "somethingfeelsrandomtomehereabcdefghijklmonpqrstuvqxyz";
 	$random2 = "fortheloveofallthatsgoodandevilabcdefghijklmonpqurstuv";
@@ -20,7 +20,7 @@ function random_string($length = 256) {
 	return substr($string, 0, min($length, strlen($string)));
 }
 
-echo random_string();
+
 
 
 /**
