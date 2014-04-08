@@ -66,7 +66,8 @@ $command = isset($_POST["command"]) ? filter_input(INPUT_POST, "command") : filt
 $command_parameter = isset($_POST["command_parameter"]) ? filter_input(INPUT_POST, "command_parameter") : filter_input(INPUT_GET, "command_parameter");
 $username = filter_input(INPUT_POST, "username");
 $password = filter_input(INPUT_POST, "password");
-$session_id = filter_input(INPUT_POST, "session_id");
+$session_id = filter_input(INPUT_POST, "session_key"); //'key' in AIR 'id' in PHP 
+//error_log($session_id);
 //error_log("Command: " . $command . " Parameter: " .$command_parameter );
 
 //add command 
@@ -104,11 +105,12 @@ if($command) {
     } else if($command === "signage_mode") {
         $ip = $_SERVER['REMOTE_ADDR'];
         $results = db_query($conn, "SELECT * FROM signage_devices WHERE signage_device_ip = ".db_escape($ip));
-        if(count($results) > 0 ) {
-            $str .= "<response><success>true</success>\n<result>\n<signage_mode>signage</signage_mode>\n</result></response>";
+        $session_id = session_id();
+        if(count($results) > 0 ) { 
+            $str .= "<response><success>true</success>\n<result>\n<key>".$session_id."</key>\n<signage_mode>signage</signage_mode>\n</result></response>";
 		  DS_chirp($ip);
         } else {
-            $str .= "<response><success>true</success>\n<result>\n<signage_mode>imree</signage_mode>\n</result></response>";
+            $str .= "<response><success>true</success>\n<result>\n<key>".$session_id."</key>\n<signage_mode>imree</signage_mode>\n</result></response>";
         }
         
         
@@ -265,19 +267,17 @@ if($command) {
 		    }
 		    
 	    } 
-    } else if($command === "delete") {
-	    if(quick_auth()) {
-		    $values = json_decode($command_parameter);
-		    if(!isset($values->where, $values->table)) {
-			   $str .= "<response><success>false</success>\n<error>for command=delete, where and table should be set</error></response>";
-		    } else {
-			    $query = "DELETE FROM ".$values->table." WHERE ".$values->where." LIMIT 1";
-			    db_exec($conn, $query);
-			    $str .= "<response><success>true</success>\n<result></result></response>";
-		    }
-		    
-	    } 
-    } else {
+    } else if ($command === "exhibit_modules_order_update") {
+	    /**
+	     * @todo. command_paramater = exhitbit id. get the current result query for exhibit_data and explicitly SET the module_order to an incremental value based on the current order of the modules
+	     * for that exhibit. This is designed to resolve problems where two modules have the same "order"
+	     */
+	} else if ($command === "exhibit_module_assets_order_update") {
+		/**
+		 * @todo. same as exhibit_modules_order_update, but for assets instead
+		 */
+	    
+    }  else {
         die("That command does not exist");
     }
     header('Content-Type: application/xml; charset=utf-8');

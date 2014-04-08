@@ -1,6 +1,6 @@
 <?php
 /** 
- * ...
+ * imree.session.php
  * @author Cole Mendes
  */
 
@@ -20,30 +20,56 @@ function random_string_gen($length = 256) {
 	return substr($string, 0, min($length, strlen($string)));
 }
 
+/**
+ * function is_logged_in
+ * 
+ * @param type $logged
+ */
+function is_logged_in($logged=false){
+    //@todo create an update query telling if the user(session_id) is logged in
+    if($logged == true){
+    
+    } else { 
+        
+    } 
+}
 
+/**
+ * function home_page_visits
+ */
+function home_page_visits(){
+    //@todo count home page visits per session, preferably with a better name
+    
+}
 
+/**
+ * function session_date_time
+ */
+function session_date_time(){
+    //@todo log date and time of session start
+     
+}
+
+/**
+ * function time_on_page
+ */
+function time_on_page(){
+    //@todo be able to log time user spends on a page/asset/img/etc.
+    
+}
+
+//@todo more functions for session tracking
 
 /**
  * Some Notes
  * Usability study:
+ *  IsLoggedIn?
  *  Asset views
  *  Date
  *  Time
  *  Time per page
  *  Page views
  *  Search Tracking
- *  Home page returns 
- * 
- * Start at sign_mode_loader in Main
- * PHP AS interaction toturial 
- * http://www.flashwonderland.com/actionscript-3-php-interaction-tutorials.html
- * API WILL NEED TO LOG SESSION ID, TIME, AND DATE.
+ *  Home page returns  
  */
-
-
-
-
-
-
-
 ?>
