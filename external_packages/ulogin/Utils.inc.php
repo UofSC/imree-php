@@ -94,7 +94,9 @@ class ulUtils
 	{
 		// DateTime::getTimestamp/setTimestamp only exist in PHP 5.3, so use following code
 		// instead to stay compatible with older PHP versions.
-		$datetime->add(new DateInterval("PT".$secs."S"));
+    $unix_ts = $datetime->format('U') + $secs;
+    $datetime->setDate(date('Y', $unix_ts), date('n', $unix_ts), date('d', $unix_ts));
+    $datetime->setTime(date('G', $unix_ts), date('i', $unix_ts), date('s', $unix_ts));
 		return $datetime;
 	}
 

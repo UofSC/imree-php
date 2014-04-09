@@ -48,49 +48,26 @@ function f_data_list($conn, $table, $primary_key, $label, $detail_url = "#", $ge
 }
 
 function imree_file($file_id, $size=false) {
-    $conn = db_connect();
-    if($size AND is_numeric($size)) {
-        $cached_results = db_query($conn, "SELECT asset_data_cache.*, asset_data.asset_data_name, asset_data.asset_data_type FROM asset_data_cache LEFT JOIN asset_data USING (asset_data_id) WHERE asset_data_cache.asset_data_id = ".db_escape($file_id, $conn). " AND asset_data_cache_height = ".db_escape($size));
-        if($cached_results) {
-            header('Content-type: '.$cached_results[0]['asset_data_type']);
-            header('Content-Disposition: inline; filename="'.addslashes($cached_results[0]['asset_data_name']).'"');
-            echo $cached_results[0]['asset_data_cache_data'];
-        } else {
-            $results = db_query($conn, "SELECT * FROM asset_data WHERE asset_data_id = ".db_escape($file_id, $conn));
-            if(!$results) {
-                header("HTTP/1.0 404 Not Found");
-                die();
-            } else {
-                if(strpos($results[0]['asset_data_type'], 'image') !== false)  {
-                    header('Content-type: '.$results[0]['asset_data_type']);
-                    header('Content-Disposition: inline; filename="'.addslashes($results[0]['asset_data_name']).'"');
-                    $resize = imree_resize_image($results[0]['asset_data_contents'], $size);
-                    echo $resize;
-                    db_exec($conn, build_insert_query($conn, 'asset_data_cache', array(
-                        'asset_data_id'=>$results[0]['asset_data_id'],
-                        'asset_data_cache_height' => $size,
-                        'asset_data_cache_datetime' => date("Y-m-d H:i:s"),
-                        'asset_data_cache_data' => $resize
-                    )));
-                }
-            }
-        }
-    } else {
+	$conn = db_connect();
+	$results = db_query($conn, "SELECT * FROM asset_data WHERE asset_data_id = ".db_escape($file_id, $conn));
+	
+	//file not found
+	if(!$results) {
+		header("HTTP/1.0 404 Not Found");
+		die();
+	} 
 
-        $results = db_query($conn, "SELECT * FROM asset_data WHERE asset_data_id = ".db_escape($file_id, $conn));
-        if(!$results) {
-                header("HTTP/1.0 404 Not Found");
-                die();
-        } 
-
-        header('Content-type: '.$results[0]['asset_data_type']);
-        header('Content-Disposition: inline; filename="'.addslashes($results[0]['asset_data_name']).'"');
-        if($results[0]['asset_data_size'] > 0) {
-                header("Content-Length: " .$results[0]['asset_data_size']);
-        }
-        echo $results[0]['asset_data_contents'];
-    }
-
+	
+	header('Content-type: '.$results[0]['asset_data_type']);
+	header('Content-Disposition: inline; filename="'.addslashes($results[0]['asset_data_name']).'"');
+	if($size AND is_numeric($size)) {
+		echo imree_resize_image($results[0]['asset_data_contents'], $size);
+	} else {
+		if($results[0]['asset_data_size'] > 0) {
+			header("Content-Length: " .$results[0]['asset_data_size']);
+		}
+		echo $results[0]['asset_data_contents'];
+	}
 }
 
 function imree_resize_image($image,$new_height){ 

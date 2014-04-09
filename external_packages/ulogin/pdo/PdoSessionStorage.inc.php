@@ -10,6 +10,7 @@ class ulPdoSessionStorage
 	{
 		if (isset($this->lock_acquired[$id]))
 			return true;
+
 		$session_expires = ulUtils::date_seconds_add(new DateTime(), $this->lifetime)->format(UL_DATETIME_FORMAT);
 		$lock_expires = ulUtils::date_seconds_add(new DateTime(), $this->max_execution_time)->format(UL_DATETIME_FORMAT);
 
@@ -50,12 +51,10 @@ class ulPdoSessionStorage
 							&$now, 'str'
 						)
 					))
-					/***
-					 * Jason removed the comment that prevented the following two lines from running. For the way our AIR app runs, this runs an infinite loop until max_execution time
-					 */
+					{
 						ul_db_fail('Session management error.');
 						return false;
-					
+					}
 
 					if ($stmt->rowCount() > 0)
 						$this->lock_acquired[$id] = true;

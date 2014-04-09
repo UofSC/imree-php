@@ -37,28 +37,20 @@ function array_to_table($array){
 * @param array $array array of data to process 
 * @return string  
 */
-
-function array_to_xml($array, $return=false, $tabs=0){
-	$tabs_array = array("","\t", "\t\t","\t\t\t","\t\t\t\t","\t\t\t\t\t","\t\t\t\t\t\t","\t\t\t\t\t\t\t","\t\t\t\t\t\t\t\t","\t\t\t\t\t\t\t\t\t","\t\t\t\t\t\t\t\t\t\t","\t\t\t\t\t\t\t\t\t\t\t","\t\t\t\t\t\t\t\t\t\t\t\t","\t\t\t\t\t\t\t\t\t\t\t\t");
-	$str = "";
-	foreach($array AS $key=>$value){
+function array_to_xml($array){
+    foreach($array AS $key=>$value){
         if (is_numeric($key)){ //$keys can not be numeric
             $key = "item_$key";
         }
         $key = htmlentities(str_replace(' ', '_', $key));
-        $str .= $tabs_array[$tabs]."<".htmlspecialchars($key).">\n";
+        echo "<",htmlspecialchars($key),">\n";
             if(is_array($value)){
-                $str .= array_to_xml($value, $return, $tabs+1);
+                array_to_xml($value);
             }else{
-                $str .= $tabs_array[$tabs+1].htmlspecialchars($value)."\n";
+                echo htmlspecialchars($value)."\n";
             }
             
-        $str .= $tabs_array[$tabs]."</".htmlspecialchars($key).">\n";
-    }
-    if($return) {
-	    return $str;
-    } else {
-	    echo $str;
+        echo "</",htmlspecialchars($key),">\n";
     }
 
 }

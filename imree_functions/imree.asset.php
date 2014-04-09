@@ -1,48 +1,56 @@
 <?php
 
-function IMREE_asset_ingest($data, $title, $mimetype, $size, $username, $source_repo='', $source_id='', $source_collection='') {
-	if($mimetype === null OR $mimetype === "" OR $mimetype instanceof SimpleXMLElement OR strpos($mimetype, "/") === false) {
-		$finfo = new finfo(FILEINFO_MIME_TYPE);
-		$mimetype = $finfo->buffer($data);
-	}
-	$conn = db_connect();
-	$result = db_exec($conn, build_insert_query($conn, "asset_data", array(
-	    'asset_data_title' => $title,
-	    'asset_data_type' => $mimetype,
-	    'asset_data_contents' => $data,
-	    'asset_data_contents_date' => date("Y-m-d H:i:s"),
-	    'asset_data_date_added' => date("Y-m-d H:i:s"),
-	    'asset_data_size' => $size,
-	    'asset_data_username' => $username,
-	    'asset_data_source_repository' => $source_repo,
-	    'asset_data_source_asset_id' => $source_id, 
-	    'asset_data_source_collection_handle' => $source_collection,
-	)));
-	if($result) {
-		return $result['last_id'];
-	} else {
-		return false;
-	}
+/* 
+ * @package imree-php
+ * This file contains the functions needed to import and export assets into the 
+ * DAM
+ */
+
+/**
+ * This class should be used when manipulating or importing assets. It sacrafices
+ * memory and speed for completeness and features
+ */
+class imree_asset {
+    
+    public $data_column1;
+    public $data_column2;
+    //etc...
+    
+    public function __construct($id = null) {
+        if ($id) {
+            load($id);
+        } 
+    }   
+    
+    public function load($id) {
+        //query database for data
+        //then, manually set $data_column1 = $result['data_column1'];
+    }
+    
+    public function create() {
+        //save all metadata back to mysql
+        //save media to $imree_assets_directory/$asset_id/
+        //save xml version of metadata to media directory 
+        //generate thumbnail for media and save to media directory
+        //generate openzoom image and save to media directory
+    }
+    
+    
+    public function update_metadata() {
+        //update mysql data for asset_id
+    }
+    
+    public function update_media() {
+        //regenerate thumbnail, openzoom data, etc... & save to media directory
+    }
+    
+    public function destroy() {
+        //delete metadata entry and media data
+    }
+    
 }
 
-function IMREE_asset_instantiate($asset_data_id, $module_id, $title, $caption, $description, $source_repository, $original_url, $username, $thumb_display_columns = 1, $thumb_display_rows = 1) {
-	$conn = db_connect();
-	$result = db_exec($conn, build_insert_query($conn, 'module_assets', array(
-	    'module_id' => $module_id, 
-	    'asset_data_id' => $asset_data_id,
-	    'module_asset_title' => $title,
-	    'caption' => $caption,
-	    'description' => $description,
-	    'original_url' => $original_url,
-	    'source_repository' => $source_repository,
-	    'username' => $username,
-	    'thumb_display_columns' => $thumb_display_columns,
-	    'thumb_display_rows' => $thumb_display_rows,
-	)));
-	if($result) {
-		return $result['last_id'];
-	} else {
-		return false;
-	}
-	
+
+function asset_add($title, $name, $data_type, $data_contents, $size=0) {
+    
 }

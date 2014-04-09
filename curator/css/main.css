@@ -7,7 +7,7 @@ button,
 input,
 select,
 textarea {
-    color: #ffffff;
+	color: #ffffff;
 }
 
 body {
@@ -30,7 +30,7 @@ hr {
     height: 1px;
     border: 0;
     border-top: 1px solid #ccc;
-
+	
     margin: 1em 0;
     padding: 0;
 }
@@ -45,7 +45,7 @@ fieldset {
     margin: 10;
     padding: 10;
 
-
+	
 }
 
 
@@ -76,17 +76,17 @@ textarea {
 
 
 label {
-    width: 10em;
-    display: block;
-    float: left;
-    margin-top: 0.2em;
-    padding-top: 0.2em;
-    font-size: 0.9em;
-    background-color: #082d3e
-
-        ;	
+	width: 10em;
+	display: block;
+	float: left;
+	margin-top: 0.2em;
+	padding-top: 0.2em;
+	font-size: 0.9em;
+	background-color: #082d3e
+	
+	;	
 }
-input {
+ input {
     margin:.2em;
     padding:.2em;
 }
@@ -103,31 +103,31 @@ input[type="checkbox"] {
     visibility: hidden;
     line-height: 0;
     height: 0;
-
-
+	
+	
 }
 .ui-menu .ui-menu-item {
-    display: inline-block;
-    float: left;
-    margin: 0;
-    padding: 0;
-    width: auto;
-    background-color: #0C6;
-    border-bottom: 1em;
+	display: inline-block;
+	float: left;
+	margin: 0;
+	padding: 0;
+	width: auto;
+	background-color: #0C6;
+	border-bottom: 1em;
 }
 
 
 #header {
-    background-image: url(http://imree.tcl.sc.edu/imree-php/curator/image/generic_logo.gif);
-    background-repeat: no-repeat;
-    height: 208px;
-    padding-left: 350px;
-    padding-top: 60px;
-    border: 1px solid #666;
-    font-size: 3.5em;
-    background-color: #082D3E;
-    border-bottom: 1em;
-    border-color: #13658B;
+	background-image: url(http://imree.tcl.sc.edu/imree-php/curator/image/generic_logo.gif);
+	background-repeat: no-repeat;
+	height: 208px;
+	padding-left: 350px;
+	padding-top: 60px;
+	border: 1px solid #666;
+	font-size: 3.5em;
+	background-color: #082D3E;
+	border-bottom: 1em;
+	border-color: #13658B;
 }
 
 
@@ -145,9 +145,9 @@ input[type="checkbox"] {
 }
 
 @media print,
-(-o-min-device-pixel-ratio: 5/4),
-(-webkit-min-device-pixel-ratio: 1.25),
-(min-resolution: 120dpi) {
+       (-o-min-device-pixel-ratio: 5/4),
+       (-webkit-min-device-pixel-ratio: 1.25),
+       (min-resolution: 120dpi) {
 
 }
 
@@ -156,7 +156,7 @@ input[type="checkbox"] {
    ========================================================================== */
 
 .ir {
-    background-color: transparent; 
+	background-color: transparent; 
     border: 0;
     overflow: hidden;
     *text-indent: -9999px;
@@ -218,7 +218,7 @@ input[type="checkbox"] {
 
 a.nounderline:link  
 {  
-    text-decoration:none;  
+ text-decoration:none;  
 }  
 
 
@@ -233,20 +233,20 @@ a.nounderline:link
         box-shadow: none !important;
         text-shadow: none !important;
     }
-
-    a {
-        display:block;
-        width:150px;
-        float:left;
-        margin:auto;
-        padding: inherit;
-
-    }
+	
+	a {
+                display:block;
+                width:150px;
+                float:left;
+                margin:auto;
+				padding: inherit;
+				
+}
 
     a,
     a:visited {
         text-decoration: underline;
-    }
+   
     a[href]:after {
         content: " (" attr(href) ")";
     }
@@ -283,3 +283,7 @@ a.nounderline:link
     img {
         max-width: 100% !important;
     }
+
+   
+
+	

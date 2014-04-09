@@ -396,8 +396,6 @@ $google_username =				"'.$_POST['google_username'].'";
 $google_password =				"'.$_POST['google_password'].'";
 $email_signature =				"'.$_POST['google_signature'].'";
 $GLOBALS["session_name"] =                      "imree";
-$content_dm_address =			"digital.tcl.sc.edu:81";
-$content_dm_utils_address =		"digital.tcl.sc.edu";
 
 $current_file_parts = pathinfo(__FILE__);
 $absolute_dir = $current_file_parts["dirname"] . "/" . $ulogin_directory;
