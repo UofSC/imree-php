@@ -216,7 +216,120 @@ if($command) {
 			    </result>
 			 </response>";
 		} 
-    } else if($command === "query") {
+    } else if($command === "user_can") {
+	    if(quick_auth()) {
+		    $user = new imree_person(imree_person_id_from_username($username));
+		    $values = json_decode($command_parameter);
+		    if($user->can($values->name, $values->value, $values->scope)) {
+			    $str .= "<response><success>true</success><result>true</result></response>";
+		    } else {
+			    $str .= "<response><success>true</success><result>false</result></response>";
+		    }
+	    }
+    } else if($command === "edit_user") {
+	    if(quick_auth()) {
+		    $user = new imree_person(imree_person_id_from_username($username));
+		    $values = json_decode($command_parameter);
+		    $person = new imree_person($values->person_id);
+		    $can = false;
+		    foreach($person->groups as $group) {
+			    if($user->can("group", "edit", $group['people_group_id'])) {
+				    $can = true;
+			    }
+		    }
+		    if($can) {
+			    $array = array();
+			    if(isset($values->person_name_first))	$array['person_name_first'] = $values->person_name_first;
+			    if(isset($values->person_name_last))	$array['person_name_last'] = $values->person_name_last;
+			    if(isset($values->person_title))		$array['person_title'] = $values->person_title;
+			    if(isset($values->person_department_id))	$array['person_department_id'] = $values->person_department_id;
+			    if(count($array)) {
+				    db_exec($conn, build_update_query($conn, "people", $array, "person_id = ".  db_escape($values->person_id)));
+			    }
+			    $str .= "<response><success>true</success><result>true</result></response>";
+		    } else {
+			    $str .= "<response><success>false</success><error>Permission Denied</error></response>";
+		    }
+	    }
+    } else if($command === "add_user") {
+	     if(quick_auth()) {
+		    $user = new imree_person(imree_person_id_from_username($username));
+		    $values = json_decode($command_parameter);
+		    $group_id = $values->primary_group;
+		    $can = false;
+		    if($user->can("group","edit",$group_id)) {
+			    $new_person = imree_create_user($values->new_username, $values->new_password, $values->person_name_last, $values->person_name_first, $values->person_title, $values->person_department_id);
+			    if($new_person) {
+					$new_person->add_to_group($group_id);
+					$str .= "<response><success>true</success><result>true</result></response>";
+			    } else {
+					$person = new imree_person(imree_person_id_from_username($values->new_username));
+					if($person) {
+						   $person->add_to_group($group_id);
+					} else {
+						$str .= "<response><success>false</success><error>problem creating user from username, maybe a duplicate user.</error></response>";
+					}
+			    }
+		    } else {
+			    $str .= "<response><success>false</success><error>Permission Denied</error></response>";
+		    }
+	    }
+    } else if($command === "add_user_privilege") {
+	    if(quick_auth()) {
+		    $user = new imree_person(imree_person_id_from_username($username));
+		    $values = json_decode($command_parameter);
+		    $person = new imree_person($values->person_id);
+		    $has_rights_over_person = false;
+		    foreach($person->groups as $group) {
+			    if($user->can("group", "edit", $group['people_group_id'])) {
+				    $has_rights_over_person = true;
+			    }
+		    }
+		    
+		    if($has_rights_over_person) {
+			    $has_equal_or_higher_rights = $user->can($values->people_privilege_name, $values->people_privilege_value, $values->people_privilege_scope);
+			    if($has_equal_or_higher_rights) {
+				    if($person->add_privilege($values->people_privilege_name, $values->people_privilege_value, $values->people_privilege_scope)) {
+					    $str .= "<response><success>true</success><result>true</result></response>";
+				    } else {
+					    $str .= "<response><success>false</success><error>Failed to add new privilege. You have all the rights to do it, but something's gone wrong.</error></response>";
+				    }
+			    } else {
+				    $str .= "<response><success>false</success><error>Permission Denied. You cannot elevate to this permission.</error></response>";
+			    }
+		    } else {
+			    $str .= "<response><success>false</success><error>Permission Denied. You have no rights to this person.</error></response>";
+		    }
+	    }
+    } else if($command === "remove_user_privilege") {
+	     if(quick_auth()) {
+		    $user = new imree_person(imree_person_id_from_username($username));
+		    $values = json_decode($command_parameter);
+		    $person = new imree_person($values->person_id);
+		    $has_rights_over_person = false;
+		    foreach($person->groups as $group) {
+			    if($user->can("group", "edit", $group['people_group_id'])) {
+				    $has_rights_over_person = true;
+			    }
+		    }
+		    
+		    if($has_rights_over_person) {
+			    $has_equal_or_higher_rights = $user->can($values->people_privilege_name, $values->people_privilege_value, $values->people_privilege_scope);
+			    if($has_equal_or_higher_rights) {
+				    if($person->remove_privilege($values->people_privilege_name, $values->people_privilege_value, $values->people_privilege_scope)) {
+					    $str .= "<response><success>true</success><result>true</result></response>";
+				    } else {
+					    $str .= "<response><success>false</success><error>Failed to remove privilege. You have all the rights to do it, but something's gone wrong.</error></response>";
+				    }
+			    } else {
+				    $str .= "<response><success>false</success><error>Permission Denied. You cannot edit this person.</error></response>";
+			    }
+		    } else {
+			    $str .= "<response><success>false</success><error>Permission Denied. You have no rights to this person.</error></response>";
+		    }
+	    }
+    }else if($command === "query") {
+    
 	    if(quick_auth()) {
 		    $values = json_decode($command_parameter);
 		    $columns = "";
