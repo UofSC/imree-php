@@ -203,14 +203,17 @@ if($command) {
     $str .= "<br><hr><h2>Command description and command parameters required:</h2><hr>";
     $str .= "<h3>Command: group</h3><p>Command parameters:</p>";
     $str .= "<ul><li>Group ID</li></ul><br>";
-    $str .= "<hr><h3>Command: item(This command doesn't exist yet)</h3><br>";
-    $str .= "<hr><h3>Command: signage_mode</h3><p>Command parameters:</p><p>None</p><br>";
+    $str .= "<hr><h3>Command: module(This command doesn't exist yet)</h3><br>";
+    $str .= "<hr><h3>Command: signage_mode</h3><p>Command parameters:</p><p>signage device ID</p><br>";
     $str .= "<hr><h3>Command: signage_items</h3>";
     $str .= "<p>Command parameters:</p>";
-    $str .= "<p>None</p><br>";
+    $str .= "<p>signage device ID</p><br>";
     $str .= "<hr><h3>Command: search</h3>";
     $str .= "<p>Command parameters:</p>";
-    $str .= "<ul><li>Item Name</li></ul><br>";
+    $str .= "<ul><li>Search string pattern</li></ul><br>";
+    $str .= "<hr><h3>Command: ingest</h3>";
+    $str .= "<p>Command parameters:</p>";
+    $str .= "<ul><li>Asset ID</li><li>Asset repository</li></ul><br>";
     $str .= "<hr><h3>Command: exhibits</h3>";
     $str .= "<p>Command parameters:</p>";
     $str .= "<p>None</p><br>";
@@ -221,7 +224,17 @@ if($command) {
     $str .= "<p>Command parameters:</p>";
     $str .= "<p>None</p><br>";
     $str .= "<hr><h3>Command: query</h3>";
-    $str .= "<ul><li>Column names</li><li>Table name</li><li>Table key column name</li><li>Row ID</li></ul><br><hr>";  
+    $str .= "<p>Command parameters:</p>";
+    $str .= "<ul><li>filter condition OR {column, value}</li></ul><br>";
+    $str .= "<hr><h3>Command: update</h3><p>Command parameters:</p>";
+    $str .= "<ul><li>all columns needed to be updated</li><li>all new values for updated columns</li></ul><br>";
+    $str .= "<hr><h3>Command: insert</h3>";
+    $str .= "<p>Command parameters:</p>";
+    $str .= "<ul><li>all columns needed to be inserted</li><li>all new values for inserted columns</li></ul><br>";
+
+ 
+  
+    
 }
 
 echo $str;
