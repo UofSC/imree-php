@@ -10,10 +10,6 @@
 #NOTE TO SELF: Get DB stuff working again locally
 #IN THE MEAN TIME USE THE CODE BELOW
 #
-require_once('/../shared_functions/functions.api.php');
-require_once('/../shared_functions/functions.core.php');
-require_once('/../shared_functions/functions.db.php');
-require_once('/../shared_functions/functions.form.php');
 
 
 
@@ -98,7 +94,11 @@ require_once('/../shared_functions/functions.form.php');
             $item_array['title'] = $item[1];
             $item_array['thumbnail_url'] = $item[20];
             $item_array['repository'] = "Razuna";
-            $item_array['type'] = $item[7]."/".$item[4];
+		  $mimepart1 = $item[7];
+		  if(strtolower($mimepart1) === "img") {
+			  $mimepart1 = "image";
+		  }
+            $item_array['type'] = $mimepart1."/".$item[4];
             if (!$item[17]=="" AND !$item[16]=="")
             {$item_array['metadata']= "KEYWORDS: ". $item[17]." DESCRIPTION: ".$item[16];}
             elseif (!$item[17]=="" AND $item[16]=="")
@@ -137,36 +137,26 @@ require_once('/../shared_functions/functions.form.php');
         $results = json_decode($encoded,true); //pass the results to json for nifty array handling
        
         //Parse through the URL 
-        $razuna_ingest_array = array();
-        foreach ($results["DATA"] as $item)
-            {
-		   
-            $item_array= array();
-            
-            
-            
-            //get the asset_data information by combining the keyword and description information present from Razuna
-            if (!$item[16]=="" AND !$item[15]=="")
-                {$item_array['asset_metadata']= "KEYWORDS: ". $item[16]." DESCRIPTION: ".$item[15];}
-            elseif (!$item[16]=="" AND $item[15]=="")
-                {$item_array['asset_metadata']= "KEYWORDS: ". $item[16];}
-            elseif ($item[16]=="" AND !$item[15]=="")
-                {$item_array['asset_metadata']= "DESCRIPTION: ".$item[15];}
-            else 
-                {$item_array['asset_metadata']= "";}    
-            
-		  $item_array['asset_title'] = razuna_get_metadata($asset_id, $item[7]); //need to run another query to get the title information?
-            $item_array['asset_source'] = ""; 
-            $item_array['asset_mimetype']=$item[7]; 
-            $item_array['asset_size']=$item[12]; 
-		  $item_array['asset_data']=  file_get_contents($item[19]);
-            
-            $razuna_ingest_array[]=$item_array;
-            }
-            
-       // print_r ($razuna_ingest_array); //print the array for testing
+	   $item = $results['DATA'][0];     
+		$item_array= array();
+
+		//get the asset_data information by combining the keyword and description information present from Razuna
+		if (!$item[16]=="" AND !$item[15]=="")
+		    {$item_array['asset_metadata']= "KEYWORDS: ". $item[16]." DESCRIPTION: ".$item[15];}
+		elseif (!$item[16]=="" AND $item[15]=="")
+		    {$item_array['asset_metadata']= "KEYWORDS: ". $item[16];}
+		elseif ($item[16]=="" AND !$item[15]=="")
+		    {$item_array['asset_metadata']= "DESCRIPTION: ".$item[15];}
+		else 
+		    {$item_array['asset_metadata']= "";}    
+
+		$item_array['asset_title'] = razuna_get_metadata($asset_id, $item[7]); //need to run another query to get the title information?
+		$item_array['asset_source'] = ""; 
+		$item_array['asset_mimetype']=$item[7]; 
+		$item_array['asset_size']=$item[12]; 
+		$item_array['asset_data']=  file_get_contents($item[19]);
         
-        return $razuna_ingest_array;
+        return $item_array;
     }
     
     function razuna_get_metadata ($asset_id, $asset_type)
@@ -190,6 +180,3 @@ require_once('/../shared_functions/functions.form.php');
             }
         return $razuna_metadata;
     }
-    
-?>
-    

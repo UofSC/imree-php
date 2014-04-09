@@ -75,6 +75,9 @@ function IMREE_asset_ingest_API_handler($repository_code, $repository_asset_id, 
 	if($repository_code === "CDM") {
 		require_once('contentDM_ingest.php');
 		$asset = CDM_INGEST_ingest($repository_collection_handle, $repository_asset_id);	
+	} else if ($repository_code === "Razuna") {
+		require_once 'razuna_ingest.php';
+		$asset = razuna_ingest($repository_asset_id);
 	}
 	$asset_data_id = IMREE_asset_ingest($asset['asset_data'], $asset['asset_title'], $asset['asset_mimetype'], $asset['asset_size'], $username, $repository_code, $repository_asset_id, $repository_collection_handle);
 	$module_asset_id = IMREE_asset_instantiate($asset_data_id, $module_id,  $asset['asset_title'], "", $asset['asset_metadata'], $repository_code, $asset['asset_source'],$username,1,1);
