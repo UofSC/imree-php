@@ -3,17 +3,24 @@ require_once('../../config.php');
 
 /*******************************************************************************
  * contentDM_ingest
- * Searches CONTENTdm... more to come
+ * Searches ContentDM
  * @Author: Cole Mendes
  * @Date: 02/17/2014
  */
 
-
-function CDM_INGEST_query($query, $records=200)
+/*******************************************************************************
+ * CDM_INGEST_query function
+ * 
+ * @param type $query - actual search query
+ * @param type $collection
+ * @param type $records
+ * @return type
+ */
+function CDM_INGEST_query($query='0', $collection='all', $records=20)
 {
-    $url = CDM_INGEST_QUERY_make_search_url("all", $query, "pointer", "collection", $records);
+    $url = CDM_INGEST_QUERY_make_search_url($collection, $query, "find!subjec", "pointer", $records);
     
-    $items = CDM_INGEST_get_pointers('all');
+    $items = CDM_INGEST_get_pointers($query, $collection, $records);
     $Everything = Array();
     
     $count = 0;
@@ -21,7 +28,7 @@ function CDM_INGEST_query($query, $records=200)
         $Everything[$count] = CDM_INGEST_get_item($col, $point);
         $count++;
     }
-   
+    
     return $Everything; 
 }
 
@@ -43,13 +50,17 @@ function CDM_INGEST_query($query, $records=200)
  * @param type $format
  * @return type $url
  */
-function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
+function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs=20, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
     global $content_dm_address;
-    $url = $content_dm_address;
-    $strings = str_replace(" ", "^", $search_string);
+    $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmQuery";
+    
+    $query = $search_string;
+    $search_string = "title!subjec^";
+    $query = str_replace(" ", "+", $query);
+    $search_string .= $query . "^all^and";
     $new_fields = str_replace(" ", "!", $fields);
     $url .= "/" . $alias;
-    $url .= "/" . $strings;
+    $url .= "/" . $search_string;
     $url .= "/" . $new_fields;
     $url .= "/" . $sort;
     $url .= "/" . $max_recs;
@@ -73,52 +84,51 @@ function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort
  * @param type $format
  * @return string
  */    
-//doesnt work yet
 function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
-    
-    $url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetItemInfo";
+    global $content_dm_address, $content_dm_utils_address;
+    $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetItemInfo";
     $url .= "/" . $collection;
     $url .= "/" . $pointer;
     $url .= "/" . $format;
-    $item_info = Array();
+   
+    $title = Array();
+    $type = Array();
+    $size = Array();
+    $description = Array();
+    $subject = Array();
     
-    $accessURL = fopen($url, "r"); 
-    while(!(feof($accessURL))) //until url is finished
-    {
-      $item = fgets($accessURL, 9999);
-      $item_info['repository'] = "CDM";
-      $item_info['URL'] = $url;
-      $item_info['id'] = $pointer;
-      $item_info['collection'] = $collection;
-      if(strpos($item, 'title'))
-      {
-        $item = strip_tags($item);
-        $item = str_replace('/', "", $item);
-        $item = trim($item);
-        $item_info["title"] = $item; 
-      }if(strpos($item, 'type'))
-      {
-        $item = strip_tags($item);
-        $item = str_replace('/', "", $item);
-        $item = trim($item);
-        $item_info["type"] = $item; 
-      }
-      if(strpos($item, 'cdmfilesizeformatted'))
-      {
-        $item = strip_tags($item);
-        $item = str_replace('/', "", $item);
-        $item = trim($item);
-        $item_info["size"] = $item; 
-      }
-      if(strpos($item, 'format'))
-      {
-        $item = strip_tags($item);
-        $item = str_replace('/', "", $item);
-        $item = trim($item);
-        $item_info["format"] = $item; 
-      }
-      
+    $stream = file_get_contents($url);
+    
+    $xml = simplexml_load_string($stream);
+    
+    
+    preg_match_all("|<title>(.*)</title>|", $stream, $title);
+    preg_match_all("|<format>(.*)</format>|", $stream, $type);
+    preg_match_all("|<cdmfilesize>(.*)</cdmfilesize>|", $stream, $size);
+    preg_match_all("|<descri>(.*)</descri>|", $stream, $description);
+    preg_match_all("|<subjec>(.*)</subjec>|", $stream, $subject);
+    
+    $children = array();
+    $compound_obj_xml = simplexml_load_string(file_get_contents("http://$content_dm_address/dmwebservices/index.php?q=dmGetCompoundObjectInfo/$collection/$pointer/xml"));
+    if(isset($compound_obj_xml->type)) {
+	    foreach ($compound_obj_xml->page as $page) {
+		    $child = CDM_INGEST_get_item($collection, $page->pageptr);
+		    $child['title'] = $page->pagetitle;
+		    $children[] = $child;
+	    }
     }
+    
+     $item_info = Array(
+         'id' => $pointer,
+         'collection' => $collection,
+         'title' => $title[1][0],
+         'thumbnail_url' => "http://".$content_dm_utils_address."/utils/getthumbnail/collection/$collection/id/$pointer",
+         'repository' => "CDM",
+         'type' => $type[1][0],
+         'metadata' => $description[1][0] . " " . $subject[1][0],
+         'children' => $children ,
+     );
+    
     return $item_info;
 }
 
@@ -134,9 +144,9 @@ function CDM_INGEST_get_collection_list(){
     
     $collections = Array();
     $url = "http://digital.tcl.sc.edu:81/dmwebservices/index.php?q=dmGetCollectionList/xml";
-    $accessURL = fopen($url, "r");
-    while(!(feof($accessURL))) //until url is finished
-    {
+    $accessURL = file_get_contents($url);
+    
+    
         $collection = fgets($accessURL, 9999);
           if(strpos($collection, 'alias'))
           { 
@@ -146,7 +156,7 @@ function CDM_INGEST_get_collection_list(){
             $collections[$collection] = $collection;
             
           }
-    }
+    
     return $collections;
 }
 
@@ -158,43 +168,70 @@ function CDM_INGEST_get_collection_list(){
  * @param $collection
  * @return $pointers - array of pointers
  */
-function CDM_INGEST_get_pointers($alias)
+function CDM_INGEST_get_pointers($query, $alias='all', $maxrecs=20)
 {
     $pointers = Array();
-    $url = CDM_INGEST_QUERY_make_search_url($alias, "all", "find", "collection", 200);
-    $accessURL = fopen($url, "r");
-    while(!(feof($accessURL))) //until url is finished
-    {
-       $stream = fgets($accessURL, 9999);
-      if(strpos($stream, 'collection'))
-      {    
-        
-        $collection = str_replace('<collection><![CDATA[', "", $stream); 
-        $collection = str_replace(']]></collection>', "", $collection);
-        $collection = str_replace('/', "", $collection);
-        $collection = trim($collection);
-       // var_dump($collection);
-        
-      }  
-      if(strpos($stream, 'pointer'))
-      { 
-        $pointer = str_replace('<pointer><![CDATA[', "", $stream); 
-        $pointer = str_replace(']]></pointer>', "", $pointer);
-        $pointer = str_replace('/', "", $pointer);
-        $pointer = trim($pointer);
-        $pointers[$pointer] = $collection;
-      }  
-    } //$pointers now hold all pointer data for a collection based on search params
+    $url = CDM_INGEST_QUERY_make_search_url($alias, $query, "find!subjec", "pointer", $maxrecs);
+    $collection = Array();
+    $results = Array();
+    $stream = file_get_contents($url);
+    $parents = Array();
     
-    return $pointers;
+    preg_match_all("|<pointer><!\[CDATA\[(.*)\]\]></pointer>|", $stream, $pointers);
+    preg_match_all("|<collection><!\[CDATA\[\/(.*)\]\]></collection>|", $stream, $collection);
+    preg_match_all("|<parentobject><!\[CDATA\[(.*)\]\]></parentobject>|", $stream, $parents);
+
+    $pointers = $pointers[1];
+    $collection = $collection[1];
+    $parents = $parents[1];
+    
+    for($i = 0; $i < count($pointers); $i++)
+    {
+		if(trim($parents[$i]) == "-1") {
+			$results[$pointers[$i]] = $collection[$i];
+		}
+    }
+    
+    return $results;
 }
 
 /*******************************************************************************
- * get_items function
+ * CDM_INGEST_ingest
  * 
- * @param $records - Number of items the user wants 
+ * @param type $alias
+ * @param type $pointer
+ * @return string
  */
-
+function CDM_INGEST_ingest($alias, $pointer) {
+        global $content_dm_address;
+        $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetItemInfo/".$alias . "/".$pointer."/xml";     
+        $compound_object_info_url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetCompoundObjectInfo/".$alias . "/".$pointer."/xml";
+        
+        $compound_object_xml = simplexml_load_string(file_get_contents($compound_object_info_url));
+        $stream = file_get_contents($url);
+        
+        if(!isset($compound_object_xml->page)){ //single
+            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT=".$alias."&CISOPTR=".$pointer."&action=2&DMSCALE=100&DMWIDTH=99999&DMHEIGHT=99999&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
+        }else{ //compound
+		  $pointer = $compound_object_xml->page[0]->pageptr;
+            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT=". $alias."&CISOPTR=".$pointer."&action=2&DMSCALE=100&DMWIDTH=99999&DMHEIGHT=99999&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
+        }
+	   
+        $xml = simplexml_load_string($stream);
+        
+	   
+	   
+	   $response = Array(
+		'asset_title' => $xml->title,
+		'asset_metadata' => $xml->subjec,  //not a type-o
+		'asset_source' => $image,
+		'asset_data' => file_get_contents($image),
+		'asset_mimetype' => $xml->format,
+		'asset_size' => $xml->size + 0,
+		
+		//optional, but nice
+		'asset_date' => $xml->date,
+	);
+	return $response;
+}
 ?>
-
-

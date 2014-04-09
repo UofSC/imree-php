@@ -24,5 +24,12 @@ if(count($original_request) > 1) {
 	}
 }
 
-imree_file($_GET['file_id'], (isset($_GET['size']) ? $_GET['size'] : false));
+$size = false;
+if(isset($_GET['size'])) {
+	$size = $_GET['size'];
+	if(strpos($size, 'gsCacheBusterID') !== false) {
+		$size = substr($size, 0, strpos($size, 'gsCacheBusterID'));
+	}
+}
 
+imree_file($_GET['file_id'], $size);
