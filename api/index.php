@@ -37,6 +37,9 @@ function children($results) {
     return $string;
 }
 
+function get_session_id(){
+    return $session_id;
+}
 
 function quick_auth() {
 	global $username, $password, $str;
@@ -190,9 +193,10 @@ if($command) {
     } else if($command === "login") {
 	    $values = json_decode($command_parameter);
 	    $ulogin = new uLogin();
-
+            
 	    $ulogin->Authenticate($values->username, $values->password);
 	    if($ulogin->AuthResult) {
+                    //is_logged_in(true);
 		    $str .= "<response><success>true</success>\n<result><logged_in>true</logged_in>";
 		    $id =  $ulogin->Uid($values->username);
 
@@ -205,6 +209,7 @@ if($command) {
 		    $str .= "</result></response>";
 
 	    } else {
+                    //is_logged_in(false);
 		    $str .= "<response><success>true</success>\n<result><logged_in>false</logged_in></result></response>";
 	    }
         

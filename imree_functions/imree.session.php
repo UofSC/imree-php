@@ -4,6 +4,14 @@
  * @author Cole Mendes
  */
 
+require_once('../../config.php');
+
+function build_session(){
+    $session_id = get_session_id();
+    $ip = get_client_IP();
+    //STORE IP AND SESSION ID db_exec($conn, "UPDATE 'sessions' SET ...");
+}
+
 /**
  * This is a (poor) random string generator. Poor in that its using some 
  * cryptographic functions and is pretty ungodly efficient. For the sake of 
@@ -26,11 +34,10 @@ function random_string_gen($length = 256) {
  * @param type $logged
  */
 function is_logged_in($logged=false){
-    //@todo create an update query telling if the user(session_id) is logged in
-    if($logged == true){
-    
+    if($logged){
+       //db_exec($conn, "UPDATE 'sessions' SET 'is_logged_in' = 'Yes' WHERE 'session_id' = " . get_session_id());
     } else { 
-        
+       //db_exec($conn, "UPDATE 'sessions' SET 'is_logged_in' = 'No' WHERE 'session_id' = " . get_session_id()) not logged in
     } 
 }
 
@@ -38,7 +45,7 @@ function is_logged_in($logged=false){
  * function home_page_visits
  */
 function home_page_visits(){
-    //@todo count home page visits per session, preferably with a better name
+    //@todo count home page visits per session
     
 }
 
@@ -47,7 +54,7 @@ function home_page_visits(){
  */
 function session_date_time(){
     //@todo log date and time of session start
-     
+    //db_exe() date("Y-m-d H:i:s");
 }
 
 /**
@@ -57,6 +64,12 @@ function time_on_page(){
     //@todo be able to log time user spends on a page/asset/img/etc.
     
 }
+
+function get_client_IP(){
+    $ip = $_SERVER['REMOTE_ADDR'];
+    return $ip;
+}
+ 
 
 //@todo more functions for session tracking
 
