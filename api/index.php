@@ -215,9 +215,13 @@ if($command) {
         
     } else if($command === "user_rights") {
 	    if(quick_auth()) {
+		    $user = new imree_person(imree_person_id_from_username($username));
 		    $str .= "<response><success>true</success>\n
-			    <result>
-				   <item><right>system_admin</right></item>
+			    <result>";
+		    foreach($user->privileges as $p) {
+			     $str .= "<item><right>".$p->name."</right><value>".$p->value."</value><scope>".$p->scope."</scope></item>";
+		    }
+		    $str.= "
 			    </result>
 			 </response>";
 		} 
@@ -313,7 +317,7 @@ if($command) {
 		    $person = new imree_person($values->person_id);
 		    $has_rights_over_person = false;
 		    foreach($person->groups as $group) {
-			    if($user->can("group", "edit", $group['people_group_id'])) {
+			    if($user->can("group", "EDIT", $group['people_group_id'])) {
 				    $has_rights_over_person = true;
 			    }
 		    }
@@ -333,7 +337,17 @@ if($command) {
 			    $str .= "<response><success>false</success><error>Permission Denied. You have no rights to this person.</error></response>";
 		    }
 	    }
-    }else if($command === "query") {
+    } else if ($command === "new_group") {
+	    if(quick_auth()) {
+		    $user = new imree_person(imree_person_id_from_username($username));
+		    $values = json_decode($command_parameter);
+		    if($user->can("group","ADMIN","")) {
+			    imree_group_new($values->imree_group_name, $user->person_id);
+		    } else {
+			     $str .= "<response><success>false</success><error>Permission Denied. You cannot create new groups.</error></response>";
+		    }
+	    }
+    } else if($command === "query") {
     
 	    if(quick_auth()) {
 		    $values = json_decode($command_parameter);
