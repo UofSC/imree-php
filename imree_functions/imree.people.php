@@ -32,6 +32,7 @@ class imree_person {
 			
 			$this->get_username();
 			$this->update_groups();
+			$this->update_privileges();
 		} 
 	}
 	

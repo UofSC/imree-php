@@ -199,14 +199,19 @@ if($command) {
                     //is_logged_in(true);
 		    $str .= "<response><success>true</success>\n<result><logged_in>true</logged_in>";
 		    $id =  $ulogin->Uid($values->username);
-
-		    $user = $permissions = db_query($conn, "SELECT * FROM people WHERE people.ul_user_id = ".db_escape($id));
+		    
+		    $user = db_query($conn, "SELECT * FROM people WHERE people.ul_user_id = ".db_escape($id));
 		    $str .= "<user>".array_to_xml($user[0], true, 2)."</user>";
 
-		    $permissions = db_query($conn, "SELECT people_privileges.* FROM people LEFT JOIN people_privileges USING (person_id) WHERE people.ul_user_id = ".db_escape($id));
-		    $str .= "<permissions>".array_to_xml($permissions, true, 2)."</permissions>";
-
-		    $str .= "</result></response>";
+		    $person = new imree_person(imree_person_id_from_ul_user_id($id));
+		    $str .= "<permissions>";
+		    error_log(print_r($person->privileges, 1));
+				foreach($person->privileges as $p) {
+					$str .= "<item><name>".$p->name."</name><value>".$p->value."</value><scope>".$p->scope."</scope></item>";
+				}
+		    $str .= "</permissions>
+			    </result>
+			 </response>";
 
 	    } else {
                     //is_logged_in(false);
@@ -342,7 +347,7 @@ if($command) {
 		    $user = new imree_person(imree_person_id_from_username($username));
 		    $values = json_decode($command_parameter);
 		    if($user->can("group","ADMIN","")) {
-			    imree_group_new($values->imree_group_name, $user->person_id);
+			    imree_group_new($values->people_group_name, $values->people_group_description, $user->person_id);
 		    } else {
 			     $str .= "<response><success>false</success><error>Permission Denied. You cannot create new groups.</error></response>";
 		    }
