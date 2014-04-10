@@ -410,7 +410,10 @@ require_once("imree-php/imree_functions/imree.asset.php");
 require_once("imree-php/imree_functions/imree.core.php");
 require_once("imree-php/imree_functions/imree.children.php");
 require_once("imree-php/imree_functions/imree.group.php");
+require_once("imree-php/imree_functions/imree.people.php");
+require_once("imree-php/imree_functions/imree.session.php");
 require_once("imree-php/imree_functions/imree.template.php");
+require_once("imree-php/imree_functions/imree.text_conversions.php");
 require_once("imree-php/external_packages/Deepzoom/ImageCreator.php");
 
 define("UL_SITE_KEY", "'.random_string(64).'");
