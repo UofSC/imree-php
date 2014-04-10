@@ -12,6 +12,8 @@ $conn = db_connect();
 $errors = array();
 $results = array();
 
+$msg_permission_denied = "<response><success>false</success><error>Permission Denied.</error></response>";
+
 $str = "<?xml version='1.0' encoding='UTF-8' ?>";
 
 /**
@@ -196,25 +198,23 @@ if($command) {
             
 	    $ulogin->Authenticate($values->username, $values->password);
 	    if($ulogin->AuthResult) {
-                    //is_logged_in(true);
 		    $str .= "<response><success>true</success>\n<result><logged_in>true</logged_in>";
 		    $id =  $ulogin->Uid($values->username);
 		    
 		    $user = db_query($conn, "SELECT * FROM people WHERE people.ul_user_id = ".db_escape($id));
 		    $str .= "<user>".array_to_xml($user[0], true, 2)."</user>";
-
+		    
+		    
+		    
 		    $person = new imree_person(imree_person_id_from_ul_user_id($id));
 		    $str .= "<permissions>";
-		    error_log(print_r($person->privileges, 1));
 				foreach($person->privileges as $p) {
 					$str .= "<item><name>".$p->name."</name><value>".$p->value."</value><scope>".$p->scope."</scope></item>";
 				}
 		    $str .= "</permissions>
 			    </result>
 			 </response>";
-
 	    } else {
-                    //is_logged_in(false);
 		    $str .= "<response><success>true</success>\n<result><logged_in>false</logged_in></result></response>";
 	    }
         
@@ -339,7 +339,7 @@ if($command) {
 				    $str .= "<response><success>false</success><error>Permission Denied. You cannot edit this person.</error></response>";
 			    }
 		    } else {
-			    $str .= "<response><success>false</success><error>Permission Denied. You have no rights to this person.</error></response>";
+			    $str .= $msg_permission_denied;
 		    }
 	    }
     } else if ($command === "new_group") {
@@ -349,11 +349,43 @@ if($command) {
 		    if($user->can("group","ADMIN","")) {
 			    imree_group_new($values->people_group_name, $values->people_group_description, $user->person_id);
 		    } else {
-			     $str .= "<response><success>false</success><error>Permission Denied. You cannot create new groups.</error></response>";
+			     $str .= $msg_permission_denied;
 		    }
 	    }
-    } else if($command === "query") {
+	    
     
+    /** Query Replacements from f_data */
+    } else if($command === "query_fdata_DynamicOptions") {
+	    if(quick_auth()) {
+			$user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			if($user->can("exhibit","USR","")) {
+				if(is_alphanumeric($values)) {
+					$results = db_query($conn, "SELECT ".$values->label_column.", ".$values->key_column." FROM ".$values->table);
+					$str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+				} else {
+					 $str .= "<response><success>false</success><error>Syntax Error, illegal character in values</error></response>";
+				}
+			} else {
+				$str .= $msg_permission_denied;
+			}
+	    }
+    } else if($command === "query_data_get_row") {
+	    if(quick_auth()) {
+			$user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			if($user->can("exhibit","USR","")) {
+				if(is_alphanumeric($values)) {
+					$results = db_query($conn, "SELECT * FROM ".$values->table." WHERE ".$values->table_key_column_name." = ".  db_escape($values->row_id).";");
+					$str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+				} else {
+					 $str .= "<response><success>false</success><error>Syntax Error, illegal character in values</error></response>";
+				}
+			} else {
+				$str .= $msg_permission_denied;
+			}
+	    }
+    } else if($command === "query") {
 	    if(quick_auth()) {
 		    $values = json_decode($command_parameter);
 		    $columns = "";
@@ -377,17 +409,28 @@ if($command) {
 	    } 
     } else if($command === "update") {
 	    if(quick_auth()) {
+		    $user = new imree_person(imree_person_id_from_username($username));
+		    $clean = true;
 		    $values = json_decode($command_parameter);
 		    $set = "";
 		    foreach($values->columns as $key=>$val) {
+			    if(!is_alphanumeric((string) $key)) {
+				    $clean = false;			    
+				    
+			    }
 			    $set .= " $key = ".db_escape($val).", ";
 		    }
-		    if(isset($values->where)) {
-			    $query = "UPDATE ".$values->table." SET ".substr($set, 0, -2)." WHERE ".$values->where;
-			    db_exec($conn, $query);
-			    $str .= "<response><success>true</success>\n<result></result></response>";
+		    if(isset($values->where_key_column, $values->row_id)) {
+			    if(is_alphanumeric(array($values->table, $values->where_key_column)) AND $clean) {
+					//@todo add checks here to make sure the user->can work on the specific table being updated
+					$query = "UPDATE ".$values->table." SET ".substr($set, 0, -2)." WHERE ".$values->where_key_column." = ".  db_escape($values->row_id);
+					db_exec($conn, $query);
+					$str .= "<response><success>true</success>\n<result></result></response>";
+			    } else {
+				    $str .= "<response><success>false</success><error>Syntax Error, illegal character in values</error></response>";
+			    }
 		    } else {
-			    $str .= "<response><success>false</success>\n<error>for command=update, we need a 'where' value. if you are trying to insert a row of data, try the command=insert method instead.</error></response>";
+			    $str .= "<response><success>false</success>\n<error>for command=update, we need a 'where_key_column' and 'row_id' value. if you are trying to insert a row of data, try the command=insert method instead.</error></response>";
 		    }
 
 	    } 

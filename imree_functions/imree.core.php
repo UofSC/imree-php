@@ -102,3 +102,20 @@ function imree_resize_image($image,$new_height){
     $im->destroy();
     return $str;
 }
+
+
+
+function is_alphanumeric($subject, $allowables=array("_")) {
+	if(is_object($subject) OR is_array($subject)) {
+		$answer = true;
+		foreach($subject as $key=>$val) {
+			$answer = $answer AND is_alphanumeric($key) AND is_alphanumeric($val);
+		}
+		return $answer;
+	} else {
+		if(count($allowables)) {
+			$str = str_replace($allowables, "", $subject);
+		}
+		return ctype_alnum($str);
+	}
+}
