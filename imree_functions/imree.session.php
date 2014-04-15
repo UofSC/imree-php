@@ -1,60 +1,79 @@
 <?php
 /** 
  * imree.session.php
- * @author Cole Mendes
+ * @author Cole Mendes <mendesc@email.sc.edu>
  */
 
 require_once('../../config.php');
 
-function build_session(){
-    $session_id = get_session_id();
-    $ip = get_client_IP();
-    //STORE IP AND SESSION ID db_exec($conn, "UPDATE 'sessions' SET ...");
-}
+/******************************************
+ * @todo                                  *
+ * implement functions into API and AIR   *
+ * create sessions table on live database *
+ *****************************************/
+
 
 /**
- * This is a (poor) random string generator. Poor in that its using some 
- * cryptographic functions and is pretty ungodly efficient. For the sake of 
- * being bizzare, $random1 and $random2 function source strings.
- * @author Jason Steelman <uscart@gmail.com>
- * @param int $length the length of random string to return
- * @return string A string of length $length
+ * function build_session
+ * Creates a new session
+ * to be used where the session_key is currently generated in API command 'signage_mode'
+ * @return $session_key - unique session_key for that ip_address of user
  */
-function random_string_gen($length = 256) {
-	if($length == 30) return str_shuffle(MD5(microtime()));
-	$random1 = "somethingfeelsrandomtomehereabcdefghijklmonpqrstuvqxyz";
-	$random2 = "fortheloveofallthatsgoodandevilabcdefghijklmonpqurstuv";
-	$string = str_shuffle(md5(microtime().str_shuffle($random1)) . md5(str_shuffle($random2).time()) . sha1(str_shuffle($random1.microtime())).sha1(str_shuffle($random2).time()).md5(str_shuffle($random1).time()).sha1(str_shuffle($random2).microtime()).sha1(str_shuffle($random1.microtime())).sha1(str_shuffle($random2).time()));
-	return substr($string, 0, min($length, strlen($string)));
+function build_session(){
+    $conn = db_connect();
+    $ip = get_client_IP();
+    $session_key = session_id();
+    
+    db_exec($conn, "INSERT INTO sessions (session_key, ip_address, date_time) 
+                    VALUES ('".$session_key."',
+                            '".$ip."', 
+                            '".session_date_time()."')"
+            );
+    
+    return $session_key;
 }
 
 /**
  * function is_logged_in
- * 
+ * to be used with the api command "login"
  * @param type $logged
  */
-function is_logged_in($logged=false){
+function is_logged_in($logged=false, $session_key){
+    $conn = db_connect();
     if($logged){
-       //db_exec($conn, "UPDATE 'sessions' SET 'is_logged_in' = 'Yes' WHERE 'session_id' = " . get_session_id());
+       db_exec($conn, "UPDATE `sessions` SET `is_logged_in` = 'Yes' WHERE `session_key` = '". $session_key ."'");
     } else { 
-       //db_exec($conn, "UPDATE 'sessions' SET 'is_logged_in' = 'No' WHERE 'session_id' = " . get_session_id()) not logged in
+       db_exec($conn, "UPDATE `sessions` SET `is_logged_in` = 'No' WHERE `session_key` = '". $session_key ."'");
     } 
 }
 
 /**
  * function home_page_visits
+ * to be used when the user closes the application (deactivate in AIR)
+ * @param - total home visits
  */
-function home_page_visits(){
-    //@todo count home page visits per session
-    
+function home_page_visits($visits, $session_key){
+    $conn = db_connect();
+    db_exec($conn, "UPDATE `sessions` SET `home_returns` = '". $visits ."' WHERE `session_key` = '". $session_key ."'");
+}
+
+/**
+ * function session_searches
+ * to be called with the api command 'search'
+ * @param - $search
+ * @param - $session_key
+ */
+function session_searches($search, $session_key){
+    $conn = db_connect();
+    db_exec($conn, "UPDATE `sessions` SET `searches` = CONCAT(searches, ' \"". $search ."\"') WHERE `session_key` = '". $session_key ."'");
 }
 
 /**
  * function session_date_time
+ * @return - current date and time
  */
 function session_date_time(){
-    //@todo log date and time of session start
-    //db_exe() date("Y-m-d H:i:s");
+    return date("Y-m-d H:i:s");
 }
 
 /**
@@ -65,24 +84,13 @@ function time_on_page(){
     
 }
 
+/**
+ * function get_client_ip
+ * @return $ip
+ */
 function get_client_IP(){
     $ip = $_SERVER['REMOTE_ADDR'];
     return $ip;
 }
- 
 
-//@todo more functions for session tracking
-
-/**
- * Some Notes
- * Usability study:
- *  IsLoggedIn?
- *  Asset views
- *  Date
- *  Time
- *  Time per page
- *  Page views
- *  Search Tracking
- *  Home page returns  
- */
 ?>

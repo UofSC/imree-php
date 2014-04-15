@@ -39,9 +39,6 @@ function children($results) {
     return $string;
 }
 
-function get_session_id(){
-    return $session_id;
-}
 
 function quick_auth() {
 	global $username, $password, $str;
@@ -71,7 +68,7 @@ $command = isset($_POST["command"]) ? filter_input(INPUT_POST, "command") : filt
 $command_parameter = isset($_POST["command_parameter"]) ? filter_input(INPUT_POST, "command_parameter") : filter_input(INPUT_GET, "command_parameter");
 $username = filter_input(INPUT_POST, "username");
 $password = filter_input(INPUT_POST, "password");
-$session_id = filter_input(INPUT_POST, "session_key"); //'key' in AIR 'id' in PHP 
+$session_id = filter_input(INPUT_POST, "session_key"); 
 //error_log($session_id);
 //error_log("Command: " . $command . " Parameter: " .$command_parameter );
 
