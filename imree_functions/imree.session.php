@@ -4,13 +4,8 @@
  * @author Cole Mendes <mendesc@email.sc.edu>
  */
 
-require_once('../../config.php');
 
-/******************************************
- * @todo                                  *
- * implement functions into API and AIR   *
- * create sessions table on live database *
- *****************************************/
+
 
 
 /**
@@ -23,12 +18,9 @@ function build_session(){
     $conn = db_connect();
     $ip = get_client_IP();
     $session_key = session_id();
+    $insert = "INSERT INTO sessions (session_key, ip_address, date_time) VALUES (".db_escape($session_key).",".db_escape($ip).",".db_escape(session_date_time()).")";
     
-    db_exec($conn, "INSERT INTO sessions (session_key, ip_address, date_time) 
-                    VALUES ('".$session_key."',
-                            '".$ip."', 
-                            '".session_date_time()."')"
-            );
+    db_exec($conn, $insert);
     
     return $session_key;
 }
@@ -41,9 +33,9 @@ function build_session(){
 function is_logged_in($logged=false, $session_key){
     $conn = db_connect();
     if($logged){
-       db_exec($conn, "UPDATE `sessions` SET `is_logged_in` = 'Yes' WHERE `session_key` = '". $session_key ."'");
+       db_exec($conn, "UPDATE sessions SET is_logged_in = 1 WHERE session_key = ". db_escape($session_key));
     } else { 
-       db_exec($conn, "UPDATE `sessions` SET `is_logged_in` = 'No' WHERE `session_key` = '". $session_key ."'");
+       db_exec($conn, "UPDATE sessions SET is_logged_in = 0 WHERE session_key = ". db_escape($session_key));
     } 
 }
 
@@ -54,7 +46,7 @@ function is_logged_in($logged=false, $session_key){
  */
 function home_page_visits($visits, $session_key){
     $conn = db_connect();
-    db_exec($conn, "UPDATE `sessions` SET `home_returns` = '". $visits ."' WHERE `session_key` = '". $session_key ."'");
+    db_exec($conn, "UPDATE sessions SET home_returns = '". db_escape($visits) ."' WHERE `session_key` = '". db_escape($session_key) ."'");
 }
 
 /**
@@ -65,7 +57,7 @@ function home_page_visits($visits, $session_key){
  */
 function session_searches($search, $session_key){
     $conn = db_connect();
-    db_exec($conn, "UPDATE `sessions` SET `searches` = CONCAT(searches, ' \"". $search ."\"') WHERE `session_key` = '". $session_key ."'");
+    db_exec($conn, "UPDATE sessions SET searches = CONCAT(searches, ' \"". db_escape($search) ."\"') WHERE session_key = '". db_escape($session_key) ."'");
 }
 
 /**

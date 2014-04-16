@@ -68,7 +68,7 @@ $command = isset($_POST["command"]) ? filter_input(INPUT_POST, "command") : filt
 $command_parameter = isset($_POST["command_parameter"]) ? filter_input(INPUT_POST, "command_parameter") : filter_input(INPUT_GET, "command_parameter");
 $username = filter_input(INPUT_POST, "username");
 $password = filter_input(INPUT_POST, "password");
-$session_id = filter_input(INPUT_POST, "session_key"); 
+$session_key = filter_input(INPUT_POST, "session_key"); 
 //error_log($session_id);
 //error_log("Command: " . $command . " Parameter: " .$command_parameter );
 
@@ -102,20 +102,20 @@ if($command) {
         
     } else if($command === "module") { //previously "item"
         die("The item command doesn't exist yet. sry - management");
-        
+       
         
     } else if($command === "signage_mode") {
         $ip = $_SERVER['REMOTE_ADDR'];
         $results = db_query($conn, "SELECT * FROM signage_devices WHERE signage_device_ip = ".db_escape($ip));
-        $session_id = session_id();
+        $session_key = build_session();
         if(count($results) > 0 ) { 
-            $str .= "<response><success>true</success>\n<result>\n<key>".$session_id."</key>\n<signage_mode>signage</signage_mode>\n</result></response>";
+            $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<signage_mode>signage</signage_mode>\n</result></response>";
 		  DS_chirp($ip);
         } else {
-            $str .= "<response><success>true</success>\n<result>\n<key>".$session_id."</key>\n<signage_mode>imree</signage_mode>\n</result></response>";
+            $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<signage_mode>imree</signage_mode>\n</result></response>";
         }
         
-        
+          
     } else if($command === "signage_items") {
         $ip = $_SERVER['REMOTE_ADDR'];
         DS_chirp($ip);
@@ -138,7 +138,7 @@ if($command) {
 		$raz_results = razuna_query($command_parameter);
 		array_splice($raz_results, 20);
 		$results = array_merge($CDM_results, $raz_results);
-		
+
 		//Results of all items that match a full-text search
                 /**
 		$results = array_merge(db_query($conn, "SELECT assets.* FROM assets
@@ -188,7 +188,7 @@ if($command) {
 	    } else {
 		    $str .= "<response><success>false</success>\n<error>command_parameter not set. To list a specific exhibit, we need to know which exhibit you're looking for. If you want to list all exhibits, use command=exhibits</error></response>";
 	    }
-        
+      
     } else if($command === "login") {
 	    $values = json_decode($command_parameter);
 	    $ulogin = new uLogin();
@@ -197,12 +197,14 @@ if($command) {
 	    if($ulogin->AuthResult) {
 		    $str .= "<response><success>true</success>\n<result><logged_in>true</logged_in>";
 		    $id =  $ulogin->Uid($values->username);
-		    
+                    
+                    is_logged_in(true, $session_key);
+                    
 		    $user = db_query($conn, "SELECT * FROM people WHERE people.ul_user_id = ".db_escape($id));
 		    $str .= "<user>".array_to_xml($user[0], true, 2)."</user>";
-		    
-		    
-		    
+
+
+
 		    $person = new imree_person(imree_person_id_from_ul_user_id($id));
 		    $str .= "<permissions>";
 				foreach($person->privileges as $p) {
@@ -296,7 +298,7 @@ if($command) {
 				    $has_rights_over_person = true;
 			    }
 		    }
-		    
+
 		    if($has_rights_over_person) {
 			    $has_equal_or_higher_rights = $user->can($values->people_privilege_name, $values->people_privilege_value, $values->people_privilege_scope);
 			    if($has_equal_or_higher_rights) {
@@ -323,7 +325,7 @@ if($command) {
 				    $has_rights_over_person = true;
 			    }
 		    }
-		    
+
 		    if($has_rights_over_person) {
 			    $has_equal_or_higher_rights = $user->can($values->people_privilege_name, $values->people_privilege_value, $values->people_privilege_scope);
 			    if($has_equal_or_higher_rights) {
@@ -349,7 +351,7 @@ if($command) {
 			     $str .= $msg_permission_denied;
 		    }
 	    }
-	    
+
     
     /** Query Replacements from f_data */
     } else if($command === "query_fdata_DynamicOptions") {
@@ -413,7 +415,7 @@ if($command) {
 		    foreach($values->columns as $key=>$val) {
 			    if(!is_alphanumeric((string) $key)) {
 				    $clean = false;			    
-				    
+
 			    }
 			    $set .= " $key = ".db_escape($val).", ";
 		    }
@@ -456,8 +458,13 @@ if($command) {
 		/**
 		 * @todo. same as exhibit_modules_order_update, but for assets instead
 		 */
+	} else if ($command === "wifiPingData") {
+		$values = json_decode($command_parameter);
+		$signals = imree_location_process_json_to_signals($values);
+		imree_location_process_signals($signals);
 
     }  else {
+
         die("That command does not exist");
     }
     header('Content-Type: application/xml; charset=utf-8');
