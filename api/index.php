@@ -462,9 +462,15 @@ if($command) {
 		$values = json_decode($command_parameter);
 		$signals = imree_location_process_json_to_signals($values);
 		imree_location_process_signals($signals);
+<<<<<<< HEAD
 
     }  else {
 
+=======
+		
+    }  else {
+	    
+>>>>>>> 9aad2b90455d33f5ee3db161bbc919f44acbf807
         die("That command does not exist");
     }
     header('Content-Type: application/xml; charset=utf-8');
