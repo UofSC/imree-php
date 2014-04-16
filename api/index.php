@@ -462,7 +462,8 @@ if($command) {
 		$values = json_decode($command_parameter);
 		$signals = imree_location_process_json_to_signals($values);
 		imree_location_process_signals($signals);
-<<<<<<< HEAD
+        }
+/*<<<<<<< HEAD
 
     }  else {
 
@@ -473,7 +474,7 @@ if($command) {
 >>>>>>> 9aad2b90455d33f5ee3db161bbc919f44acbf807
         die("That command does not exist");
     }
-    header('Content-Type: application/xml; charset=utf-8');
+    header('Content-Type: application/xml; charset=utf-8'); */
 } else {
     $str .= "<h1>IMREE API</h1><p>This API gets user command and command parameter to perform login or interaction with database.</p>";
     $str .= "<br><hr><h2>Command description and command parameters required:</h2><hr>";
