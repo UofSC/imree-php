@@ -456,8 +456,13 @@ if($command) {
 		/**
 		 * @todo. same as exhibit_modules_order_update, but for assets instead
 		 */
-
+	} else if ($command === "wifiPingData") {
+		$values = json_decode($command_parameter);
+		$signals = imree_location_process_json_to_signals($values);
+		imree_location_process_signals($signals);
+		
     }  else {
+	    
         die("That command does not exist");
     }
     header('Content-Type: application/xml; charset=utf-8');
