@@ -24,7 +24,20 @@ function exhibit_data($exhibit_id) {
 function exhibit_module_assets($module_id) {
 	global $imree_absolute_path;
 	$conn = db_connect();
-	$assets = db_query($conn, "SELECT module_assets.*, asset_data.asset_data_type AS module_type, asset_data.asset_data_name, 1 AS asset FROM module_assets LEFT JOIN asset_data USING (asset_data_id) WHERE module_id = ".db_escape($module_id). " ORDER BY module_asset_order ASC");
+	$assets = db_query($conn, "
+		SELECT 
+			module_assets.*, 
+			sources.source_common_name,
+			sources.source_url,
+			sources.source_credit_statement,
+			asset_data.asset_data_type AS module_type, 
+			asset_data.asset_data_name, 1 AS asset 
+		FROM 
+			module_assets 
+			LEFT JOIN asset_data USING (asset_data_id) 
+			LEFT JOIN sources ON (asset_data.asset_data_source_repository = sources.source_id)
+		WHERE module_id = ".db_escape($module_id). " 
+		ORDER BY module_asset_order ASC");
 	if(count($assets)) {
 		for($i =0; $i < count($assets); $i++) {
 			if($assets[$i]['asset_data_id'] > 0) {
@@ -65,23 +78,5 @@ function exhibit_child_modules($module_parent_id) {
 	}
 }
 
-
-
-/**INGESTION */
-$repositories = array(
-    
-);
-function IMREE_asset_ingest_API_handler($repository_code, $repository_asset_id, $repository_collection_handle, $module_id, $username) {
-	if($repository_code === "CDM") {
-		require_once('contentDM_ingest.php');
-		$asset = CDM_INGEST_ingest($repository_collection_handle, $repository_asset_id);	
-	} else if ($repository_code === "Razuna") {
-		require_once 'razuna_ingest.php';
-		$asset = razuna_ingest($repository_asset_id);
-	}
-	$asset_data_id = IMREE_asset_ingest($asset['asset_data'], $asset['asset_title'], $asset['asset_mimetype'], $asset['asset_size'], $username, $repository_code, $repository_asset_id, $repository_collection_handle);
-	$module_asset_id = IMREE_asset_instantiate($asset_data_id, $module_id,  $asset['asset_title'], "", $asset['asset_metadata'], $repository_code, $asset['asset_source'],$username,1,1);
-	return $module_asset_id;
-}
 
 ?>

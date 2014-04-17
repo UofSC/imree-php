@@ -15,6 +15,7 @@ class imree_person {
 	public $username;
 	public $groups;
 	public $privileges;
+	public $sources;
 	public $super_admin;
 	private $conn;
 	public function __construct($id) {
@@ -32,6 +33,7 @@ class imree_person {
 			
 			$this->get_username();
 			$this->update_groups();
+			$this->update_sources();
 			$this->update_privileges();
 		} 
 	}
@@ -42,6 +44,33 @@ class imree_person {
 			$this->username = $ulogin->Username($this->ul_user_id);
 		}
 	}
+	
+	private function update_sources() {
+		$this->sources = array();
+		$results = db_query($this->conn, "
+			SELECT * FROM people_group
+			LEFT JOIN people_group_assignments USING (people_group_id)
+			LEFT JOIN people USING (person_id)
+			LEFT JOIN people_group_source_assignments USING (people_group_id)
+			LEFT JOIN sources USING (source_id)
+			WHERE person_id = ".db_escape($this->person_id)."
+			GROUP BY source_id"
+		);
+		foreach($results as $source) {
+			$this->sources[] = new imree_source(
+				   $source['source_id'], 
+				   $source['source_code'], 
+				   $source['source_function_search'], 
+				   $source['source_function_ingest'], 
+				   $source['source_url'], 
+				   $source['source_credit_statement'],
+				   $source['source_api_url'],
+				   $source['source_api_url_supplemental'],
+				   $source['source_api_key']
+			);
+		}
+	}
+	
 	private function update_groups() {
 		$groups_arr = db_query($this->conn, "SELECT * FROM people
 			LEFT JOIN people_group_assignments USING (person_id)
@@ -140,6 +169,55 @@ class imree_privilege {
 		}		
 	}
 }
+class imree_source {
+	public $id;
+	public $code;
+	public $function_search;
+	public $function_ingest;
+	public $url;
+	public $credit_statement;
+	public $api_url;
+	public $api_url_supplemental;
+	public $api_key;
+	public function __construct($id, $code, $function_search, $function_ingest, $url, $credit_statement, $api_url, $api_url_supplemental, $api_key) {
+		$this->id = $id;
+		$this->code = $code;
+		$this->function_search = $function_search;
+		$this->function_ingest = $function_ingest;
+		$this->url = $url;
+		$this->credit_statement = $credit_statement;
+		$this->api_url = $api_url;
+		$this->api_url_supplemental = $api_url_supplemental;
+		$this->api_key = $api_key;
+	}
+	public function search($query, $limit, $start) {
+		if(function_exists($this->function_search)) {
+			//function CDM_INGEST_query(		$query, $api_url,		$api_url_supplemental = '',	$api_key='',	$limit=20,	$start=0, $limit_by_asset_type=false) 
+			//function razuna_query(			$query, $api_url,		$api_url_supplemental,		$api_key,		$limit=50,	$start=0, $limit_by_asset_type=false)
+			$search_function = $this->function_search;
+			$results = $search_function(		$query, $this->api_url,	$this->api_url_supplemental,	$this->api_key,$limit,		$start);
+			for($i = 0; $i < count($results); $i++) {
+				$results[$i]['repository'] = $this->id;
+				for($j = 0; $j < count($results[$i]['children']); $j++) {
+					$results[$i]['children'][$j]['repository'] = $this->id;
+				}
+			}
+			return $results;
+		} else {
+			return array();
+		}
+	}
+	public function get_asset($id, $handle) {
+		if(function_exists($this->function_ingest)) {
+			//function razuna_ingest(	$asset_id,	$handle,	$api_url,		$api_url_supplemental,		$api_key) {
+			//function CDM_INGEST_ingest(	$pointer,		$alias,	$api_url,		$api_url_supplemental,		$api_key) {
+			$ingest_function = $this->function_ingest;
+			return $ingest_function(		$id,			$handle,	$this->api_url, $this->api_url_supplemental, $this->api_key);
+		} else {
+			return array();
+		}
+	}
+}
 
 
 function imree_person_id_from_username($username) {
@@ -166,7 +244,7 @@ function imree_person_id_from_ul_user_id($ul_user_id) {
 
 
 
-function imree_create_user($username, $password, $person_name_last, $person_name_first, $person_title, $person_department_id) {
+function imree_create_user($username, $password, $person_name_last, $person_name_first, $person_title, $person_department_id =0) {
 	$ulogin = new uLogin();
 	if($ulogin->CreateUser($username, $password)) {
 		$uid = $ulogin->Uid($username);
@@ -175,7 +253,7 @@ function imree_create_user($username, $password, $person_name_last, $person_name
 			'person_name_last'=>$person_name_last,
 			'person_name_first' => $person_name_first,
 			'person_title' => $person_title,
-			'person_department_id' => $person_department_id,
+		     'person_department_id' => $person_department_id,
 			'ul_user_id' => $uid,
 		)));
 		if(isset($results['last_id'])) {

@@ -102,7 +102,7 @@ if($command) {
         
     } else if($command === "module") { //previously "item"
         die("The item command doesn't exist yet. sry - management");
-       
+        
         
     } else if($command === "signage_mode") {
         $ip = $_SERVER['REMOTE_ADDR'];
@@ -115,7 +115,7 @@ if($command) {
             $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<signage_mode>imree</signage_mode>\n</result></response>";
         }
         
-          
+        
     } else if($command === "signage_items") {
         $ip = $_SERVER['REMOTE_ADDR'];
         DS_chirp($ip);
@@ -130,33 +130,34 @@ if($command) {
         if(!$command_parameter) {
              $errors[] = "command_parameter not set. The command parameter must be set to the desired search term.";
         } else {
-          
-		require_once 'contentDM_ingest.php';
-		require_once 'razuna_ingest.php';
-		set_time_limit(90);
-		$CDM_results = CDM_INGEST_query($command_parameter);
-		$raz_results = razuna_query($command_parameter);
-		array_splice($raz_results, 20);
-		$results = array_merge($CDM_results, $raz_results);
-
-		//Results of all items that match a full-text search
-                /**
-		$results = array_merge(db_query($conn, "SELECT assets.* FROM assets
-		   LEFT JOIN asset_metadata_assignments USING (asset_id)
-		   LEFT JOIN metadata USING (metadata_id)
-		   WHERE MATCH(metadata.metadata_value) AGAINST (".db_escape($command_parameter).")
-		   GROUP BY assets.asset_id"
-		), $CDM_results);
-                 * 
-                 */
-		 $str .= "<response><success>true</success><result>
-		 <children>
-				 ".children($results)." 
-           </children></result></response>";
+          if(quick_auth()) {
+			$user = new imree_person(imree_person_id_from_username($username));
+			
+			$results = array();
+			foreach($user->sources as $source) {
+				set_time_limit(90);
+				$results = array_merge($results, $source->search($command_parameter, 20, 0));
+			}
+			
+			//Results of all items that match a full-text search
+				 /**
+					$results = array_merge(db_query($conn, "SELECT assets.* FROM assets
+					   LEFT JOIN asset_metadata_assignments USING (asset_id)
+					   LEFT JOIN metadata USING (metadata_id)
+					   WHERE MATCH(metadata.metadata_value) AGAINST (".db_escape($command_parameter).")
+					   GROUP BY assets.asset_id"
+					), $CDM_results);
+				  * 
+				  */
+			 $str .= "<response><success>true</success><result>
+			 <children>
+					 ".children($results)." 
+			 </children></result></response>";
+			}
         }
 	} else if($command === "ingest") {
 		if(quick_auth()) {
-			require_once 'exhibit_data.php';
+			$user = new imree_person(imree_person_id_from_username($username));	
 			if(!$command_parameter) {
 				$errors[] = "command_parameter not set. The command parameter must be a json encoded object with three nodes: asset_repository, asset_id, asset_collection.";
 			} else {
@@ -167,12 +168,28 @@ if($command) {
 			}
 
 			if(count($errors)==0) {
-				$result = IMREE_asset_ingest_API_handler($parameters->asset_repository, $parameters->asset_id, $parameters->asset_collection, $parameters->module_id, $username);
-				if($result) {
-					$str.= "<response><success>true</success><result><asset_id>".$result."</asset_id></result></response>";
-				} else {
-					$str.= "<response><success>false</success><error>Asset failed to import.</error></response>";
+				foreach($user->sources as $source) {
+					error_log($source->id . " :: " .$parameters->asset_repository);
+					if($source->id === $parameters->asset_repository) {
+						
+						$target = $source;
+					}
 				}
+				if($target) {
+					$asset = $target->get_asset($parameters->asset_id, $parameters->asset_collection);
+					$asset_data_id = IMREE_asset_ingest($asset['asset_data'], $asset['asset_title'], $asset['asset_mimetype'], $asset['asset_size'], $username, $target->code, $parameters->asset_id, $parameters->asset_collection);
+					$module_asset_id = IMREE_asset_instantiate($asset_data_id, $parameters->module_id,  $asset['asset_title'], "", $asset['asset_metadata'], $target->code, $asset['asset_source'], $username,1,1);
+
+					
+					if($module_asset_id) {
+						$str.= "<response><success>true</success><result><asset_id>".$module_asset_id."</asset_id></result></response>";
+					} else {
+						$str.= "<response><success>false</success><error>Asset failed to import.</error></response>";
+					}
+				} else {
+					$str.= "<response><success>false</success><error>No such repository or you do not have access to that repostory.</error></response>";
+				}
+				
 			}
 		} 
 	} else if($command === "exhibits") {
@@ -188,7 +205,7 @@ if($command) {
 	    } else {
 		    $str .= "<response><success>false</success>\n<error>command_parameter not set. To list a specific exhibit, we need to know which exhibit you're looking for. If you want to list all exhibits, use command=exhibits</error></response>";
 	    }
-      
+        
     } else if($command === "login") {
 	    $values = json_decode($command_parameter);
 	    $ulogin = new uLogin();
@@ -197,14 +214,14 @@ if($command) {
 	    if($ulogin->AuthResult) {
 		    $str .= "<response><success>true</success>\n<result><logged_in>true</logged_in>";
 		    $id =  $ulogin->Uid($values->username);
-                    
-                    is_logged_in(true, $session_key);
+		    
+		    is_logged_in(true, $session_key);
                     
 		    $user = db_query($conn, "SELECT * FROM people WHERE people.ul_user_id = ".db_escape($id));
 		    $str .= "<user>".array_to_xml($user[0], true, 2)."</user>";
-
-
-
+		    
+		    
+		    
 		    $person = new imree_person(imree_person_id_from_ul_user_id($id));
 		    $str .= "<permissions>";
 				foreach($person->privileges as $p) {
@@ -255,23 +272,27 @@ if($command) {
 			    if(isset($values->person_name_first))	$array['person_name_first'] = $values->person_name_first;
 			    if(isset($values->person_name_last))	$array['person_name_last'] = $values->person_name_last;
 			    if(isset($values->person_title))		$array['person_title'] = $values->person_title;
-			    if(isset($values->person_department_id))	$array['person_department_id'] = $values->person_department_id;
+			    
+			    // if(isset($values->person_department_id))	$array['person_department_id'] = $values->person_department_id;
 			    if(count($array)) {
 				    db_exec($conn, build_update_query($conn, "people", $array, "person_id = ".  db_escape($values->person_id)));
+			    }
+			    if(isset($values->primary_group) AND $values->primary_group > 0) {
+				    $person->add_to_group($values->primary_group);
 			    }
 			    $str .= "<response><success>true</success><result>true</result></response>";
 		    } else {
 			    $str .= "<response><success>false</success><error>Permission Denied</error></response>";
 		    }
 	    }
-    } else if($command === "add_user") {
-	     if(quick_auth()) {
+    } else if($command === "add_user") { 
+	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
 		    $values = json_decode($command_parameter);
 		    $group_id = $values->primary_group;
 		    $can = false;
 		    if($user->can("group","edit",$group_id)) {
-			    $new_person = imree_create_user($values->new_username, $values->new_password, $values->person_name_last, $values->person_name_first, $values->person_title, $values->person_department_id);
+			    $new_person = imree_create_user($values->new_username, $values->new_password, $values->person_name_last, $values->person_name_first, $values->person_title, 0);
 			    if($new_person) {
 					$new_person->add_to_group($group_id);
 					$str .= "<response><success>true</success><result>true</result></response>";
@@ -298,7 +319,7 @@ if($command) {
 				    $has_rights_over_person = true;
 			    }
 		    }
-
+		    
 		    if($has_rights_over_person) {
 			    $has_equal_or_higher_rights = $user->can($values->people_privilege_name, $values->people_privilege_value, $values->people_privilege_scope);
 			    if($has_equal_or_higher_rights) {
@@ -325,7 +346,7 @@ if($command) {
 				    $has_rights_over_person = true;
 			    }
 		    }
-
+		    
 		    if($has_rights_over_person) {
 			    $has_equal_or_higher_rights = $user->can($values->people_privilege_name, $values->people_privilege_value, $values->people_privilege_scope);
 			    if($has_equal_or_higher_rights) {
@@ -351,7 +372,7 @@ if($command) {
 			     $str .= $msg_permission_denied;
 		    }
 	    }
-
+	    
     
     /** Query Replacements from f_data */
     } else if($command === "query_fdata_DynamicOptions") {
@@ -415,7 +436,7 @@ if($command) {
 		    foreach($values->columns as $key=>$val) {
 			    if(!is_alphanumeric((string) $key)) {
 				    $clean = false;			    
-
+				    
 			    }
 			    $set .= " $key = ".db_escape($val).", ";
 		    }
@@ -462,19 +483,12 @@ if($command) {
 		$values = json_decode($command_parameter);
 		$signals = imree_location_process_json_to_signals($values);
 		imree_location_process_signals($signals);
-        }
-/*<<<<<<< HEAD
-
-    }  else {
-
-=======
 		
     }  else {
 	    
->>>>>>> 9aad2b90455d33f5ee3db161bbc919f44acbf807
         die("That command does not exist");
     }
-    header('Content-Type: application/xml; charset=utf-8'); */
+    header('Content-Type: application/xml; charset=utf-8');
 } else {
     $str .= "<h1>IMREE API</h1><p>This API gets user command and command parameter to perform login or interaction with database.</p>";
     $str .= "<br><hr><h2>Command description and command parameters required:</h2><hr>";

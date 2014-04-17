@@ -1,5 +1,4 @@
 <?php
-require_once('../../config.php');
 
 /*******************************************************************************
  * contentDM_ingest
@@ -16,16 +15,19 @@ require_once('../../config.php');
  * @param type $records
  * @return type
  */
-function CDM_INGEST_query($query='0', $collection='all', $records=20)
+
+function CDM_INGEST_query($query, $api_url, $api_url_supplemental = '', $api_key='', $limit=20, $start=0, $limit_by_asset_type=false) 
 {
-    $url = CDM_INGEST_QUERY_make_search_url($collection, $query, "find!subjec", "pointer", $records);
+	$collection='all';
+    //not used?
+    //$url = CDM_INGEST_QUERY_make_search_url($collection, $query, "find!subjec", "pointer", $records);
     
-    $items = CDM_INGEST_get_pointers($query, $collection, $records);
+    $items = CDM_INGEST_get_pointers($query, $collection, $api_url, $limit, $start);
     $Everything = Array();
     
     $count = 0;
     foreach($items as $point => $col){
-        $Everything[$count] = CDM_INGEST_get_item($col, $point);
+        $Everything[$count] = CDM_INGEST_get_item($col, $point, $api_url, $api_url_supplemental);
         $count++;
     }
     
@@ -50,9 +52,8 @@ function CDM_INGEST_query($query='0', $collection='all', $records=20)
  * @param type $format
  * @return type $url
  */
-function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs=20, $start_num=1, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
-    global $content_dm_address;
-    $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmQuery";
+function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort, $max_recs, $start_num, $api_url, $suppress=0, $docptr=0, $suggest=0, $facets=0, $showunpub=0, $denormalizeFacets=0, $format='xml'){
+    $url = $api_url . "/dmwebservices/index.php?q=dmQuery";
     
     $query = $search_string;
     $search_string = "title!subjec^";
@@ -84,12 +85,12 @@ function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort
  * @param type $format
  * @return string
  */    
-function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
-    global $content_dm_address, $content_dm_utils_address;
-    $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetItemInfo";
-    $url .= "/" . $collection;
-    $url .= "/" . $pointer;
-    $url .= "/" . $format;
+function CDM_INGEST_get_item($collection, $pointer, $api_url,  $api_url_supplemental){
+    $format = "xml";
+	$url = $api_url . "/dmwebservices/index.php?q=dmGetItemInfo" . 
+		"/" . $collection . 
+		"/" . $pointer . 
+		"/" . $format;
    
     $title = Array();
     $type = Array();
@@ -99,9 +100,6 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     
     $stream = file_get_contents($url);
     
-    $xml = simplexml_load_string($stream);
-    
-    
     preg_match_all("|<title>(.*)</title>|", $stream, $title);
     preg_match_all("|<format>(.*)</format>|", $stream, $type);
     preg_match_all("|<cdmfilesize>(.*)</cdmfilesize>|", $stream, $size);
@@ -109,10 +107,10 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
     preg_match_all("|<subjec>(.*)</subjec>|", $stream, $subject);
     
     $children = array();
-    $compound_obj_xml = simplexml_load_string(file_get_contents("http://$content_dm_address/dmwebservices/index.php?q=dmGetCompoundObjectInfo/$collection/$pointer/xml"));
+    $compound_obj_xml = simplexml_load_string(file_get_contents($api_url. "/dmwebservices/index.php?q=dmGetCompoundObjectInfo/$collection/$pointer/xml"));
     if(isset($compound_obj_xml->type)) {
 	    foreach ($compound_obj_xml->page as $page) {
-		    $child = CDM_INGEST_get_item($collection, $page->pageptr);
+		    $child = CDM_INGEST_get_item($collection, $page->pageptr, $api_url, $api_url_supplemental);
 		    $child['title'] = $page->pagetitle;
 		    $children[] = $child;
 	    }
@@ -122,8 +120,8 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
          'id' => $pointer,
          'collection' => $collection,
          'title' => $title[1][0],
-         'thumbnail_url' => "http://".$content_dm_utils_address."/utils/getthumbnail/collection/$collection/id/$pointer",
-         'repository' => "CDM",
+         'thumbnail_url' => $api_url_supplemental ."/utils/getthumbnail/collection/$collection/id/$pointer",
+         'repository' => "CDM", //overriding this with the source id once the array is passed back
          'type' => $type[1][0],
          'metadata' => $description[1][0] . " " . $subject[1][0],
          'children' => $children ,
@@ -139,7 +137,7 @@ function CDM_INGEST_get_item($collection, $pointer, $format = "xml"){
  * 
  * @param type $collection
  * @return $collections - and array of the collections
- */
+ 
 function CDM_INGEST_get_collection_list(){
     
     $collections = Array();
@@ -159,6 +157,8 @@ function CDM_INGEST_get_collection_list(){
     
     return $collections;
 }
+*/
+
 
 /*******************************************************************************
  * function get_all_items
@@ -168,10 +168,11 @@ function CDM_INGEST_get_collection_list(){
  * @param $collection
  * @return $pointers - array of pointers
  */
-function CDM_INGEST_get_pointers($query, $alias='all', $maxrecs=20)
+
+function CDM_INGEST_get_pointers($query, $alias='all', $api_url, $maxrecs=20, $start =0)
 {
     $pointers = Array();
-    $url = CDM_INGEST_QUERY_make_search_url($alias, $query, "find!subjec", "pointer", $maxrecs);
+    $url = CDM_INGEST_QUERY_make_search_url($alias, $query, "find!subjec", "pointer", $maxrecs, $start, $api_url);
     $collection = Array();
     $results = Array();
     $stream = file_get_contents($url);
@@ -198,23 +199,22 @@ function CDM_INGEST_get_pointers($query, $alias='all', $maxrecs=20)
 /*******************************************************************************
  * CDM_INGEST_ingest
  * 
- * @param type $alias
  * @param type $pointer
+ * @param type $alias
  * @return string
  */
-function CDM_INGEST_ingest($alias, $pointer) {
-        global $content_dm_address;
-        $url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetItemInfo/".$alias . "/".$pointer."/xml";     
-        $compound_object_info_url = "http://" . $content_dm_address . "/dmwebservices/index.php?q=dmGetCompoundObjectInfo/".$alias . "/".$pointer."/xml";
+function CDM_INGEST_ingest($pointer, $alias, $api_url, $api_url_supplemental, $api_key) {
+        $url = $api_url . "/dmwebservices/index.php?q=dmGetItemInfo/".$alias . "/".$pointer."/xml";     
+        $compound_object_info_url = $api_url . "/dmwebservices/index.php?q=dmGetCompoundObjectInfo/".$alias . "/".$pointer."/xml";
         
         $compound_object_xml = simplexml_load_string(file_get_contents($compound_object_info_url));
         $stream = file_get_contents($url);
         
         if(!isset($compound_object_xml->page)){ //single
-            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT=".$alias."&CISOPTR=".$pointer."&action=2&DMSCALE=100&DMWIDTH=99999&DMHEIGHT=99999&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
+            $image = $api_url_supplemental . "/utils/ajaxhelper/?CISOROOT=".$alias."&CISOPTR=".$pointer."&action=2&DMSCALE=100&DMWIDTH=99999&DMHEIGHT=99999&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
         }else{ //compound
 		  $pointer = $compound_object_xml->page[0]->pageptr;
-            $image = "http://digital.tcl.sc.edu/utils/ajaxhelper/?CISOROOT=". $alias."&CISOPTR=".$pointer."&action=2&DMSCALE=100&DMWIDTH=99999&DMHEIGHT=99999&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
+            $image = $api_url_supplemental . "/utils/ajaxhelper/?CISOROOT=". $alias."&CISOPTR=".$pointer."&action=2&DMSCALE=100&DMWIDTH=99999&DMHEIGHT=99999&DMX=0&DMY=0&DMTEXT=&DMROTATE=0"; 
         }
 	   
         $xml = simplexml_load_string($stream);
