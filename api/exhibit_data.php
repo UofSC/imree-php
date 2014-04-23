@@ -11,6 +11,7 @@ function exhibit_data($exhibit_id) {
 			$results[$i]['child_modules'] = $child_modules;
 		}
 		$child_assets = exhibit_module_assets($results[$i]['module_id']);
+                
 		if($child_assets) {
 			$results[$i]['child_assets'] = $child_assets;
 		}
@@ -20,6 +21,8 @@ function exhibit_data($exhibit_id) {
 	}
 	return $exhibit;
 }
+
+
 
 function exhibit_module_assets($module_id) {
 	global $imree_absolute_path;
@@ -78,5 +81,31 @@ function exhibit_child_modules($module_parent_id) {
 	}
 }
 
+
+function exhibit_clone($exhibit_id, $device=NULL){
+    // exhibit -> module -> module_data -> asset_data
+    $conn = db_connect();
+    //$modules = $exhibit_data['modules'];
+    //$exhibit_props = $exhibit_data['exhibit_properties'];
+    
+    $exhibit_data = db_query($conn, "SELECT * FROM exhibits WHERE exhibit_id = ".db_escape($exhibit_data));
+    $module_data = db_query($conn, "SELECT * FROM modules WHERE exhibit_id = ".db_escape($exhibit_id));
+    
+    foreach($module_data as $results){
+       $results['exhibit_id']; //New modules are needed to link to the new exhibit_id <<<<-------- @todo figure out how to find this
+       $new_modules = "INSERT INTO modules (module_name, module_display_name, module_display_child_names, 
+                                            module_sub_name, exhibit_id, module_parent_id, module_order,
+                                            module_type, module_display_date_start, module_display_date_end,
+                                            thumb_display_columns, thumb_display_rows
+                                           )
+                       VALUES (".db_escape($results['module_name']).", ".db_escape($results['module_display_name']).", ".db_escape($results['module_display_child_names']).", "
+                                .db_escape($results['module_sub_name']).", ".db_escape($new_exhibit_id).", ".db_escape($results['module_parent_id']).", "
+                                .db_escape($results['module_order']).", ".db_escape($results['module_type']).", ".db_escape($results['module_display_date_start']).", "
+                                .db_escape($results['module_display_date_end']).", ".db_escape($results['thumb_display_columns']).", ".db_escape($results['thumb_display_rows'])."
+                              )";
+    }  
+    //@todo find a way to get new exhibit_id, test queries, make sure new modules for exhibit clone pull correct module_asset_id and asset_data_id 
+   
+}
 
 ?>
