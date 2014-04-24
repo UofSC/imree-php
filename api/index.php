@@ -405,6 +405,62 @@ if($command) {
 				$str .= $msg_permission_denied;
 			}
 	    }
+    } else if($command === "new_module") {
+	    if(quick_auth()) {
+		    $user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			if($user->can("exhibit","USR","")) {
+				
+				$arr = array(
+				    'module_order' => $values->module_order,
+				    'module_name' => $values->module_name,
+				    'module_parent_id' => $values->module_parent_id,
+				    'module_type' => $values->module_type,
+				);
+				if(isset($values->module_exhibit_id)) {
+					$arr['exhibit_id'] = $values->exhibit_id;
+				}
+					   
+				$results = db_exec($conn, build_insert_query($conn, 'modules', $arr));
+				$str .= "<response><success>true</success>\n<result></result></response>";
+			} else {
+				$str .= $msg_permission_denied;
+			}
+	    }
+    } else if($command === "change_module_order") {
+	    //requires module_order, module_id
+	    if(quick_auth()) {
+		     $user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			$exhibit_id = imree_module_get_exhibit_id($values->module_id);
+			if($exhibit_id) {
+				if($user->can("exhibit", "edit", $exhibit_id)) {
+					db_exec($conn, "UPDATE modules SET module_order = ".db_escape($values->module_order)." WHERE module_id = ".db_escape($values->module_id));
+					$str .= "<response><success>true</success>\n<result></result></response>";
+				} else {
+					$str .= $msg_permission_denied;
+				}
+			} else {
+				$str .= "<response><success>false</success><error>Data Error. values['module_id'] does not resolve to an exhibit.</error></response>";
+			}
+	    }
+    } else if($command === "change_module_asset_order") {
+	    //requires module_asset_id, module_asset_order
+	    if(quick_auth()) {
+		     $user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			$exhibit_id = imree_module_get_exhibit_id($values->module_asset_id);
+			if($exhibit_id) {
+				if($user->can("exhibit", "edit", $exhibit_id)) {
+					db_exec($conn, "UPDATE module_assets SET module_asset_order = ".db_escape($values->module_asset_order)." WHERE module_asset_id = ".db_escape($values->module_asset_id));
+					$str .= "<response><success>true</success>\n<result></result></response>";
+				} else {
+					$str .= $msg_permission_denied;
+				}
+			} else {
+				$str .= "<response><success>false</success><error>Data Error. values['module_asset_id'] does not resolve to an exhibit.</error></response>";
+			}
+	    }
     } else if($command === "query") {
 	    if(quick_auth()) {
 		    $values = json_decode($command_parameter);

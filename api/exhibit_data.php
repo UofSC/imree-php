@@ -93,6 +93,12 @@ function exhibit_clone($exhibit_id, $device=NULL){
     
     foreach($module_data as $results){
        $results['exhibit_id']; //New modules are needed to link to the new exhibit_id <<<<-------- @todo figure out how to find this
+	  
+	  /**
+	   * the new exhibit id can be found when you insert the new exhibit data using db_exec and build_insert_query. build_insert_query does all the escaping for you :-) 
+	   * 1: $result = db_exec($conn, build_insert_query($conn, 'modules', array('exhibit_name'=>$exhibit_results[0]['exhibit_name'], 'exhibit_sub_name' => $exhibit_results[0]['exhibit_sub_name]... ));
+	   * The new exhibit can be identified now by $result['last_id'];
+	   */
        $new_modules = "INSERT INTO modules (module_name, module_display_name, module_display_child_names, 
                                             module_sub_name, exhibit_id, module_parent_id, module_order,
                                             module_type, module_display_date_start, module_display_date_end,

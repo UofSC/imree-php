@@ -370,7 +370,7 @@ $cfg = '<?php
  * For full documentation, or to create a custom config file, see /imree-php/config.sample.php
 */
 
-$config_version =				0.0002;
+$config_version =				0.0003;
 
 $imree_assets_directory =                       "imree_assets/";
 $imree_directory =				"imree-php/";
@@ -396,8 +396,6 @@ $google_username =				"'.$_POST['google_username'].'";
 $google_password =				"'.$_POST['google_password'].'";
 $email_signature =				"'.$_POST['google_signature'].'";
 $GLOBALS["session_name"] =                      "imree";
-$content_dm_address =			"digital.tcl.sc.edu:81";
-$content_dm_utils_address =		"digital.tcl.sc.edu";
 
 $current_file_parts = pathinfo(__FILE__);
 $absolute_dir = $current_file_parts["dirname"] . "/" . $ulogin_directory;
@@ -411,10 +409,12 @@ require_once("imree-php/imree_functions/imree.core.php");
 require_once("imree-php/imree_functions/imree.children.php");
 require_once("imree-php/imree_functions/imree.group.php");
 require_once("imree-php/imree_functions/imree.people.php");
+require_once("imree-php/imree_functions/imree.module.php");
 require_once("imree-php/imree_functions/imree.session.php");
 require_once("imree-php/imree_functions/imree.template.php");
 require_once("imree-php/imree_functions/imree.text_conversions.php");
-require_once("imree-php/external_packages/Deepzoom/ImageCreator.php");
+require_once("imree-php/imree_functions/source.razuna.php");
+require_once("imree-php/imree_functions/source.contentDM.php");
 
 define("UL_SITE_KEY", "'.random_string(64).'");
 define("UL_PDO_CON_STRING", $cfg_db_type . ":host=" . $cfg_db_host . ";dbname=ulogin");

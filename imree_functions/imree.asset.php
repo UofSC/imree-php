@@ -46,3 +46,14 @@ function IMREE_asset_instantiate($asset_data_id, $module_id, $title, $caption, $
 	}
 	
 }
+
+
+function imree_asset_get_exhibit_id($module_asset_id) {
+	$conn = db_connect();
+	$results = db_query($conn, "SELECT * FROM module_assets WHERE module_asset_id = ".db_escape($module_asset_id));
+	if(count($results)) {
+		return imree_module_get_exhibit_id($results[0]['module_id']);
+	} else {
+		return false;
+	}
+}
