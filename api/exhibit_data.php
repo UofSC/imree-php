@@ -1,5 +1,5 @@
 <?php
-
+include('../../config.php');
 function exhibit_data($exhibit_id) {
 	$conn = db_connect();
 	$exhibit_results = db_query($conn, "SELECT * FROM exhibits WHERE exhibit_id = ".  db_escape($exhibit_id));
@@ -114,37 +114,68 @@ function exhibit_child_modules($module_parent_id) {
 	}
 }
 
-
+/**
+ * exhibit_clone
+ * Creates a clone of an exhibit in the database 
+ * @author Cole Mendes <mendesc@email.sc.edu>
+ * @param type $exhibit_id - ID of exhibit to clone
+ * @param type $device - @todo implement versions for target devices - "out tablets", "user tablets", "web", "kiosk"
+ */
 function exhibit_clone($exhibit_id, $device=NULL){
-    // exhibit -> module -> module_data -> asset_data
     $conn = db_connect();
-    //$modules = $exhibit_data['modules'];
-    //$exhibit_props = $exhibit_data['exhibit_properties'];
-    
-    $exhibit_data = db_query($conn, "SELECT * FROM exhibits WHERE exhibit_id = ".db_escape($exhibit_data));
+    $exhibit_data = db_query($conn, "SELECT * FROM exhibits WHERE exhibit_id = ".db_escape($exhibit_id));
     $module_data = db_query($conn, "SELECT * FROM modules WHERE exhibit_id = ".db_escape($exhibit_id));
+    $results = db_exec($conn, build_insert_query($conn, 'exhibits', Array( 'exhibit_name'=>$exhibit_data[0]['exhibit_name'],
+                                                                           'exhibit_sub_name'=>$exhibit_data[0]['exhibit_sub_name'],
+                                                                           'exhibit_date_start'=>$exhibit_data[0]['exhibit_date_start'],
+                                                                           'exhibit_date_end'=>$exhibit_data[0]['exhibit_date_end'],
+                                                                           'exhibit_department_id'=>$exhibit_data[0]['exhibit_department_id'],
+                                                                           'people_group_id'=>$exhibit_data[0]['people_group_id'],
+                                                                           'theme_id'=>$exhibit_data[0]['theme_id'],
+                                                                           'exhibit_cover_image_url'=>$exhibit_data[0]['exhibit_cover_image_url']
+                       )));
+    $new_exhibit_id = $results['last_id'];
     
-    foreach($module_data as $results){
-       $results['exhibit_id']; //New modules are needed to link to the new exhibit_id <<<<-------- @todo figure out how to find this
-	  
-	  /**
-	   * the new exhibit id can be found when you insert the new exhibit data using db_exec and build_insert_query. build_insert_query does all the escaping for you :-) 
-	   * 1: $result = db_exec($conn, build_insert_query($conn, 'modules', array('exhibit_name'=>$exhibit_results[0]['exhibit_name'], 'exhibit_sub_name' => $exhibit_results[0]['exhibit_sub_name]... ));
-	   * The new exhibit can be identified now by $result['last_id'];
-	   */
-       $new_modules = "INSERT INTO modules (module_name, module_display_name, module_display_child_names, 
-                                            module_sub_name, exhibit_id, module_parent_id, module_order,
-                                            module_type, module_display_date_start, module_display_date_end,
-                                            thumb_display_columns, thumb_display_rows
-                                           )
-                       VALUES (".db_escape($results['module_name']).", ".db_escape($results['module_display_name']).", ".db_escape($results['module_display_child_names']).", "
-                                .db_escape($results['module_sub_name']).", ".db_escape($new_exhibit_id).", ".db_escape($results['module_parent_id']).", "
-                                .db_escape($results['module_order']).", ".db_escape($results['module_type']).", ".db_escape($results['module_display_date_start']).", "
-                                .db_escape($results['module_display_date_end']).", ".db_escape($results['thumb_display_columns']).", ".db_escape($results['thumb_display_rows'])."
-                              )";
-    }  
-    //@todo find a way to get new exhibit_id, test queries, make sure new modules for exhibit clone pull correct module_asset_id and asset_data_id 
-   
+    //Creates new modules to match new exhibit_id
+    
+    foreach($module_data as &$module){
+            $module_assets_data = db_query($conn, "SELECT * FROM module_assets WHERE module_id = ".db_escape($module['module_id']));
+            $module_id = db_exec($conn, build_insert_query($conn, 'modules', Array( 'module_name'=>$module['module_name'],
+                                                                                    'module_display_name'=>$module['module_display_name'],
+                                                                                    'module_display_child_names'=>$module['module_display_child_names'], 
+                                                                                    'module_sub_name'=>$module['module_sub_name'], 
+                                                                                    'exhibit_id'=>$new_exhibit_id, 
+                /* @todo create a recursive function to deal with parent_id's */    'module_parent_id'=>$module['module_parent_id'], 
+                                                                                    'module_order'=>$module['module_order'],
+                                                                                    'module_type'=>$module['module_type'], 
+                                                                                    'module_display_date_start'=>$module['module_display_date_start'], 
+                                                                                    'module_display_date_end'=>$module['module_display_date_end'],
+                                                                                    'thumb_display_columns'=>$module['thumb_display_columns'], 
+                                                                                    'thumb_display_rows'=>$module['thumb_display_rows']
+                                 )));
+           
+             
+            
+            
+            //Creates new module_assets to match new module_ids
+            foreach($module_assets_data as &$module_asset){
+                    db_exec($conn, build_insert_query($conn, 'module_assets', Array( 'module_id'=>$module_id['last_id'],
+                                                                                     'module_asset_order'=>$module_asset['module_asset_order'],
+                                                                                     'asset_data_id'=>$module_asset['asset_data_id'],
+                                                                                     'asset_specific_thumbnail_url'=>$module_asset['asset_specific_thumbnail_url'],
+                                                                                     'module_asset_title'=>$module_asset['module_asset_title'],
+                                                                                     'caption'=>$module_asset['caption'],
+                                                                                     'description'=>$module_asset['description'],
+                                                                                     'module_asset_display_date_start'=>$module_asset['module_asset_display_date_start'],
+                                                                                     'module_asset_display_date_end'=>$module_asset['module_asset_display_date_end'],
+                                                                                     'original_url'=>$module_asset['original_url'],
+                                                                                     'source_repository'=>$module_asset['source_repository'],
+                                                                                     'thumb_display_columns'=>$module_asset['thumb_display_columns'],
+                                                                                     'thumb_display_rows'=>$module_asset['thumb_display_rows'],
+                                                                                     'username'=>$module_asset['username']
+                            )));   
+            }   
+    }
 }
 
 ?>
