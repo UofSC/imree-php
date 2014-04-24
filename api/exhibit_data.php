@@ -6,14 +6,30 @@ function exhibit_data($exhibit_id) {
 	$exhibit['exhibit_properties'] = $exhibit_results[0];
 	$results = db_query($conn, "SELECT * FROM modules WHERE exhibit_id = ".  db_escape($exhibit_id) . " AND module_parent_id = 0 ORDER BY module_order ASC ");
 	for($i = 0; $i< count($results); $i++) {
-		$child_modules = exhibit_child_modules($results[$i]['module_id']);
-		if($child_modules) {
-			$results[$i]['child_modules'] = $child_modules;
+		$child_modules = array_merge(exhibit_child_modules($results[$i]['module_id']), exhibit_module_assets($results[$i]['module_id'])); 
+		$children = array();
+		foreach($child_modules as $mod) {
+			if(isset($mod['module_order'])) {
+				$index = $mod['module_order'];
+			} else {
+				$index = $mod['module_asset_order'];
+			}
+			$order = str_pad($index, 6, "0",STR_PAD_LEFT)  . "000000"; //makes a 12 char string like: 000024000000
+			if(isset($children[$order])) {
+				$order = substr($order, 0, 6) + random_string(6);
+			}
+			$children[$order] = $mod;
 		}
-		$child_assets = exhibit_module_assets($results[$i]['module_id']);
-                
-		if($child_assets) {
-			$results[$i]['child_assets'] = $child_assets;
+		
+		ksort($children);
+		$k=0;
+		foreach($children as $key=>$mod) {
+			$children[$key]['original_order'] = $k;
+			$k++;
+		}
+		
+		if(count($child_modules)) {
+			$results[$i]['child_modules'] = array_values($children);
 		}
 	}
 	if(count($results)) {
@@ -57,7 +73,7 @@ function exhibit_module_assets($module_id) {
 		}
 		return $assets;
 	} else {
-		return false;
+		return array();
 	}
 }
 
@@ -66,18 +82,35 @@ function exhibit_child_modules($module_parent_id) {
 	$children = db_query($conn, "SELECT *, 0 AS asset FROM modules WHERE module_parent_id = ".  db_escape($module_parent_id) . " ORDER BY module_order ASC");
 	if(count($children)) {
 		for($i = 0; $i < count($children); $i++) {
-			$grandkids = exhibit_child_modules($children[$i]['module_id']);
-			if($grandkids) {
-				$children[$i]['child_modules'] = $grandkids;
+			$grandchild_modules = array_merge(exhibit_child_modules($children[$i]['module_id']), exhibit_module_assets($children[$i]['module_id'])); 
+			$grandkids = array();
+			foreach($grandchild_modules as $mod) {
+				if(isset($mod['module_order'])) {
+					$index = $mod['module_order'];
+				} else {
+					$index = $mod['module_asset_order'];
+				}
+				$order = str_pad($index, 6, "0",STR_PAD_LEFT)  . "000000"; //makes a 12 char string like: 000024000000
+				if(isset($grandkids[$order])) {
+					$order = substr($order, 0, 6) + random_string(6);
+				}
+				$grandkids[$order] = $mod;
 			}
-			$assets = exhibit_module_assets($children[$i]['module_id']);
-			if($assets) {
-				$children[$i]['child_assets'] = $assets;
+
+			ksort($grandkids);
+			$k=0;
+			foreach($grandkids as $key=>$mod) {
+				$grandkids[$key]['original_order'] = $k;
+				$k++;
+			}
+
+			if(count($grandkids)) {
+				$children[$i]['child_modules'] = array_values($grandkids);
 			}
 		}
 		return $children;
 	} else {
-		return false;
+		return array();
 	}
 }
 
