@@ -55,9 +55,9 @@ function quick_auth() {
  * @global type $conn
  * @param type $ip
  */
-function DS_chirp($ip) {
+function device_chirp($ip) {
 	global $conn;
-	db_exec($conn, "UPDATE signage_devices SET signage_device_last_chirp = '".date("Y-m-d H:i:s")."' WHERE signage_device_IP = ".  db_escape($ip));
+	db_exec($conn, "UPDATE devices SET device_last_chirp = '".date("Y-m-d H:i:s")."' WHERE device_ip = ".  db_escape($ip));
 }
 
 function IMREE_log($ip, $module_type, $module_id) {
@@ -74,58 +74,31 @@ $session_key = filter_input(INPUT_POST, "session_key");
 
 //add command 
 if($command) {
-    if($command === "group") {
-        if(!$command_parameter) {
-            $errors[] = "command_parameter not set. The command parameter must be set to the desired group_id.";
-        } else {
-            $results = db_query($conn, "
-                SELECT * 
-                FROM groups
-                LEFT JOIN asset_group_assignments USING (group_id)
-                LEFT JOIN assets ON (asset_group_assignments.asset_id = assets.asset_id)
-                WHERE groups.group_id = ".  db_escape($command_parameter));
-            if(count($results)) {
-                $str .= "<response><success>true</success>"
-                ."<result>"
-                        . "<group_id>".$results[0]['group_id']."</group_id>"
-                        . "<group_name>".$results[0]['group_name']."</group_name>"
-                        . "<group_type>".$results[0]['group_type']."</group_type>"
-                        . "<children>";
-                            children($results);
-                        $str .= "</children></result></response>";
-                
-            } else {
-                $str .= "<response><success>false</success><error>no_results</error></response>";
-            }
-        }
-        
-        
-    } else if($command === "module") { //previously "item"
-        die("The item command doesn't exist yet. sry - management");
-        
-        
-    } else if($command === "signage_mode") {
+    if($command === "mode") {
         $ip = $_SERVER['REMOTE_ADDR'];
-        $results = db_query($conn, "SELECT * FROM signage_devices WHERE signage_device_ip = ".db_escape($ip));
+        $results = db_query($conn, "SELECT * FROM devices WHERE device_ip = ".db_escape($ip));
         $session_key = build_session();
-        if(count($results) > 0 ) { 
-            $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<signage_mode>signage</signage_mode>\n</result></response>";
-		  DS_chirp($ip);
+        if(count($results) > 0 ) {
+            $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>".$results[0]['device_mode']."</mode>\n</result></response>";
+		  device_chirp($ip);
         } else {
-            $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<signage_mode>imree</signage_mode>\n</result></response>";
+            $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>normal</mode>\n</result></response>";
         }
-        
-        
+	   
+	   
+	   
     } else if($command === "signage_items") {
         $ip = $_SERVER['REMOTE_ADDR'];
-        DS_chirp($ip);
+        device_chirp($ip);
         $results = db_query($conn, "
-         SELECT * FROM signage_devices
-        LEFT JOIN signage_feed_device_assignments USING (signage_device_id)
-        LEFT JOIN signage_feeds USING (signage_feed_id)
-        WHERE signage_devices.signage_device_IP = ".db_escape($ip));
+         SELECT * FROM devices
+		LEFT JOIN signage_feed_device_assignments USING (device_id)
+		LEFT JOIN signage_feeds USING (signage_feed_id)
+		WHERE devices.device_ip = ".db_escape($ip));
         $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
 
+	   
+	   
     } else if($command === "search") {
         if(!$command_parameter) {
              $errors[] = "command_parameter not set. The command parameter must be set to the desired search term.";
@@ -155,6 +128,9 @@ if($command) {
 			 </children></result></response>";
 			}
         }
+	   
+	   
+	   
 	} else if($command === "ingest") {
 		if(quick_auth()) {
 			$user = new imree_person(imree_person_id_from_username($username));	
@@ -191,12 +167,17 @@ if($command) {
 				}
 				
 			}
-		} 
+		}
+		
+		
+		
 	} else if($command === "exhibits") {
 	    //@todo limit results by user
 	    $results = db_query($conn, "SELECT * FROM exhibits");
 	    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
         
+	    
+	    
     } else if($command === "exhibit_data") {
 	    if($command_parameter) {
 			require_once('exhibit_data.php');
@@ -206,6 +187,8 @@ if($command) {
 		    $str .= "<response><success>false</success>\n<error>command_parameter not set. To list a specific exhibit, we need to know which exhibit you're looking for. If you want to list all exhibits, use command=exhibits</error></response>";
 	    }
         
+	    
+	    
     } else if($command === "login") {
 	    $values = json_decode($command_parameter);
 	    $ulogin = new uLogin();
@@ -234,6 +217,8 @@ if($command) {
 		    $str .= "<response><success>true</success>\n<result><logged_in>false</logged_in></result></response>";
 	    }
         
+	    
+	    
     } else if($command === "user_rights") {
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -245,7 +230,10 @@ if($command) {
 		    $str.= "
 			    </result>
 			 </response>";
-		} 
+		}
+		
+		
+		
     } else if($command === "user_can") {
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -256,6 +244,9 @@ if($command) {
 			    $str .= "<response><success>true</success><result>false</result></response>";
 		    }
 	    }
+	    
+	    
+	    
     } else if($command === "edit_user") {
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -272,8 +263,6 @@ if($command) {
 			    if(isset($values->person_name_first))	$array['person_name_first'] = $values->person_name_first;
 			    if(isset($values->person_name_last))	$array['person_name_last'] = $values->person_name_last;
 			    if(isset($values->person_title))		$array['person_title'] = $values->person_title;
-			    
-			    // if(isset($values->person_department_id))	$array['person_department_id'] = $values->person_department_id;
 			    if(count($array)) {
 				    db_exec($conn, build_update_query($conn, "people", $array, "person_id = ".  db_escape($values->person_id)));
 			    }
@@ -285,6 +274,9 @@ if($command) {
 			    $str .= "<response><success>false</success><error>Permission Denied</error></response>";
 		    }
 	    }
+	    
+	    
+	    
     } else if($command === "add_user") { 
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -308,6 +300,9 @@ if($command) {
 			    $str .= "<response><success>false</success><error>Permission Denied</error></response>";
 		    }
 	    }
+	    
+	    
+	    
     } else if($command === "add_user_privilege") {
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -335,6 +330,9 @@ if($command) {
 			    $str .= "<response><success>false</success><error>Permission Denied. You have no rights to this person.</error></response>";
 		    }
 	    }
+	    
+	    
+	    
     } else if($command === "remove_user_privilege") {
 	     if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -362,6 +360,9 @@ if($command) {
 			    $str .= $msg_permission_denied;
 		    }
 	    }
+	    
+	    
+	    
     } else if ($command === "new_group") {
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -372,6 +373,7 @@ if($command) {
 			     $str .= $msg_permission_denied;
 		    }
 	    }
+	    
 	    
     
     /** Query Replacements from f_data */
@@ -390,6 +392,9 @@ if($command) {
 				$str .= $msg_permission_denied;
 			}
 	    }
+	    
+	    
+	    
     } else if($command === "query_data_get_row") {
 	    if(quick_auth()) {
 			$user = new imree_person(imree_person_id_from_username($username));
@@ -405,6 +410,9 @@ if($command) {
 				$str .= $msg_permission_denied;
 			}
 	    }
+	    
+	    
+	    
     } else if($command === "new_module") {
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -427,6 +435,9 @@ if($command) {
 				$str .= $msg_permission_denied;
 			}
 	    }
+	    
+	    
+	    
     } else if($command === "change_module_order") {
 	    //requires module_order, module_id
 	    if(quick_auth()) {
@@ -444,6 +455,9 @@ if($command) {
 				$str .= "<response><success>false</success><error>Data Error. values['module_id'] does not resolve to an exhibit.</error></response>";
 			}
 	    }
+	    
+	    
+	    
     } else if($command === "change_module_asset_order") {
 	    //requires module_asset_id, module_asset_order
 	    if(quick_auth()) {
@@ -461,6 +475,9 @@ if($command) {
 				$str .= "<response><success>false</success><error>Data Error. values['module_asset_id'] (".db_escape($values->module_asset_id).") does not resolve to an exhibit.</error></response>";
 			}
 	    }
+	    
+	    
+	    
     } else if($command === "remove_module") {
 	    //requires module_id or module_asset_id
 	    if(quick_auth()) {
@@ -493,9 +510,10 @@ if($command) {
 			} else {
 				$str .= "<response><success>false</success><error>Command remove_module requires either module_id or module_asset_id</error></response>";
 			}
-			
-			
 	    }
+	    
+	    
+	    
     } else if($command === "query") {
 	    if(quick_auth()) {
 		    $values = json_decode($command_parameter);
@@ -518,6 +536,9 @@ if($command) {
 		    }
 		    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
 	    } 
+	    
+	    
+	    
     } else if($command === "update") {
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -543,8 +564,10 @@ if($command) {
 		    } else {
 			    $str .= "<response><success>false</success>\n<error>for command=update, we need a 'where_key_column' and 'row_id' value. if you are trying to insert a row of data, try the command=insert method instead.</error></response>";
 		    }
-
 	    } 
+	    
+	    
+	    
     } else if($command === "insert") {
 	    if(quick_auth()) {
 		    $values = json_decode($command_parameter);
@@ -559,24 +582,132 @@ if($command) {
 			    db_exec($conn, $query);
 			    $str .= "<response><success>true</success>\n<result></result></response>";
 		    }
-
 	    } 
-    } else if ($command === "exhibit_modules_order_update") {
-	    /**
-	     * @todo. command_paramater = exhitbit id. get the current result query for exhibit_data and explicitly SET the module_order to an incremental value based on the current order of the modules
-	     * for that exhibit. This is designed to resolve problems where two modules have the same "order"
-	     */
-	} else if ($command === "exhibit_module_assets_order_update") {
-		/**
-		 * @todo. same as exhibit_modules_order_update, but for assets instead
-		 */
-	} else if ($command === "wifiPingData") {
-		$values = json_decode($command_parameter);
-		$signals = imree_location_process_json_to_signals($values);
-		imree_location_process_signals($signals);
-		
-    }  else {
+	
 	    
+	    
+	    
+    /*  Device Tracking   */
+    } else if ($command === "wifiPingData") {
+		$values = json_decode($command_parameter);
+		$device = new imree_device();
+		if($device->device_mode === imree_device::DEVICE_MODE_IMREE_PAD AND $device->device_id > 0) {
+			$device->track_signals($values);
+		}
+		
+		
+		
+    } else if($command === "device_tracking_start") {
+	    if(quick_auth()) {
+			$user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			if($user->can("devices", "ADMIN", "")) {
+				$device = new imree_device();
+				$device->start_tracking($values->device_mode, $values->device_name, $user->person_id);
+				$str .= "<response><success>true</success>\n<result>1</result></response>";
+			} else {
+				$str .= $msg_permission_denied;
+			}
+	    }
+	    
+	    
+	    
+    } else if ($command === "device_tracking_stop") {
+	    if(quick_auth()) {
+			$user = new imree_person(imree_person_id_from_username($username));
+			if($user->can("devices", "ADMIN", "")) {
+				$device= new imree_device();
+				$device->stop_tracking($user->person_id);
+				$str .= "<response><success>true</success>\n<result>1</result></response>";
+			} else {
+				$str .= $msg_permission_denied;
+			}
+	    }
+	    
+	    
+	    
+    } else if ($command === "device_mark_location") {
+	    if(quick_auth()) {
+			$user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			$exhibit_id = imree_module_get_exhibit_id($values->module_id);
+			if($exhibit_id) {
+				if($user->can("exhibit", "EDIT", $exhibit_id)) {
+					$device= new imree_device();
+					$location_response = $device->mark_location($values->module_id, $values->location_name);
+					if($location_response) {
+						$str .= "<response><success>true</success>\n<result>$location_response</result></response>";
+					} else {
+						$str .= "<response><success>false</success>\n<error>Too few wifi signals. Is your wifi on? Are you running wifiReporter on this device?</error></response>";
+					}
+
+				} else {
+					$str .= $msg_permission_denied;
+				}
+			} else {
+				$str .= "<response><success>false</success>\n<error>module_id does not resolve to an exhibit_id</error></response>";
+			}
+	    }
+	    
+	    
+	    
+    } else if ($command === "device_unmark_location") {
+	    if(quick_auth()) {
+			$user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			$exhibit_id = imree_module_get_exhibit_id($values->module_id);
+			if($exhibit_id) {
+				if($user->can("exhibit", "EDIT", $exhibit_id)) {
+					$device= new imree_device();
+					imree_device_clean_locations($values->module_id);
+				} else {
+					$str .= $msg_permission_denied;
+				}
+			} else {
+				$str .= "<response><success>false</success>\n<error>module_id does not resolve to an exhibit_id</error></response>";
+			}
+	    }
+	    
+	    
+	    
+    }else if($command === "module_location_id") {
+		$location_id = imree_module_location_id($command_parameter);
+		$str .= "<response><success>true</success>\n<result>$location_id</result></response>";
+		
+	    
+    } else if ($command === "device_is_at_location") {	   
+	    $device = new imree_device();
+	    
+	    if($device->is_tracking()) {
+		    $module_id = $device->get_location();
+		    if($module_id) {
+			    $exhibit_id = imree_module_get_exhibit_id($module_id);
+			    $top_modules = imree_module_get_top_two_modules($module_id);
+			    $str .= "<response><success>true</success>\n<result><exhibit_id>$exhibit_id</exhibit_id><start_at>".$top_modules[0]."</start_at><sub_module>".$top_modules[1]."</sub_module></result></response>";
+		    } else {
+			    $str .= "<response><success>false</success>\n<error>Device is tracking but is not close a tracked location</error></response>";
+		    }
+		    
+	    } else {
+		    $str .= "<response><success>false</success>\n<error>tracking on this device is unavailable</error></response>";
+	    }
+	    
+	    
+	    
+    } else if($command === "device_is_tracking") {
+	    $device= new imree_device();
+	    if($device->is_tracking()) {
+		    $str .= "<response><success>true</success>\n<result>1</result></response>";
+	    } else {
+		    $str .= "<response><success>true</success>\n<result>0</result></response>";
+	    }
+	    
+	    
+    } else if($command === "error_log") {
+	    imree_error_log($command_parameter, filter_input(INPUT_POST, "REMOTE_ADDR"));
+	    $str .= "<response><success>true</success>\n<result>1</result></response>";
+	    
+    } else {
         die("That command does not exist");
     }
     header('Content-Type: application/xml; charset=utf-8');
