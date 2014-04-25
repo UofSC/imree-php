@@ -119,3 +119,12 @@ function is_alphanumeric($subject, $allowables=array("_")) {
 		return ctype_alnum($str);
 	}
 }
+
+
+function imree_error_log($message ,$ip="") {
+	$conn = db_connect();
+	db_exec($conn, build_insert_query($conn, 'log_errors', array(
+	    'error_ip' => $ip, 
+	    'error_msg' => $message,
+	)));
+}
