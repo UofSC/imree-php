@@ -1,7 +1,3 @@
-<!--
-To change this template, choose Tools | Templates
-and open the template in the editor.
--->
 <!DOCTYPE html>
 <html>
 	<head>
@@ -134,165 +130,331 @@ SET time_zone = '+00:00';
 CREATE DATABASE imree; 
 USE imree;
 								
-CREATE TABLE IF NOT EXISTS `assets` (
-  `asset_id` int(11) NOT NULL AUTO_INCREMENT,
-  `asset_name` varchar(255) NOT NULL,
-  `asset_type` enum('image','video','audio','text') NOT NULL,
-  `asset_media_url` varchar(255) NOT NULL,
-  `asset_thumb_url` varchar(255) NOT NULL,
-  `asset_parent_id` int(11) NOT NULL,
-  `asset_date_added` datetime NOT NULL,
-  `asset_date_created` datetime NOT NULL,
-  PRIMARY KEY (`asset_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
-
-CREATE TABLE IF NOT EXISTS `asset_data` (
-  `asset_data_id` int(11) NOT NULL AUTO_INCREMENT,
-  `asset_data_title` varchar(255) NOT NULL,
-  `asset_data_name` varchar(255) NOT NULL,
-  `asset_data_type` varchar(255) NOT NULL,
-  `asset_data_contents` longblob NOT NULL,
-  `asset_data_contents_date` datetime NOT NULL,
-  `asset_data_date_added` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `asset_data_access_restricted` int(4) NOT NULL DEFAULT '0',
-  `asset_data_size` varchar(255) NOT NULL,
-  `asset_data_user` varchar(255) NOT NULL,
-  PRIMARY KEY (`asset_data_id`)
+CREATE TABLE IF NOT EXISTS assets (
+  asset_id int(11) NOT NULL AUTO_INCREMENT,
+  asset_name varchar(255) NOT NULL,
+  asset_type enum('image','video','audio','text') NOT NULL,
+  asset_media_url varchar(255) NOT NULL,
+  asset_thumb_url varchar(255) NOT NULL,
+  asset_parent_id int(11) NOT NULL,
+  asset_date_added datetime NOT NULL,
+  asset_date_created datetime NOT NULL,
+  PRIMARY KEY (asset_id)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `asset_event_assignments` (
-  `asset_event_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-  `asset_id` int(11) NOT NULL,
-  `event_id` int(11) NOT NULL,
-  PRIMARY KEY (`asset_event_assignment_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS asset_data (
+  asset_data_id int(11) NOT NULL AUTO_INCREMENT,
+  asset_data_title varchar(255) NOT NULL,
+  asset_data_name varchar(255) NOT NULL,
+  asset_data_type varchar(255) NOT NULL,
+  asset_data_contents longblob NOT NULL,
+  asset_data_contents_date datetime NOT NULL,
+  asset_data_date_added timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  asset_data_source_repository int(11) NOT NULL DEFAULT '0',
+  asset_data_source_asset_id varchar(255) NOT NULL,
+  asset_data_source_collection_handle varchar(255) NOT NULL,
+  asset_data_access_restricted int(4) NOT NULL DEFAULT '0',
+  asset_data_size varchar(255) NOT NULL,
+  asset_data_username varchar(255) NOT NULL,
+  PRIMARY KEY (asset_data_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `asset_group_assignments` (
-  `asset_group_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-  `asset_id` int(11) NOT NULL,
-  `group_id` int(11) NOT NULL,
-  PRIMARY KEY (`asset_group_assignment_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS asset_data_cache (
+  asset_data_cache_id int(11) NOT NULL AUTO_INCREMENT,
+  asset_data_id int(11) NOT NULL,
+  asset_data_cache_height int(11) NOT NULL,
+  asset_data_cache_filesize int(11) NOT NULL,
+  asset_data_cache_datetime datetime NOT NULL,
+  asset_data_cache_data longblob NOT NULL,
+  PRIMARY KEY (asset_data_cache_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `asset_subject_assignments` (
-  `asset_subject_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-  `asset_id` int(11) NOT NULL,
-  `subject_id` int(11) NOT NULL,
-  PRIMARY KEY (`asset_subject_assignment_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS asset_event_assignments (
+  asset_event_assignment_id int(11) NOT NULL AUTO_INCREMENT,
+  asset_id int(11) NOT NULL,
+  event_id int(11) NOT NULL,
+  PRIMARY KEY (asset_event_assignment_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS asset_group_assignments (
+  asset_group_assignment_id int(11) NOT NULL AUTO_INCREMENT,
+  asset_id int(11) NOT NULL,
+  group_id int(11) NOT NULL,
+  PRIMARY KEY (asset_group_assignment_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS asset_metadata_assignments (
+  asset_metadata_assignment_id int(11) NOT NULL AUTO_INCREMENT,
+  asset_id int(11) NOT NULL,
+  metadata_id int(11) NOT NULL,
+  PRIMARY KEY (asset_metadata_assignment_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS asset_subject_assignments (
+  asset_subject_assignment_id int(11) NOT NULL AUTO_INCREMENT,
+  asset_id int(11) NOT NULL,
+  subject_id int(11) NOT NULL,
+  PRIMARY KEY (asset_subject_assignment_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS departments (
+  department_id int(11) NOT NULL AUTO_INCREMENT,
+  department_name varchar(255) NOT NULL,
+  department_parent_id int(11) NOT NULL,
+  PRIMARY KEY (department_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS devices (
+  device_id int(11) NOT NULL AUTO_INCREMENT,
+  device_ip varchar(255) NOT NULL,
+  device_name varchar(255) NOT NULL DEFAULT 'unnamed',
+  device_mode enum('kiosk','tablet','signage','normal') NOT NULL,
+  device_last_chirp datetime NOT NULL,
+  device_last_signals_chirp datetime NOT NULL,
+  device_last_added_by_person_id int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (device_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS device_access_points (
+  device_access_point_id int(11) NOT NULL AUTO_INCREMENT,
+  device_access_point_mac_address varchar(255) NOT NULL,
+  device_access_point_is_tracked tinyint(1) NOT NULL,
+  device_access_point_SSID varchar(255) NOT NULL,
+  device_access_point_last_added datetime NOT NULL,
+  PRIMARY KEY (device_access_point_id),
+  KEY device_access_point_mac_address (device_access_point_mac_address)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS device_locations (
+  device_location_id int(11) NOT NULL AUTO_INCREMENT,
+  device_location_name varchar(255) NOT NULL,
+  device_location_module_id int(11) NOT NULL,
+  PRIMARY KEY (device_location_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS device_location_signature (
+  device_location_id int(11) NOT NULL,
+  device_access_point_id int(11) NOT NULL,
+  device_signal_strength int(11) NOT NULL,
+  KEY device_location_id (device_location_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS device_signals (
+  device_id int(11) NOT NULL,
+  device_access_point_id int(11) NOT NULL,
+  device_signal_strength int(11) NOT NULL,
+  device_signal_date_time datetime NOT NULL,
+  KEY device_id (device_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS device_signals_untracked (
+  device_signals_untracked_SSID varchar(255) NOT NULL,
+  device_signals_untracked_mac_address varchar(255) NOT NULL,
+  device_signals_untracked_strength int(11) NOT NULL,
+  device_signals_untracked_date_time datetime NOT NULL,
+  device_signals_untracked_from_ip varchar(255) NOT NULL,
+  KEY device_signals_untracked_from_ip (device_signals_untracked_from_ip)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `events` (
-  `event_id` int(11) NOT NULL AUTO_INCREMENT,
-  `event_name` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `event_date_start` datetime NOT NULL,
-  `event_date_end` datetime NOT NULL,
-  `event_date_start_approx` tinyint(1) NOT NULL DEFAULT '1',
-  `event_date_end_approx` tinyint(1) NOT NULL DEFAULT '1',
-  `event_parent_id` int(11) NOT NULL,
-  PRIMARY KEY (`event_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+  event_id int(11) NOT NULL AUTO_INCREMENT,
+  event_name varchar(255) CHARACTER SET utf8 NOT NULL,
+  event_date_start datetime NOT NULL,
+  event_date_end datetime NOT NULL,
+  event_date_start_approx tinyint(1) NOT NULL DEFAULT '1',
+  event_date_end_approx tinyint(1) NOT NULL DEFAULT '1',
+  event_parent_id int(11) NOT NULL,
+  PRIMARY KEY (event_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `exhibits` (
-  `exhibit_id` int(11) NOT NULL AUTO_INCREMENT,
-  `exhibit_name` varchar(255) NOT NULL,
-  `exhibit_date_start` datetime NOT NULL,
-  `exhibit_date_end` datetime NOT NULL,
-  `exhibit_department_id` int(11) NOT NULL,
-  `theme_id` int(11) NOT NULL,
-  PRIMARY KEY (`exhibit_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS exhibits (
+  exhibit_id int(11) NOT NULL AUTO_INCREMENT,
+  exhibit_name varchar(255) NOT NULL,
+  exhibit_sub_name varchar(255) NOT NULL,
+  exhibit_date_start datetime NOT NULL,
+  exhibit_date_end datetime NOT NULL,
+  exhibit_department_id int(11) NOT NULL,
+  people_group_id int(11) NOT NULL,
+  theme_id int(11) NOT NULL,
+  exhibit_cover_image_url varchar(255) NOT NULL,
+  PRIMARY KEY (exhibit_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `groups` (
-  `group_id` int(11) NOT NULL AUTO_INCREMENT,
-  `group_name` varchar(255) NOT NULL,
-  `group_type` enum('gallery','grid','list','narrative','linear','timeline','unset') NOT NULL DEFAULT 'gallery',
-  `group_parent_id` int(11) NOT NULL,
-  PRIMARY KEY (`group_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS groups (
+  group_id int(11) NOT NULL AUTO_INCREMENT,
+  group_name varchar(255) NOT NULL,
+  group_type enum('gallery','grid','list','narrative','linear','timeline','unset') NOT NULL DEFAULT 'gallery',
+  group_parent_id int(11) NOT NULL,
+  PRIMARY KEY (group_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `group_exhibit_assignments` (
-  `group_exhibit_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-  `group_id` int(11) NOT NULL,
-  `exhibit_id` int(11) NOT NULL,
-  PRIMARY KEY (`group_exhibit_assignment_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS group_exhibit_assignments (
+  group_exhibit_assignment_id int(11) NOT NULL AUTO_INCREMENT,
+  group_id int(11) NOT NULL,
+  exhibit_id int(11) NOT NULL,
+  PRIMARY KEY (group_exhibit_assignment_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `people` (
-  `person_id` int(11) NOT NULL AUTO_INCREMENT,
-  `person_name_last` varchar(255) NOT NULL,
-  `person_name_first` varchar(255) NOT NULL,
-  `person_title` varchar(255) NOT NULL,
-  `person_department_id` int(11) NOT NULL,
-  `ul_user_id` int(11) NOT NULL,
-  PRIMARY KEY (`person_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS log_errors (
+  error_ip varchar(255) NOT NULL,
+  error_msg varchar(255) NOT NULL,
+  error_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY error_time (error_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `person_role_assignment` (
-  `person_role_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-  `person_id` int(11) NOT NULL,
-  `role_id` int(11) NOT NULL,
-  `exhibit_id` int(11) NOT NULL,
-  PRIMARY KEY (`person_role_assignment_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS metadata (
+  metadata_id int(11) NOT NULL AUTO_INCREMENT,
+  metadata_type varchar(255) NOT NULL,
+  metadata_value text NOT NULL,
+  PRIMARY KEY (metadata_id),
+  FULLTEXT KEY metadata_value (metadata_value)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `roles` (
-  `role_id` int(11) NOT NULL AUTO_INCREMENT,
-  `role_title` varchar(255) NOT NULL,
-  PRIMARY KEY (`role_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS modules (
+  module_id int(11) NOT NULL AUTO_INCREMENT,
+  module_name varchar(255) NOT NULL,
+  module_display_name tinyint(1) NOT NULL,
+  module_display_child_names tinyint(1) NOT NULL,
+  module_sub_name varchar(255) NOT NULL COMMENT 'really only useful as a sub title for module_type=title',
+  exhibit_id int(11) NOT NULL,
+  module_parent_id int(11) NOT NULL,
+  module_order int(11) NOT NULL,
+  module_type varchar(255) NOT NULL,
+  module_display_date_start datetime NOT NULL DEFAULT '1985-05-29 08:30:00',
+  module_display_date_end datetime NOT NULL DEFAULT '1985-05-29 08:30:00',
+  thumb_display_columns int(11) NOT NULL DEFAULT '1',
+  thumb_display_rows int(11) NOT NULL DEFAULT '1',
+  PRIMARY KEY (module_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `subjects` (
-  `subject_id` int(11) NOT NULL AUTO_INCREMENT,
-  `subject_title` varchar(255) NOT NULL,
-  `subject_title_display` varchar(255) NOT NULL,
-  `subject_geolocation` varchar(255) NOT NULL,
-  PRIMARY KEY (`subject_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS module_assets (
+  module_asset_id int(11) NOT NULL AUTO_INCREMENT,
+  module_id int(11) NOT NULL,
+  module_asset_order int(11) NOT NULL,
+  asset_data_id int(11) NOT NULL,
+  asset_specific_thumbnail_url varchar(255) NOT NULL,
+  module_asset_title varchar(255) NOT NULL,
+  caption text NOT NULL,
+  description text NOT NULL,
+  module_asset_display_date_start datetime NOT NULL,
+  module_asset_display_date_end datetime NOT NULL,
+  original_url varchar(255) NOT NULL,
+  source_repository varchar(255) NOT NULL,
+  thumb_display_columns int(11) NOT NULL DEFAULT '1',
+  thumb_display_rows int(11) NOT NULL DEFAULT '1',
+  username varchar(255) NOT NULL,
+  PRIMARY KEY (module_asset_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='asset instances';
 
-CREATE TABLE IF NOT EXISTS `signage_devices` (
-  `signage_device_id` int(11) NOT NULL AUTO_INCREMENT,
-  `signage_device_name` varchar(255) NOT NULL,
-  `signage_device_IP` varchar(255) NOT NULL,
-  `signage_device_last_chirp` datetime NOT NULL,
-  `signage_device_location_id` int(11) NOT NULL,
-  PRIMARY KEY (`signage_device_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS people (
+  person_id int(11) NOT NULL AUTO_INCREMENT,
+  person_name_last varchar(255) NOT NULL,
+  person_name_first varchar(255) NOT NULL,
+  person_title varchar(255) NOT NULL,
+  person_department_id int(11) NOT NULL,
+  ul_user_id int(11) NOT NULL,
+  PRIMARY KEY (person_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `signage_feeds` (
-  `signage_feed_id` int(11) NOT NULL AUTO_INCREMENT,
-  `signage_feed_name` varchar(255) NOT NULL,
-  `signage_feed_url` varchar(255) NOT NULL,
-  `signage_feed_node_item` varchar(255) NOT NULL,
-  `signage_feed_node_headline` varchar(255) NOT NULL,
-  `signage_feed_node_img` varchar(255) NOT NULL,
-  `signage_feed_node_desc` varchar(255) NOT NULL,
-  `signage_feed_node_location` varchar(255) NOT NULL,
-  `signage_feed_node_datetime` varchar(255) NOT NULL,
-  `signage_feed_priority` enum('1','2','3','4','5') NOT NULL DEFAULT '5',
-  PRIMARY KEY (`signage_feed_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS people_group (
+  people_group_id int(11) NOT NULL AUTO_INCREMENT,
+  people_group_name varchar(255) NOT NULL,
+  people_group_description text NOT NULL,
+  people_group_creator int(11) NOT NULL,
+  people_group_created datetime NOT NULL,
+  PRIMARY KEY (people_group_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `signage_feed_device_assignments` (
-  `signage_feed_device_assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-  `signage_device_id` int(11) NOT NULL,
-  `signage_feed_id` int(11) NOT NULL,
-  PRIMARY KEY (`signage_feed_device_assignment_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS people_group_assignments (
+  people_group_assignment_id int(11) NOT NULL AUTO_INCREMENT,
+  people_group_id int(11) NOT NULL,
+  person_id int(11) NOT NULL,
+  PRIMARY KEY (people_group_assignment_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `asset_metadata_assignments` (
-  `asset_metadata_assignments_id` int(11) NOT NULL AUTO_INCREMENT,
-  `asset_id` int(11) NOT NULL,
-  `metadata_id` int(11) NOT NULL,
-  PRIMARY KEY (`asset_metadata_assignments_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS people_group_source_assignments (
+  people_group_source_assignment int(11) NOT NULL AUTO_INCREMENT,
+  people_group_id int(11) NOT NULL,
+  source_id int(11) NOT NULL,
+  PRIMARY KEY (people_group_source_assignment)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS `metadata` (
-  `metadata_id` int(11) NOT NULL AUTO_INCREMENT,
-  `metadata_type` varchar(255) NOT NULL,
-  `metadata_value` text NOT NULL,
-  PRIMARY KEY (`metadata_id`),
-  FULLTEXT KEY `metadata_value` (`metadata_value`)
-) ENGINE=MyISAM  DEFAULT CHARSET=latin1;
+CREATE TABLE IF NOT EXISTS people_privileges (
+  people_privilege_id int(11) NOT NULL AUTO_INCREMENT,
+  person_id int(11) NOT NULL,
+  people_privilege_name enum('super_admin','devices','publisher','group','exhibit') NOT NULL,
+  people_privilege_value enum('NO','USR','EDIT','ADMIN') NOT NULL DEFAULT 'NO',
+  people_privilege_scope varchar(255) NOT NULL,
+  PRIMARY KEY (people_privilege_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS person_role_assignment (
+  person_role_assignment_id int(11) NOT NULL AUTO_INCREMENT,
+  person_id int(11) NOT NULL,
+  role_id int(11) NOT NULL,
+  exhibit_id int(11) NOT NULL,
+  PRIMARY KEY (person_role_assignment_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS roles (
+  role_id int(11) NOT NULL AUTO_INCREMENT,
+  role_title varchar(255) NOT NULL,
+  PRIMARY KEY (role_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS sessions (
+  session_id int(11) NOT NULL AUTO_INCREMENT,
+  session_key varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  date_time varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  is_logged_in tinyint(4) NOT NULL,
+  ip_address varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (session_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS signage_feeds (
+  signage_feed_id int(11) NOT NULL AUTO_INCREMENT,
+  signage_feed_name varchar(255) NOT NULL,
+  signage_feed_type enum('news','events','exhibits','alerts','classes','open_sessions','building_constituents','featured event') NOT NULL DEFAULT 'news',
+  signage_feed_url varchar(255) NOT NULL,
+  signage_feed_node_item varchar(255) NOT NULL,
+  signage_feed_node_headline varchar(255) NOT NULL,
+  signage_feed_node_img varchar(255) NOT NULL,
+  signage_feed_node_desc varchar(255) NOT NULL,
+  signage_feed_node_location varchar(255) NOT NULL,
+  signage_feed_node_datetime varchar(255) NOT NULL,
+  signage_feed_priority enum('1','2','3','4','5') NOT NULL DEFAULT '5',
+  PRIMARY KEY (signage_feed_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS signage_feed_device_assignments (
+  signage_feed_device_assignment_id int(11) NOT NULL AUTO_INCREMENT,
+  device_id int(11) NOT NULL,
+  signage_feed_id int(11) NOT NULL,
+  PRIMARY KEY (signage_feed_device_assignment_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS sources (
+  source_id int(11) NOT NULL AUTO_INCREMENT,
+  source_code varchar(255) NOT NULL,
+  source_common_name varchar(255) NOT NULL,
+  source_function_search varchar(255) NOT NULL,
+  source_function_ingest varchar(255) NOT NULL,
+  source_url varchar(255) NOT NULL,
+  source_credit_statement varchar(255) NOT NULL,
+  source_api_url varchar(255) NOT NULL,
+  source_api_url_supplemental varchar(255) NOT NULL,
+  source_api_key varchar(255) NOT NULL,
+  PRIMARY KEY (source_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS subjects (
+  subject_id int(11) NOT NULL AUTO_INCREMENT,
+  subject_title varchar(255) NOT NULL,
+  subject_title_display varchar(255) NOT NULL,
+  subject_geolocation varchar(255) NOT NULL,
+  PRIMARY KEY (subject_id)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
 								
 								CREATE DATABASE ulogin; 
 								USE ulogin;
@@ -407,6 +569,7 @@ require_once("imree-php/shared_functions/functions.form.php");
 require_once("imree-php/imree_functions/imree.asset.php");
 require_once("imree-php/imree_functions/imree.core.php");
 require_once("imree-php/imree_functions/imree.children.php");
+require_once("imree-php/imree_functions/imree.devices.php");
 require_once("imree-php/imree_functions/imree.group.php");
 require_once("imree-php/imree_functions/imree.people.php");
 require_once("imree-php/imree_functions/imree.module.php");
