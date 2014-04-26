@@ -1,5 +1,5 @@
 <?php
-include('../../config.php');
+require_once('../../config.php');
 function exhibit_data($exhibit_id) {
 	$conn = db_connect();
 	$exhibit_results = db_query($conn, "SELECT * FROM exhibits WHERE exhibit_id = ".  db_escape($exhibit_id));

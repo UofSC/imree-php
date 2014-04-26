@@ -514,6 +514,32 @@ if($command) {
 	    
 	    
 	    
+    } else if ($command === "upload") {
+	    if(quick_auth()) {
+			$user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			if(isset($values->module_id)) {
+				$exhibit_id = imree_module_get_exhibit_id($values->module_id);
+				if($user->can("exhibit", "EDIT", $exhibit_id)) {
+					if($_FILES['Filedata']['error'] === UPLOAD_ERR_OK && is_uploaded_file($_FILES['Filedata']['tmp_name'])) {
+						$asset_id = IMREE_asset_ingest(file_get_contents($_FILES['Filedata']['tmp_name']), "Untitled snapshot", null, $_FILES['Filedata']['size'], $user->username, '0', '0');
+						$module_asset_id = IMREE_asset_instantiate($asset_id, $values->module_id, "Untitled snapshot", "", "No description", '0', "", $user->username);
+						$str.= "<response><success>true</success><result><asset_id>".$module_asset_id."</asset_id></result></response>";
+						imree_error_log("Uploaded new file", $_SERVER['REMOTE_ADDR']);
+					} else {
+						$str .= "<response><success>false</success><error>Error uploading File: ".$_FILES['Filedata']['error']."</error></response>";
+					}
+					
+				} else {
+					$str .= $msg_permission_denied;
+				}
+			} else {
+				$str .= "<response><success>false</success><error>Command upload requires module_id</error></response>";
+			}
+	    }
+	    
+	    
+	    
     } else if($command === "query") {
 	    if(quick_auth()) {
 		    $values = json_decode($command_parameter);
