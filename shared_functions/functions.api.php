@@ -50,7 +50,11 @@ function array_to_xml($array, $return=false, $tabs=0){
             if(is_array($value)){
                 $str .= array_to_xml($value, $return, $tabs+1);
             }else{
-                $str .= $tabs_array[$tabs+1].htmlspecialchars($value)."\n";
+                if(strpos($value, "<![CDATA[") !== false) {
+                    $str .= $value."\n";   
+                } else {
+                    $str .= $tabs_array[$tabs+1].htmlspecialchars($value)."\n";
+                }
             }
             
         $str .= $tabs_array[$tabs]."</".htmlspecialchars($key).">\n";
