@@ -30,7 +30,11 @@ function children($results) {
             if(is_array($val)) {
                 $string .= children($val);
             } else {
-                $string .= htmlspecialchars($val);
+                if(strpos($val, "<![CDATA[") === false) {
+                    $string .= htmlspecialchars($val);
+                } else {
+                    $string = $val;
+                }
             }
             $string .= "</".htmlspecialchars($key).">";
         }
@@ -481,36 +485,72 @@ if($command) {
     } else if($command === "remove_module") {
 	    //requires module_id or module_asset_id
 	    if(quick_auth()) {
-		     $user = new imree_person(imree_person_id_from_username($username));
-			$values = json_decode($command_parameter);
-			if(isset($values->module_asset_id)) {
-				$exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
-				if($exhibit_id) {
-					if($user->can("exhibit", "edit", $exhibit_id)) {
-						$result = db_exec($conn, "DELETE FROM module_assets WHERE module_asset_id = ".db_escape($values->module_asset_id));
-						$str .= "<response><success>true</success>\n<result></result></response>";
-					} else {
-						$str .= $msg_permission_denied;
-					}
-				} else {
-					$str .= "<response><success>false</success><error>Data Error. values['module_asset_id'] (".db_escape($values->module_asset_id).") does not resolve to an exhibit.</error></response>";
-				}
-			} else if(isset($values->module_id)) {
-				$exhibit_id = imree_module_get_exhibit_id($values->module_id);
-				if($exhibit_id) {
-					if($user->can("exhibit", "edit", $exhibit_id)) {
-						$result = db_exec($conn, "DELETE FROM modules WHERE module_id = ".db_escape($values->module_id));
-						$str .= "<response><success>true</success>\n<result></result></response>";
-					} else {
-						$str .= $msg_permission_denied;
-					}
-				} else {
-					$str .= "<response><success>false</success><error>Data Error. values['module_id'] does not resolve to an exhibit.</error></response>";
-				}
-			} else {
-				$str .= "<response><success>false</success><error>Command remove_module requires either module_id or module_asset_id</error></response>";
-			}
+                $user = new imree_person(imree_person_id_from_username($username));
+                   $values = json_decode($command_parameter);
+                   if(isset($values->module_asset_id)) {
+                           $exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
+                           if($exhibit_id) {
+                                   if($user->can("exhibit", "edit", $exhibit_id)) {
+                                           $result = db_exec($conn, "DELETE FROM module_assets WHERE module_asset_id = ".db_escape($values->module_asset_id));
+                                           $str .= "<response><success>true</success>\n<result></result></response>";
+                                   } else {
+                                           $str .= $msg_permission_denied;
+                                   }
+                           } else {
+                                   $str .= "<response><success>false</success><error>Data Error. values['module_asset_id'] (".db_escape($values->module_asset_id).") does not resolve to an exhibit.</error></response>";
+                           }
+                   } else if(isset($values->module_id)) {
+                           $exhibit_id = imree_module_get_exhibit_id($values->module_id);
+                           if($exhibit_id) {
+                                   if($user->can("exhibit", "edit", $exhibit_id)) {
+                                           $result = db_exec($conn, "DELETE FROM modules WHERE module_id = ".db_escape($values->module_id));
+                                           $str .= "<response><success>true</success>\n<result></result></response>";
+                                   } else {
+                                           $str .= $msg_permission_denied;
+                                   }
+                           } else {
+                                   $str .= "<response><success>false</success><error>Data Error. values['module_id'] does not resolve to an exhibit.</error></response>";
+                           }
+                   } else {
+                           $str .= "<response><success>false</success><error>Command remove_module requires either module_id or module_asset_id</error></response>";
+                   }
 	    }
+   
+            
+            
+            
+    } else if($command === "module_asset_update"){
+        if(quick_auth()) {
+            $user = new imree_person(imree_person_id_from_username($username));
+            $values = json_decode($command_parameter);
+            if(isset($values->module_asset_id)) {
+                    $exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
+                    if($user->can("exhibit", "EDIT", $exhibit_id)) {
+                                $query = build_update_query($conn, "module_assets", array(
+                                    'module_asset_title' => $values->module_asset_title,
+                                    'caption' => $values->caption,
+                                    'description' => $values->description,
+                                    'module_asset_display_date_start' => $values->module_asset_display_date_start,
+                                    'module_asset_display_date_end' => $values->module_asset_display_date_end,
+                                    'thumb_display_columns' => $values->thumb_display_columns,
+                                    'thumb_display_rows' => $values->thumb_display_rows,
+                                ), " module_asset_id = ".  db_escape($values->module_asset_id));
+                                $results = db_exec($conn, $query);
+                                if($results) {
+                                    $str.= "<response><success>true</success><result>1</result></response>";   
+                                } else {
+                                    $str.= "<response><success>false</success><error>Query Failed</error></response>";
+                                }
+                                
+                            } else {
+                                $str .= "<response><success>false</success><error>Error uploading File: ".$_FILES['Filedata']['error']."</error></response>";
+                            }
+                    } else {
+                           $str.= "<response><success>false</success><error>module_asset_id not set</error></response>";
+                    }
+            } else {
+                    $str .= "<response><success>false</success><error>Command upload requires module_id</error></response>";
+            }
 	    
 	    
 	    
