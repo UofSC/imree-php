@@ -198,8 +198,10 @@ class imree_source {
 			$results = $search_function(		$query, $this->api_url,	$this->api_url_supplemental,	$this->api_key,$limit,		$start);
 			for($i = 0; $i < count($results); $i++) {
 				$results[$i]['repository'] = $this->id;
-				for($j = 0; $j < count($results[$i]['children']); $j++) {
-					$results[$i]['children'][$j]['repository'] = $this->id;
+				if(count($results[$i]['children']) > 1) {
+					for($j = 0; $j < count($results[$i]['children']); $j++) {
+						$results[$i]['children'][$j]['repository'] = $this->id;
+					}
 				}
 			}
 			return $results;
