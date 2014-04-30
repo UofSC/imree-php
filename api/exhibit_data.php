@@ -1,5 +1,6 @@
 <?php
-require_once('../../config.php');
+
+
 function exhibit_data($exhibit_id) {
 	$conn = db_connect();
 	$exhibit_results = db_query($conn, "SELECT * FROM exhibits WHERE exhibit_id = ".  db_escape($exhibit_id));
@@ -136,10 +137,14 @@ function exhibit_clone($exhibit_id, $device=NULL){
                                                                            'exhibit_sub_name'=>$exhibit_data[0]['exhibit_sub_name'],
                                                                            'exhibit_date_start'=>$exhibit_data[0]['exhibit_date_start'],
                                                                            'exhibit_date_end'=>$exhibit_data[0]['exhibit_date_end'],
+                                                                           'exhibit_is_kisok'=>$exhibit_data[0]['exhibit_is_kisok'],
+                                                                           'exhibit_is_tablet'=>$exhibit_data[0]['exhibit_is_tablet'],
+                                                                           'exhibit_is_public'=>$exhibit_data[0]['exhibit_is_public'],
                                                                            'exhibit_department_id'=>$exhibit_data[0]['exhibit_department_id'],
                                                                            'people_group_id'=>$exhibit_data[0]['people_group_id'],
                                                                            'theme_id'=>$exhibit_data[0]['theme_id'],
-                                                                           'exhibit_cover_image_url'=>$exhibit_data[0]['exhibit_cover_image_url']
+                                                                           'exhibit_cover_image_url'=>$exhibit_data[0]['exhibit_cover_image_url'],
+                                                                           'exhibit_about'=>$exhibit_data[0]['exhibit_about']
                        )));
     $new_exhibit_id = $results['last_id'];
     
@@ -152,7 +157,7 @@ function exhibit_clone($exhibit_id, $device=NULL){
                                                                                     'module_display_child_names'=>$module['module_display_child_names'], 
                                                                                     'module_sub_name'=>$module['module_sub_name'], 
                                                                                     'exhibit_id'=>$new_exhibit_id, 
-                /* @todo create a recursive function to deal with parent_id's */    'module_parent_id'=>$module['module_parent_id'], 
+                                                                                    'module_parent_id'=>module_parent_ids($module['module_parent_id'], $new_exhibit_id), 
                                                                                     'module_order'=>$module['module_order'],
                                                                                     'module_type'=>$module['module_type'], 
                                                                                     'module_display_date_start'=>$module['module_display_date_start'], 
@@ -160,10 +165,7 @@ function exhibit_clone($exhibit_id, $device=NULL){
                                                                                     'thumb_display_columns'=>$module['thumb_display_columns'], 
                                                                                     'thumb_display_rows'=>$module['thumb_display_rows']
                                  )));
-           
-             
-            
-            
+            var_dump($module['module_parent_id']);
             //Creates new module_assets to match new module_ids
             foreach($module_assets_data as &$module_asset){
                     db_exec($conn, build_insert_query($conn, 'module_assets', Array( 'module_id'=>$module_id['last_id'],
@@ -182,6 +184,48 @@ function exhibit_clone($exhibit_id, $device=NULL){
                                                                                      'username'=>$module_asset['username']
                             )));   
             }   
+    }
+}
+
+/**
+ * function module_parent_ids
+ * builds new parent ids to match new modules 
+ * created in exhibit_copy()
+ * @param type $parent_id
+ */
+function module_parent_ids($parent_id, $exhibit_id){
+    $conn = db_connect();
+    $parents = Array();
+    $count = 0;
+    $ids = Array();
+    
+    if($parent_id != 0){
+        while($parent_id != 0){
+            $parents[$count] = db_query($conn, "SELECT * FROM modules WHERE module_id = ".$parent_id);
+            $parent_id = $parents[$count][0]['module_parent_id'];
+            $ids[$count] = $parent_id;
+            $count++;
+        }
+        for($i = count($parents)-1; $i >= 0; $i--){
+            $copy = db_query($conn, "SELECT * FROM modules WHERE exhibit_id = ".db_escape($exhibit_id));
+            $module_id = db_exec($conn, build_insert_query($conn, 'modules', Array( 'module_name'=>$parents[$i][0]['module_name'],
+                                                                                    'module_display_name'=>$parents[$i][0]['module_display_name'],
+                                                                                    'module_display_child_names'=>$parents[$i][0]['module_display_child_names'], 
+                                                                                    'module_sub_name'=>$parents[$i][0]['module_sub_name'], 
+                                                                                    'exhibit_id'=>$exhibit_id,
+                                                                                    'module_parent_id'=>$parent_id, 
+                                                                                    'module_order'=>$parents[$i][0]['module_order'],
+                                                                                    'module_type'=>$parents[$i][0]['module_type'], 
+                                                                                    'module_display_date_start'=>$parents[$i][0]['module_display_date_start'], 
+                                                                                    'module_display_date_end'=>$parents[$i][0]['module_display_date_end'],
+                                                                                    'thumb_display_columns'=>$parents[$i][0]['thumb_display_columns'], 
+                                                                                    'thumb_display_rows'=>$parents[$i][0]['thumb_display_rows']
+                                     )));
+            $parent_id = $module_id['last_id'];
+            }
+        return $parent_id;
+    }else{
+        return 0;
     }
 }
 
