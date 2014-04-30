@@ -145,9 +145,8 @@ if($command) {
 
 			if(count($errors)==0) {
 				foreach($user->sources as $source) {
-					error_log($source->id . " :: " .$parameters->asset_repository);
+					imree_error_log("Ingested. Source:".$source->id . " repository:" .$parameters->asset_repository);
 					if($source->id === $parameters->asset_repository) {
-						
 						$target = $source;
 					}
 				}
@@ -155,7 +154,6 @@ if($command) {
 					$asset = $target->get_asset($parameters->asset_id, $parameters->asset_collection);
 					$asset_data_id = IMREE_asset_ingest($asset['asset_data'], $asset['asset_title'], $asset['asset_mimetype'], $asset['asset_size'], $username, $target->code, $parameters->asset_id, $parameters->asset_collection);
 					$module_asset_id = IMREE_asset_instantiate($asset_data_id, $parameters->module_id,  $asset['asset_title'], "", $asset['asset_metadata'], $target->code, $asset['asset_source'], $username,1,1);
-
 					
 					if($module_asset_id) {
 						$str.= "<response><success>true</success><result><asset_id>".$module_asset_id."</asset_id></result></response>";
@@ -413,6 +411,42 @@ if($command) {
 	    
 	    
 	    
+    } else if($command === "module_asset_update") {
+	    if(quick_auth()) {
+		   
+			$user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			if(isset($values->module_asset_id)) {
+				$exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
+				if($user->can("exhibit", "EDIT", $exhibit_id)) {
+					$array = array(
+						'module_asset_title' => $values->module_asset_title,
+						'caption' => $values->caption,
+						'description' => $values->description,
+						'module_asset_display_date_start' => $values->module_asset_display_date_start,
+						'module_asset_display_date_end' => $values->module_asset_display_date_end,
+						'thumb_display_columns' => $values->thumb_display_columns,
+						'thumb_display_rows' => $values->thumb_display_rows,
+					);
+					
+					$result = db_exec($conn, build_update_query($conn, 'module_assets', $array, " module_asset_id = ".  db_escape($values->module_asset_id)));
+					 
+					if($result !== false) {
+						imree_error_log(("here"));
+						$str .= "<response><success>true</success>\n<result>1</result></response>";
+					} else {
+						$str .= "<response><success>false</success><error>Failed to update asset data. You have all the rights to do it, but something's gone wrong.</error></response>";
+					}
+				} else {
+					$str .= $msg_permission_denied;
+				}
+			} else {
+				$str .= "<response><success>false</success><error>module_asset_id must be included in query</error></response>";
+			}
+			
+	    }
+	    
+	    
     } else if($command === "new_module") {
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
@@ -425,7 +459,7 @@ if($command) {
 				    'module_parent_id' => $values->module_parent_id,
 				    'module_type' => $values->module_type,
 				);
-				if(isset($values->module_exhibit_id)) {
+				if(isset($values->exhibit_id)) {
 					$arr['exhibit_id'] = $values->exhibit_id;
 				}
 					   
@@ -529,6 +563,7 @@ if($command) {
 					} else {
 						$str .= "<response><success>false</success><error>Error uploading File: ".$_FILES['Filedata']['error']."</error></response>";
 					}
+					
 				} else {
 					$str .= $msg_permission_denied;
 				}
@@ -546,29 +581,49 @@ if($command) {
 			$values = json_decode($command_parameter);
 			if(isset($values->module_asset_id)) {
 				$exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
-				if($user->can("exhibit", "EDIT", $exhibit_id)) {
+				if($user->can("exhibit", "EDIT", $exhibit_id) && is_numeric($values->seconds)) {
 					$q = "SELECT * FROM module_assets LEFT JOIN asset_data USING (asset_data_id) WHERE module_asset_id = ".db_escape($values->module_asset_id);
 					$results = db_query($conn, $q);
-					if(substr(strtolower($results[0]['asset_data_type']), 0, 5) === "video") {
-						if(!is_numeric($values->seconds)) {
-							$seconds = 0;
-						} else {
-							$seconds = intval($values->seconds);
-						}
-						$file = fopen("../temp/video.mp4",'w');
+					
+					$file = fopen("../temp/video.mp4",'w');
+					if($file !== false) {
 						fwrite($file, $results[0]['asset_data_contents']);
 						fclose($file);
 						$name = random_string(20);
-						exec(" ffmpeg -ss ".$seconds." -i ../temp/video.mp4 -frames:v 1 ../temp/$name.jpg");
-						sleep(1);
+						exec(" ffmpeg -ss ".$values->seconds." -i ../temp/video.mp4 -frames:v 1 ../temp/$name.jpg");
+						sleep(3);
 						$new_file_data = file_get_contents("../temp/$name.jpg");
 						$asset_id = IMREE_asset_ingest($new_file_data, "Snapshot", "image/jpg", filesize("../temp/$name.jpg"), $user->username,'0','0');		
 						$resultsb = db_exec($conn, build_update_query($conn, 'module_assets', array('asset_specific_thumbnail_url'=>$imree_absolute_path."file/".$asset_id), "module_asset_id = ".db_escape($values->module_asset_id)));
-						unlink("../temp/$name.jpg");
 						$str.= "<response><success>true</success><result><asset_id>".$resultsb['last_id']."</asset_id></result></response>";
 					} else {
-						$str .= "<response><success>false</success><error>asset_id does not refer to a video</error></response>";
+						imree_error_log('command:generate_screen_grab failed to write temp file');
+						$str .= "<response><success>false</success><error>Unable to create tmp file</error></response>";
 					}
+					
+					
+					
+				} else {
+					$str .= $msg_permission_denied;
+				}
+			} else {
+				$str .= "<response><success>false</success><error>Command upload requires module_id</error></response>";
+			}
+	    }
+	    
+	    
+    } else if($command === "module_asset_image_as_background_image") {
+	     if(quick_auth()) {
+			global $imree_absolute_path;
+			$user = new imree_person(imree_person_id_from_username($username));
+			$values = json_decode($command_parameter);
+			if(isset($values->module_asset_id)) {
+				$exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
+				if($user->can("exhibit", "EDIT", $exhibit_id)) {		
+					$asset_query = $results = db_query($conn, "SELECT asset_data_id FROM module_assets WHERE module_asset_id = ".db_escape($values->module_asset_id));
+					$asset_id = $asset_query[0]['asset_data_id'];
+					db_exec($conn, build_update_query($conn, 'exhibits', array('exhibit_cover_image_url'=>$imree_absolute_path."/file/".  intval($asset_id)), " exhibit_id = ".db_escape($exhibit_id)));
+					$str.= "<response><success>true</success><result></result></response>";
 				} else {
 					$str .= $msg_permission_denied;
 				}
