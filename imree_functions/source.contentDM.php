@@ -56,7 +56,7 @@ function CDM_INGEST_QUERY_make_search_url($alias, $search_string, $fields, $sort
     $url = $api_url . "/dmwebservices/index.php?q=dmQuery";
     
     $query = $search_string;
-    $search_string = "title!subjec^";
+    $search_string = "CISOSEARCHALL^";
     $query = str_replace(" ", "+", $query);
     $search_string .= $query . "^all^and";
     $new_fields = str_replace(" ", "!", $fields);
