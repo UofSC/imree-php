@@ -59,25 +59,60 @@ function exhibit_module_assets($module_id) {
 			LEFT JOIN sources ON (asset_data.asset_data_source_repository = sources.source_id)
 		WHERE module_id = ".db_escape($module_id). " 
 		ORDER BY module_asset_order ASC");
-	if(count($assets)) {
-		for($i =0; $i < count($assets); $i++) {
-			if($assets[$i]['asset_data_id'] > 0) {
-				$assets[$i]['asset_url'] = $imree_absolute_path . "file/" . $assets[$i]['asset_data_id']. ".jpg";
-				if(strpos($assets[$i]['module_type'], 'image') !== false) {
-					$assets[$i]['asset_resizeable'] = '1';
-				} else {
-					$assets[$i]['asset_resizeable'] = '0';
-				}
-			} else {
-				$assets[$i]['asset_url'] = "";
-				$assets[$i]['asset_resizeable'] = '0';
-			}
-		}
-		return $assets;
-	} else {
-		return array();
+	$results = array();
+	foreach($assets as $item) {
+		$results[] = exhibit_module_asset($item['module_asset_id']);
 	}
+	return $results;
 }
+
+function exhibit_module_asset($module_asset_id) {
+    global $imree_absolute_path;
+    $conn = db_connect();
+    $results = db_query($conn, "SELECT 
+                    module_assets.*, 
+                    sources.source_common_name,
+                    sources.source_url,
+                    sources.source_credit_statement,
+                    asset_data.asset_data_type AS module_type, 
+                    asset_data.asset_data_name, 1 AS asset 
+            FROM 
+                    module_assets 
+                    LEFT JOIN asset_data USING (asset_data_id) 
+                    LEFT JOIN sources ON (asset_data.asset_data_source_repository = sources.source_id)
+            WHERE module_asset_id = ".db_escape($module_asset_id));
+    $asset = $results[0];
+    if($asset['asset_data_id'] > 0) {
+            $asset['asset_url'] = $imree_absolute_path . "file/" . $asset['asset_data_id'];
+            $asset['asset_resizeable'] = strpos($asset['module_type'], 'image') !== false ? '1' : '0';
+    } else {
+            $asset['asset_url'] = "";
+            $asset['asset_resizeable'] = '0';
+    }
+    $asset['description_textflow'] = "<![CDATA[
+        ". html_to_textflow(str_replace(array("<B>","<I>","<U>","</B>","</I>","</U>"), array("<b>","<i>","<u>","</b>","</i>","</u>"),$asset['description']), "whiteSpaceCollapse='preserve' "). "
+            ]]>";
+    $asset['description'] = "<![CDATA[
+        " . $asset['description'] . "
+            ]]>";
+    
+    $asset['relations'] = module_asset_relations($asset['module_asset_id']);
+    return $asset;
+}
+
+
+function module_asset_relations($module_asset_id) {
+    $conn = db_connect();
+    $results = db_query($conn, "SELECT * FROM module_asset_relations WHERE module_asset_A_id = ".db_escape($module_asset_id));
+    $relations = array();
+    foreach ($results as $item) {
+        $asset = exhibit_module_asset($item['module_asset_B_id']);
+        $asset['relation'] = $item['module_asset_relation_type'];
+        $relations[] = $asset;
+    }
+    return $relations;
+}
+
 
 function exhibit_child_modules($module_parent_id) {
 	$conn = db_connect();
