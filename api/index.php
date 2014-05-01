@@ -571,8 +571,28 @@ if($command) {
 				$str .= "<response><success>false</success><error>Command upload requires module_id</error></response>";
 			}
 	    }
+    } else if ($command === "upload_bytes") {
 	    
-	    
+	    if(quick_auth()) {
+			$user = new imree_person(imree_person_id_from_username($username));
+			if(isset($_POST['module_id'])) {
+				$exhibit_id = imree_module_get_exhibit_id($_POST['module_id']);
+				if($user->can("exhibit", "EDIT", $exhibit_id)) {					
+					if($_FILES['Filedata']['error'] === UPLOAD_ERR_OK && is_uploaded_file($_FILES['Filedata']['tmp_name'])) {
+						$asset_id = IMREE_asset_ingest(file_get_contents($_FILES['Filedata']['tmp_name']), "Untitled snapshot", null, $_FILES['Filedata']['size'], $user->username, '0', '0');
+						$module_asset_id = IMREE_asset_instantiate($asset_id, $_POST['module_id'], "Untitled snapshot", "", "No description", '0', "", $user->username);
+						$str.= "<response><success>true</success><result><asset_id>".$module_asset_id."</asset_id></result></response>";
+						imree_error_log("Uploaded new file", $_SERVER['REMOTE_ADDR']);
+					} else {
+						$str .= "<response><success>false</success><error>Error uploading File: ".$_FILES['Filedata']['error']."</error></response>";
+					}
+				} else {
+					$str .= $msg_permission_denied;
+				}
+			} else {
+				$str .= "<response><success>false</success><error>Command upload requires module_id</error></response>";
+			}
+	    }
 	    
     } else if ($command === "generate_screen_grab") {
 	    if(quick_auth()) {
@@ -713,6 +733,9 @@ if($command) {
 		$device = new imree_device();
 		if($device->device_mode === imree_device::DEVICE_MODE_IMREE_PAD AND $device->device_id > 0) {
 			$device->track_signals($values);
+			imree_log_location_calculation($device->device_id, 0, 0, 0, "Ping Received");
+		} else {
+			imree_log_location_calculation($device->device_id, 0, 0, 0, "Ping Received &amp; Ignored");
 		}
 		
 		
