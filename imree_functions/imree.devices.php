@@ -222,12 +222,16 @@ class imree_device {
 			}
 			$locations = imree_device_all_locations();
 			$valid_locations = array();
+			if(count($locations) ===0) {
+				imree_log_location_calculation($this->device_id, 0, 0, $duration, "no locations");
+			}
 			foreach($locations as $local) {
 				$score = imree_device_score_signatures($device_signals, $local->get_signatures());
 				if($score > 5) {
 					$local->scored_value = $score;
 					$valid_locations[] = $local;
 				}
+				imree_log_location_calculation($this->device_id, $local->location_id, $score, $duration);
 			}
 			if(count($valid_locations) === 1) {
 				return $valid_locations[0]->location_module_id;

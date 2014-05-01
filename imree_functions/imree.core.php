@@ -128,3 +128,16 @@ function imree_error_log($message ,$ip="") {
 	    'error_msg' => $message,
 	)));
 }
+
+function imree_log_location_calculation($device_id, $location_id, $score, $duration, $note="") {
+	$conn = db_connect();
+	db_exec($conn, build_insert_query($conn, 'log_location_calculations', array(
+	    'device_id' => $device_id,
+	    'location_id' => $location_id,
+	    'score' => $score,
+	    'duration' => $duration,
+	    'note'=>$note,
+	    'datetime' => date("Y-m-d H:i:s"),
+	)));
+	db_exec($conn, "DELETE * FROM log_location_calculations WHERE datetime < ".date("Y-m-d H:i:s", strtotime("-10 minute")));
+}
