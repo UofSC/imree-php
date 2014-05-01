@@ -10,7 +10,9 @@ and open the template in the editor.
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<title></title>
 		<style>
-			#error-log {
+			#error-log, #locations-log {
+				float:left; 
+				max-width: 500px;
 			}
 			#error-log td {
 				padding:0 10px 5px 0;
@@ -21,7 +23,7 @@ and open the template in the editor.
 			
 		</style>
 		<script type="text/javascript">
-			setTimeout("location.reload(true);",1000);
+			setTimeout("location.reload(true);",2000);
 		</script>
 	</head>
 	<body>
@@ -30,6 +32,7 @@ and open the template in the editor.
 		
 			$conn = db_connect();
 			$error_log_results = db_query($conn, "SELECT * FROM log_errors ORDER BY error_time DESC LIMIT 200");
+			$location_log_results = db_query($conn, "SELECT * FROM log_location_calculations ORDER BY datetime DESC LIMIT 200");
 			echo "<p>Current Server Time:".date("Y-m-d H:i:s")."</p>";
 			?>
 		<table id='error-log'>
@@ -41,6 +44,19 @@ and open the template in the editor.
 				foreach($error_log_results as $item) {
 					echo "
 						<tr><td>".$item['error_time']."</td><td>".$item['error_ip']."</td><td>".$item['error_msg']."</td></tr>";
+				}
+				?>
+			</tbody>
+		</table>
+		<table id='locations-log'>
+			<thead>
+				<tr><th>device_id</th><th>location_id</th><th>score</th><th>duration</th><th style="width:120px;">notes</th><th>datetime</th></tr>
+			</thead>
+			<tbody>
+				<?
+				foreach($location_log_results as $item) {
+					echo "
+						<tr><td>".$item['device_id']."</td><td>".$item['location_id']."</td><td>".$item['score']."</td><td>".$item['duration']."</td><td>".$item['note']."</td><td>t-".(time() - strtotime($item['datetime']))."s</td></tr>";
 				}
 				?>
 			</tbody>
