@@ -1,6 +1,6 @@
 <?php
 
-require_once("../../config.php");
+
 function exhibit_data($exhibit_id) {
 	$conn = db_connect();
 	$exhibit_results = db_query($conn, "SELECT * FROM exhibits WHERE exhibit_id = ".  db_escape($exhibit_id));
@@ -164,10 +164,138 @@ function exhibit_child_modules($module_parent_id) {
  * @param type $exhibit_id - ID of exhibit to clone
  * @param type $device - @todo implement versions for target devices - "out tablets", "user tablets", "web", "kiosk"
  */
+
 function exhibit_clone($exhibit_id, $device=NULL){
     $conn = db_connect();
     $exhibit_data = db_query($conn, "SELECT * FROM exhibits WHERE exhibit_id = ".db_escape($exhibit_id));
-    $module_data = db_query($conn, "SELECT * FROM modules WHERE exhibit_id = ".db_escape($exhibit_id)." AND module_parent_id != 0");
+    $module_child_data = db_query($conn, "SELECT * FROM modules WHERE exhibit_id = ".db_escape($exhibit_id)." AND module_parent_id != 0");
+    //$module_parent_data = db_query($conn, "SELECT * FROM modules WHERE module_parent_id == 0");
+    $created_parents = Array();
+    $original_ids = Array();
+    //make the new exhibit
+    echo 'Making exhibit';
+    $results = db_exec($conn, build_insert_query($conn, 'exhibits', Array( 'exhibit_name'=>$exhibit_data[0]['exhibit_name'],
+                                                                           'exhibit_sub_name'=>$exhibit_data[0]['exhibit_sub_name'],
+                                                                           'exhibit_date_start'=>$exhibit_data[0]['exhibit_date_start'],
+                                                                           'exhibit_date_end'=>$exhibit_data[0]['exhibit_date_end'],
+                                                                           //'exhibit_is_kisok'=>$exhibit_data[0]['exhibit_is_kisok'],
+                                                                          // 'exhibit_is_tablet'=>$exhibit_data[0]['exhibit_is_tablet'],
+                                                                          // 'exhibit_is_public'=>$exhibit_data[0]['exhibit_is_public'],
+                                                                           'exhibit_department_id'=>$exhibit_data[0]['exhibit_department_id'],
+                                                                           'people_group_id'=>$exhibit_data[0]['people_group_id'],
+                                                                           'theme_id'=>$exhibit_data[0]['theme_id'],
+                                                                           'exhibit_cover_image_url'=>$exhibit_data[0]['exhibit_cover_image_url']
+                                                                           //'exhibit_about'=>$exhibit_data[0]['exhibit_about']
+                       )));
+    $new_exhibit_id = $results['last_id'];
+    
+    
+    echo 'Making parents';
+    //make parents
+    foreach($module_child_data as $child){
+        $make_parent = true;
+        foreach($original_ids as $cp){
+            if($cp == $child['module_parent_id']){
+                $make_parent = false;  
+            }
+        }
+        if($make_parent){
+            $module = db_query($conn, "SELECT * FROM modules WHERE module_id = ".db_escape($child['module_parent_id']));
+            //create parent
+            $module_parent_id = db_exec($conn, build_insert_query($conn, 'modules', Array( 'module_name'=>$module[0]['module_name'],
+                                                                                           'module_display_name'=>$module[0]['module_display_name'],
+                                                                                           'module_display_child_names'=>$module[0]['module_display_child_names'], 
+                                                                                           'module_sub_name'=>$module[0]['module_sub_name'], 
+                                                                                           'exhibit_id'=>$new_exhibit_id, 
+                                                                                           'module_parent_id'=>$module[0]['module_parent_id'], 
+                                                                                           'module_order'=>$module[0]['module_order'],
+                                                                                           'module_type'=>$module[0]['module_type'], 
+                                                                                           'module_display_date_start'=>$module[0]['module_display_date_start'], 
+                                                                                           'module_display_date_end'=>$module[0]['module_display_date_end'],
+                                                                                           'thumb_display_columns'=>$module[0]['thumb_display_columns'], 
+                                                                                           'thumb_display_rows'=>$module[0]['thumb_display_rows']
+                                 )));
+            $original_ids[] = $child['module_parent_id'];
+            $created_parents[$child['module_parent_id']] = $module_parent_id['last_id'];
+        }
+    }
+    echo 'Making Grandparents';
+    //deal with grandparents
+    $grand_modules = db_query($conn, "SELECT * FROM modules WHERE exhibit_id = ".db_escape($new_exhibit_id)." AND module_parent_id != 0");
+    $id_check = 1;
+    
+    if($grand_modules){
+        foreach($grand_modules as $grand){
+           $new_parent_id = $grand['module_parent_id']; 
+           while($id_check != 0){
+                $make_parent = true;
+                
+                foreach($original_ids as &$cp){
+                    
+                    if($cp == $grand['module_parent_id']){
+                        $make_parent = false;
+                    }
+                }
+                if($make_parent){
+                    $module = db_query($conn, "SELECT * FROM modules WHERE module_id = ".db_escape($new_parent_id));
+                    $module_parent_id = db_exec($conn, build_insert_query($conn, 'modules', Array( 'module_name'=>$module[0]['module_name'],
+                                                                                 'module_display_name'=>$module[0]['module_display_name'],
+                                                                                 'module_display_child_names'=>$module[0]['module_display_child_names'], 
+                                                                                 'module_sub_name'=>$module[0]['module_sub_name'], 
+                                                                                 'exhibit_id'=>$new_exhibit_id, 
+                                                                                 'module_parent_id'=>$module[0]['module_parent_id'], 
+                                                                                 'module_order'=>$module[0]['module_order'],
+                                                                                 'module_type'=>$module[0]['module_type'], 
+                                                                                 'module_display_date_start'=>$module[0]['module_display_date_start'], 
+                                                                                 'module_display_date_end'=>$module[0]['module_display_date_end'],
+                                                                                 'thumb_display_columns'=>$module[0]['thumb_display_columns'], 
+                                                                                 'thumb_display_rows'=>$module[0]['thumb_display_rows']
+                                 )));
+                    db_exec($conn, "UPDATE modules SET module_parent_id=".db_escape($created_parents[$new_parent_id])." WHERE exhibit_id=".db_escape($new_exhibit_id)." AND module_parent_id=".db_escape($new_parent_id));
+                    $original_ids[] = $new_parent_id;
+                    $created_parents[$new_parent_id] = $module_parent_id['last_id'];
+                    $new_parent_id = $module[0]['module_parent_id'];
+                    $id_check = $new_parent_id;
+                }else{
+                    db_exec($conn, "UPDATE modules SET module_parent_id=".db_escape($created_parents[$new_parent_id])." WHERE exhibit_id=".db_escape($new_exhibit_id)." AND module_parent_id=".db_escape($new_parent_id));
+                    $id_check = 0;   
+                }
+            }
+        }
+    }
+    var_dump($original_ids);
+    echo 'Making Children';
+    //make the children
+    foreach($module_child_data as $child){
+        $make_child = true;
+        foreach($original_ids as &$cp){
+            
+            if($cp == $child['module_id']){
+                $make_child = false;
+            }
+        }
+        if($make_child){
+            
+            $new_module_id = db_exec($conn, build_insert_query($conn, 'modules', Array( 'module_name'=>$child['module_name'],
+                                                                                        'module_display_name'=>$child['module_display_name'],
+                                                                                        'module_display_child_names'=>$child['module_display_child_names'], 
+                                                                                        'module_sub_name'=>$child['module_sub_name'], 
+                                                                                        'exhibit_id'=>$new_exhibit_id, 
+                                                                                        'module_parent_id'=>$created_parents[$child['module_parent_id']], 
+                                                                                        'module_order'=>$child['module_order'],
+                                                                                        'module_type'=>$child['module_type'], 
+                                                                                        'module_display_date_start'=>$child['module_display_date_start'], 
+                                                                                        'module_display_date_end'=>$child['module_display_date_end'],
+                                                                                        'thumb_display_columns'=>$child['thumb_display_columns'], 
+                                                                                        'thumb_display_rows'=>$child['thumb_display_rows']
+                                     )));
+            
+            //db_exec($conn, "UPDATE modules SET module_parent_id=".db_escape($created_parents[$child['module_parent_id']])." WHERE exhibit_id=".db_escape($new_exhibit_id)." AND module_parent_id=".db_escape($new_parent_id));
+        }
+    }
+    
+    
+    /*
     $results = db_exec($conn, build_insert_query($conn, 'exhibits', Array( 'exhibit_name'=>$exhibit_data[0]['exhibit_name'],
                                                                            'exhibit_sub_name'=>$exhibit_data[0]['exhibit_sub_name'],
                                                                            'exhibit_date_start'=>$exhibit_data[0]['exhibit_date_start'],
@@ -261,7 +389,7 @@ function exhibit_clone($exhibit_id, $device=NULL){
         
          
     } 
-    
+    */
      
 }
 /*
