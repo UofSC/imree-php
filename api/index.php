@@ -170,10 +170,18 @@ if($command) {
 		
 		
 	} else if($command === "exhibits") {
-	    //@todo limit results by user
-	    $results = db_query($conn, "SELECT * FROM exhibits");
-	    $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
-        
+            $device = new imree_device();
+            $q = "SELECT * FROM exhibits WHERE exhibit_date_start < NOW() AND exhibit_date_end > NOW() ";
+            if($device->device_mode === imree_device::DEVICE_MODE_KIOSK) {
+                $q .= " AND exhibit_is_kiosk = '1' ";
+            } else if($device->device_mode === imree_device::DEVICE_MODE_IMREE_PAD) {
+                $q .= " AND exhibit_is_tablet = '1' ";
+            } else {
+                $q .= " AND exhibit_is_public = '1' ";
+            }
+            $results = db_query($conn, $q);
+            $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+           
 	    
 	    
     } else if($command === "exhibit_data") {
@@ -513,38 +521,40 @@ if($command) {
 	    
 	    
     } else if($command === "remove_module") {
-	    //requires module_id or module_asset_id
-	    if(quick_auth()) {
-		     $user = new imree_person(imree_person_id_from_username($username));
-			$values = json_decode($command_parameter);
-			if(isset($values->module_asset_id)) {
-				$exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
-				if($exhibit_id) {
-					if($user->can("exhibit", "edit", $exhibit_id)) {
-						$result = db_exec($conn, "DELETE FROM module_assets WHERE module_asset_id = ".db_escape($values->module_asset_id));
-						$str .= "<response><success>true</success>\n<result></result></response>";
-					} else {
-						$str .= $msg_permission_denied;
-					}
-				} else {
-					$str .= "<response><success>false</success><error>Data Error. values['module_asset_id'] (".db_escape($values->module_asset_id).") does not resolve to an exhibit.</error></response>";
-				}
-			} else if(isset($values->module_id)) {
-				$exhibit_id = imree_module_get_exhibit_id($values->module_id);
-				if($exhibit_id) {
-					if($user->can("exhibit", "edit", $exhibit_id)) {
-						$result = db_exec($conn, "DELETE FROM modules WHERE module_id = ".db_escape($values->module_id));
-						$str .= "<response><success>true</success>\n<result></result></response>";
-					} else {
-						$str .= $msg_permission_denied;
-					}
-				} else {
-					$str .= "<response><success>false</success><error>Data Error. values['module_id'] does not resolve to an exhibit.</error></response>";
-				}
-			} else {
-				$str .= "<response><success>false</success><error>Command remove_module requires either module_id or module_asset_id</error></response>";
-			}
-	    }
+	//requires module_id or module_asset_id 
+	if(quick_auth()) {
+            $user = new imree_person(imree_person_id_from_username($username));
+            $values = json_decode($command_parameter);
+            if (isset($values->module_asset_id)) {
+                $exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
+                if ($exhibit_id) {
+                    if ($user->can("exhibit", "edit", $exhibit_id)) {
+                        $result = db_exec($conn, "DELETE FROM module_assets WHERE module_asset_id = " . db_escape($values->module_asset_id));
+                        $str .= "<response><success>true</success>\n<result></result></response>";
+                    } else {
+                        $str .= $msg_permission_denied;
+                    }
+                } else {
+                    $str .= "<response><success>false</success><error>Data Error. values['module_asset_id'] (" . db_escape($values->module_asset_id) . ") does not resolve to an exhibit.</error></response>";
+                }
+            } else if (isset($values->module_id)) {
+                
+                $exhibit_id = imree_module_get_exhibit_id($values->module_id);
+                if ($exhibit_id) {
+                    if ($user->can("exhibit", "edit", $exhibit_id)) {
+                        $result = db_exec($conn, "DELETE FROM modules WHERE module_id = " . db_escape($values->module_id));
+                        $str .= "<response><success>true</success>\n<result></result></response>";
+                    } else {
+                        $str .= $msg_permission_denied;
+                    }
+                } else {
+                    $str .= "<response><success>false</success><error>Data Error. values['module_id'] does not resolve to an exhibit.</error></response>";
+                }
+            } else {
+               
+                $str .= "<response><success>false</success><error>Command remove_module requires either module_id or module_asset_id</error></response>";
+            }
+        }
 	    
 	    
 	    
@@ -613,7 +623,7 @@ if($command) {
 						exec(" ffmpeg -ss ".$values->seconds." -i ../temp/video.mp4 -frames:v 1 ../temp/$name.jpg");
 						sleep(3);
 						$new_file_data = file_get_contents("../temp/$name.jpg");
-						$asset_id = IMREE_asset_ingest($new_file_data, "Snapshot", "image/jpg", filesize("../temp/$name.jpg"), $user->username,'0','0');		
+						$asset_id = IMREE_asset_ingest($new_file_data, "Snapshot", "image/jpeg", filesize("../temp/$name.jpg"), $user->username,'0','0');		
 						$resultsb = db_exec($conn, build_update_query($conn, 'module_assets', array('asset_specific_thumbnail_url'=>$imree_absolute_path."file/".$asset_id), "module_asset_id = ".db_escape($values->module_asset_id)));
 						$str.= "<response><success>true</success><result><asset_id>".$resultsb['last_id']."</asset_id></result></response>";
 					} else {
@@ -845,7 +855,21 @@ if($command) {
 		    $str .= "<response><success>true</success>\n<result>0</result></response>";
 	    }
 	    
+	
+    } else if($command === "proximity_seonsor") {
+            $string = $command_parameter;
+            $data = array();
+            for($i=0; $i<strlen($string); $i++) {
+                if($string[$i] == "R") {
+                    $data[] = intval(substr($string, $i+1, 3));
+                    $i += 3;
+                }
+            }
+            
+            imree_error_log("prox-sensor-data: ".print_r($data,1));
+	    $str .= "<response><success>true</success>\n<result>1</result></response>";
 	    
+    
     } else if($command === "error_log") {
 	    imree_error_log($command_parameter, filter_input(INPUT_POST, "REMOTE_ADDR"));
 	    $str .= "<response><success>true</success>\n<result>1</result></response>";

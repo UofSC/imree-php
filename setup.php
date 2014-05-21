@@ -600,7 +600,7 @@ define("UL_PROXY_HEADER", "");
 define("UL_DEBUG", true);
 define("UL_GENERIC_ERROR_MSG", "An error occured. Please try again or contact the administrator.");
 define("UL_SITE_ROOT_DIR", $imree_directory);
-define("UL_SESSION_AUTOSTART", true);
+define("UL_SESSION_AUTOSTART", false);
 define("UL_SESSION_EXPIRE", 1200);
 define("UL_SESSION_REGEN_PROB", 0);
 define("UL_SESSION_BACKEND", "ulPdoSessionStorage");

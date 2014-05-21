@@ -53,8 +53,9 @@ function imree_file($file_id, $size=false) {
         $cached_results = db_query($conn, "SELECT asset_data_cache.*, asset_data.asset_data_name, asset_data.asset_data_type FROM asset_data_cache LEFT JOIN asset_data USING (asset_data_id) WHERE asset_data_cache.asset_data_id = ".db_escape($file_id, $conn). " AND asset_data_cache_height = ".db_escape($size));
         if($cached_results) {
             header('Content-type: '.$cached_results[0]['asset_data_type']);
-            header('Content-Disposition: inline; filename="'.addslashes($cached_results[0]['asset_data_name']).'"');
-            echo $cached_results[0]['asset_data_cache_data'];
+            header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
+            header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+            print $cached_results[0]['asset_data_cache_data'];
         } else {
             $results = db_query($conn, "SELECT * FROM asset_data WHERE asset_data_id = ".db_escape($file_id, $conn));
             if(!$results) {
@@ -63,7 +64,7 @@ function imree_file($file_id, $size=false) {
             } else {
                 if(strpos($results[0]['asset_data_type'], 'image') !== false)  {
                     header('Content-type: '.$results[0]['asset_data_type']);
-                    header('Content-Disposition: inline; filename="'.addslashes($results[0]['asset_data_name']).'"');
+                    //header('Content-Disposition: inline; filename="'.addslashes($results[0]['asset_data_name']).'"');
                     $resize = imree_resize_image($results[0]['asset_data_contents'], $size);
                     echo $resize;
                     db_exec($conn, build_insert_query($conn, 'asset_data_cache', array(
@@ -84,7 +85,7 @@ function imree_file($file_id, $size=false) {
         } 
 
         header('Content-type: '.$results[0]['asset_data_type']);
-        header('Content-Disposition: inline; filename="'.addslashes($results[0]['asset_data_name']).'"');
+        //header('Content-Disposition: inline; filename="'.addslashes($results[0]['asset_data_name']).'"');
         if($results[0]['asset_data_size'] > 0) {
                 header("Content-Length: " .$results[0]['asset_data_size']);
         }
