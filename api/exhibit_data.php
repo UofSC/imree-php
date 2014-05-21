@@ -179,14 +179,14 @@ function exhibit_clone($exhibit_id, $device=NULL){
                                                                            'exhibit_sub_name'=>$exhibit_data[0]['exhibit_sub_name'],
                                                                            'exhibit_date_start'=>$exhibit_data[0]['exhibit_date_start'],
                                                                            'exhibit_date_end'=>$exhibit_data[0]['exhibit_date_end'],
-                                                                           //'exhibit_is_kisok'=>$exhibit_data[0]['exhibit_is_kisok'],
-                                                                          // 'exhibit_is_tablet'=>$exhibit_data[0]['exhibit_is_tablet'],
-                                                                          // 'exhibit_is_public'=>$exhibit_data[0]['exhibit_is_public'],
+                                                                           'exhibit_is_kisok'=>$exhibit_data[0]['exhibit_is_kisok'],
+                                                                           'exhibit_is_tablet'=>$exhibit_data[0]['exhibit_is_tablet'],
+                                                                           'exhibit_is_public'=>$exhibit_data[0]['exhibit_is_public'],
                                                                            'exhibit_department_id'=>$exhibit_data[0]['exhibit_department_id'],
                                                                            'people_group_id'=>$exhibit_data[0]['people_group_id'],
                                                                            'theme_id'=>$exhibit_data[0]['theme_id'],
-                                                                           'exhibit_cover_image_url'=>$exhibit_data[0]['exhibit_cover_image_url']
-                                                                           //'exhibit_about'=>$exhibit_data[0]['exhibit_about']
+                                                                           'exhibit_cover_image_url'=>$exhibit_data[0]['exhibit_cover_image_url'],
+                                                                           'exhibit_about'=>$exhibit_data[0]['exhibit_about']
                        )));
     
     $new_exhibit_id = $results['last_id'];
@@ -196,7 +196,7 @@ function exhibit_clone($exhibit_id, $device=NULL){
             //make child
             $make_module = true;
             foreach($original_ids as $dup_check){
-                if($module[0]['module_id'] == $dup_check){
+                if($module['module_id'] == $dup_check){
                     $make_module = false;
                 }
             }
@@ -308,6 +308,32 @@ function exhibit_clone($exhibit_id, $device=NULL){
     foreach($old_and_new as $old => $new){
         db_exec($conn, "UPDATE modules SET module_parent_id=".db_escape($new)." WHERE exhibit_id=".db_escape($new_exhibit_id)." AND module_parent_id=".db_escape($old));
     }
+    
+    //make module_assets
+    foreach($old_and_new as $old => $new){
+        $assets = db_query($conn, "SELECT * FROM module_assets WHERE module_id = ".db_escape($old));
+        foreach($assets as $asset){ 
+            db_exec($conn, build_insert_query($conn, 'module_assets', Array('module_id'=>$new,
+                                                                            'module_asset_order'=>$asset['module_asset_order'],
+                                                                            'asset_data_id'=>$asset['asset_data_id'],
+                                                                            'asset_specific_thumbnail_url'=>$asset['asset_specific_thumbnail_url'],
+                                                                            'module_asset_title'=>$asset['module_asset_title'],
+                                                                            'caption'=>$asset['caption'],
+                                                                            'description'=>$asset['description'],
+                                                                            'module_asset_display_date_start'=>$asset['module_asset_display_date_start'],
+                                                                            'module_asset_display_date_end'=>$asset['module_asset_display_date_end'],
+                                                                            'original_url'=>$asset['original_url'],
+                                                                            'source_repository'=>$asset['source_repository'],
+                                                                            'thumb_display_columns'=>$asset['thumb_display_columns'],
+                                                                            'thumb_display_rows'=>$asset['thumb_display_rows'],
+                                                                            'asset_display_name_on_thumb'=>$asset['asset_display_name_on_thumb'],
+                                                                            'username'=>$asset['username']
+                                                               )));   
+                                        
+
+        }
+    }
+    
     
 }
 
