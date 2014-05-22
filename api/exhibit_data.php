@@ -167,33 +167,22 @@ function exhibit_clone($exhibit_id, $device=NULL){
     $conn = db_connect();
     $exhibit_data = db_query($conn, "SELECT * FROM exhibits WHERE exhibit_id = ".db_escape($exhibit_id));
     $exhibit_modules = db_query($conn, "SELECT * FROM modules WHERE exhibit_id = ".db_escape($exhibit_id));
-    $module_parent_ids = Array();
+    //$module_parent_ids = Array();
     $new_parent = true;
-    $created_modules = Array();
+    //$created_modules = Array();
     $original_ids = Array();
     $make_module = true;
     $old_and_new = Array();
     
     //make new exhibit
-    $results = db_exec($conn, build_insert_query($conn, 'exhibits', Array( 'exhibit_name'=>$exhibit_data[0]['exhibit_name'],
-                                                                           'exhibit_sub_name'=>$exhibit_data[0]['exhibit_sub_name'],
-                                                                           'exhibit_date_start'=>$exhibit_data[0]['exhibit_date_start'],
-                                                                           'exhibit_date_end'=>$exhibit_data[0]['exhibit_date_end'],
-                                                                           'exhibit_is_kisok'=>$exhibit_data[0]['exhibit_is_kisok'],
-                                                                           'exhibit_is_tablet'=>$exhibit_data[0]['exhibit_is_tablet'],
-                                                                           'exhibit_is_public'=>$exhibit_data[0]['exhibit_is_public'],
-                                                                           'exhibit_department_id'=>$exhibit_data[0]['exhibit_department_id'],
-                                                                           'people_group_id'=>$exhibit_data[0]['people_group_id'],
-                                                                           'theme_id'=>$exhibit_data[0]['theme_id'],
-                                                                           'exhibit_cover_image_url'=>$exhibit_data[0]['exhibit_cover_image_url'],
-                                                                           'exhibit_about'=>$exhibit_data[0]['exhibit_about']
-                       )));
+    $new_data = $exhibit_data[0];
+    $new_data['exhibit_id'] = NULL;
+    $results = db_exec($conn, build_insert_query($conn, 'exhibits', $new_data));
     
     $new_exhibit_id = $results['last_id'];
     
     foreach($exhibit_modules as $module){
         if($module['module_parent_id'] != 0){
-            //make child
             $make_module = true;
             foreach($original_ids as $dup_check){
                 if($module['module_id'] == $dup_check){
@@ -201,22 +190,15 @@ function exhibit_clone($exhibit_id, $device=NULL){
                 }
             }
             if($make_module){
-                $child = db_exec($conn, build_insert_query($conn, 'modules', Array( 'module_name'=>$module['module_name'],
-                                                                                    'module_display_name'=>$module['module_display_name'],
-                                                                                    'module_display_child_names'=>$module['module_display_child_names'], 
-                                                                                    'module_sub_name'=>$module['module_sub_name'], 
-                                                                                    'exhibit_id'=>$new_exhibit_id, 
-                                                                                    'module_parent_id'=>$module['module_parent_id'], 
-                                                                                    'module_order'=>$module['module_order'],
-                                                                                    'module_type'=>$module['module_type'], 
-                                                                                    'module_display_date_start'=>$module['module_display_date_start'], 
-                                                                                    'module_display_date_end'=>$module['module_display_date_end'],
-                                                                                    'thumb_display_columns'=>$module['thumb_display_columns'], 
-                                                                                    'thumb_display_rows'=>$module['thumb_display_rows']
-                                 )));
+                //make child
+                $new_data = $module;
+                $new_data['exhibit_id'] = $new_exhibit_id;
+                $new_data['module_id'] = NULL;
+                $child = db_exec($conn, build_insert_query($conn, 'modules', $new_data));
+                
                 $old_and_new[$module['module_id']] = $child['last_id'];
                 $original_ids[] = $module['module_id'];
-                $created_modules[] = $child['last_id']; 
+                //$created_modules[] = $child['last_id']; 
                 $new_parent = true;
                 foreach($original_ids as $dup_check){
                     if($module['module_parent_id'] == $dup_check){
@@ -225,23 +207,16 @@ function exhibit_clone($exhibit_id, $device=NULL){
                 }
                 if($new_parent){
                     $parent_data = db_query($conn, "SELECT * FROM modules WHERE module_id = ".db_escape($module['module_parent_id']));
-                    //make parent
-                    $parent = db_exec($conn, build_insert_query($conn, 'modules', Array('module_name'=>$parent_data[0]['module_name'],
-                                                                                        'module_display_name'=>$parent_data[0]['module_display_name'],
-                                                                                        'module_display_child_names'=>$parent_data[0]['module_display_child_names'], 
-                                                                                        'module_sub_name'=>$parent_data[0]['module_sub_name'], 
-                                                                                        'exhibit_id'=>$new_exhibit_id, 
-                                                                                        'module_parent_id'=>$parent_data[0]['module_parent_id'], 
-                                                                                        'module_order'=>$parent_data[0]['module_order'],
-                                                                                        'module_type'=>$parent_data[0]['module_type'], 
-                                                                                        'module_display_date_start'=>$parent_data[0]['module_display_date_start'], 
-                                                                                        'module_display_date_end'=>$parent_data[0]['module_display_date_end'],
-                                                                                        'thumb_display_columns'=>$parent_data[0]['thumb_display_columns'], 
-                                                                                        'thumb_display_rows'=>$parent_data[0]['thumb_display_rows']
-                                 )));
+                    
+                    //make parent 
+                    $new_data = $parent_data[0];
+                    $new_data['exhibit_id'] = $new_exhibit_id;
+                    $new_data['module_id'] = NULL;
+                    $parent = db_exec($conn, build_insert_query($conn, 'modules', $new_data));
+                    
                     $old_and_new[$parent_data[0]['module_id']] = $parent['last_id'];
                     $original_ids[] = $parent_data[0]['module_id'];
-                    $created_modules[] = $parent['last_id'];
+                    //$created_modules[] = $parent['last_id'];
                     $gp_id = $parent_data[0]['module_parent_id'];
                     while($gp_id != 0){
                         //make grandparents
@@ -253,22 +228,15 @@ function exhibit_clone($exhibit_id, $device=NULL){
                         }
                         if($new_gp){
                             $gp_data = db_query($conn, "SELECT * FROM modules WHERE module_id = ".db_escape($gp_id));
-                            $gp = db_exec($conn, build_insert_query($conn, 'modules', Array('module_name'=>$gp_data[0]['module_name'],
-                                                                                            'module_display_name'=>$gp_data[0]['module_display_name'],
-                                                                                            'module_display_child_names'=>$gp_data[0]['module_display_child_names'], 
-                                                                                            'module_sub_name'=>$gp_data[0]['module_sub_name'], 
-                                                                                            'exhibit_id'=>$new_exhibit_id, 
-                                                                                            'module_parent_id'=>$gp_data[0]['module_parent_id'], 
-                                                                                            'module_order'=>$gp_data[0]['module_order'],
-                                                                                            'module_type'=>$gp_data[0]['module_type'], 
-                                                                                            'module_display_date_start'=>$gp_data[0]['module_display_date_start'], 
-                                                                                            'module_display_date_end'=>$gp_data[0]['module_display_date_end'],
-                                                                                            'thumb_display_columns'=>$gp_data[0]['thumb_display_columns'], 
-                                                                                            'thumb_display_rows'=>$gp_data[0]['thumb_display_rows']
-                                     )));
+                            
+                            $new_data = $gp_data[0];
+                            $new_data['module_id'] = NULL;
+                            $new_data['exhibit_id'] = $new_exhibit_id;
+                            $gp = db_exec($conn, build_insert_query($conn, 'modules', $new_data));
+                            
                             $old_and_new[$gp_data[0]['module_id']] = $gp['last_id'];
                             $original_ids[] = $gp_data[0]['module_id'];
-                            $created_modules[] = $gp['last_id'];
+                            //$created_modules[] = $gp['last_id'];
                             $gp_id = $gp_data['module_parent_id'];
                         }
                     }    
@@ -284,22 +252,14 @@ function exhibit_clone($exhibit_id, $device=NULL){
             }
             if($new_child){
                 //make parentless children
-                $child = db_exec($conn, build_insert_query($conn, 'modules', Array( 'module_name'=>$module['module_name'],
-                                                                                    'module_display_name'=>$module['module_display_name'],
-                                                                                    'module_display_child_names'=>$module['module_display_child_names'], 
-                                                                                    'module_sub_name'=>$module['module_sub_name'], 
-                                                                                    'exhibit_id'=>$new_exhibit_id, 
-                                                                                    'module_parent_id'=>$module['module_parent_id'], 
-                                                                                    'module_order'=>$module['module_order'],
-                                                                                    'module_type'=>$module['module_type'], 
-                                                                                    'module_display_date_start'=>$module['module_display_date_start'], 
-                                                                                    'module_display_date_end'=>$module['module_display_date_end'],
-                                                                                    'thumb_display_columns'=>$module['thumb_display_columns'], 
-                                                                                    'thumb_display_rows'=>$module['thumb_display_rows']
-                                     )));
-               $old_and_new[$module['module_id']] = $child['last_id'];
-               $original_ids[] = $module['module_id'];
-               $created_modules[] = $child['last_id']; 
+                $new_data = $module;
+                $new_data['module_id'] = NULL;
+                $new_data['exhibit_id'] = $new_exhibit_id;
+                $child = db_exec($conn, build_insert_query($conn, 'modules', $new_data));
+                
+                $old_and_new[$module['module_id']] = $child['last_id'];
+                $original_ids[] = $module['module_id'];
+                //$created_modules[] = $child['last_id']; 
            }
         }
     }
@@ -313,28 +273,12 @@ function exhibit_clone($exhibit_id, $device=NULL){
     foreach($old_and_new as $old => $new){
         $assets = db_query($conn, "SELECT * FROM module_assets WHERE module_id = ".db_escape($old));
         foreach($assets as $asset){ 
-            db_exec($conn, build_insert_query($conn, 'module_assets', Array('module_id'=>$new,
-                                                                            'module_asset_order'=>$asset['module_asset_order'],
-                                                                            'asset_data_id'=>$asset['asset_data_id'],
-                                                                            'asset_specific_thumbnail_url'=>$asset['asset_specific_thumbnail_url'],
-                                                                            'module_asset_title'=>$asset['module_asset_title'],
-                                                                            'caption'=>$asset['caption'],
-                                                                            'description'=>$asset['description'],
-                                                                            'module_asset_display_date_start'=>$asset['module_asset_display_date_start'],
-                                                                            'module_asset_display_date_end'=>$asset['module_asset_display_date_end'],
-                                                                            'original_url'=>$asset['original_url'],
-                                                                            'source_repository'=>$asset['source_repository'],
-                                                                            'thumb_display_columns'=>$asset['thumb_display_columns'],
-                                                                            'thumb_display_rows'=>$asset['thumb_display_rows'],
-                                                                            'asset_display_name_on_thumb'=>$asset['asset_display_name_on_thumb'],
-                                                                            'username'=>$asset['username']
-                                                               )));   
-                                        
-
+            $new_data = $asset;
+            $new_data['module_asset_id'] = NULL;
+            $new_data['module_id'] = $new;
+            db_exec($conn, build_insert_query($conn, 'module_assets', $new_data));                                       
         }
-    }
-    
-    
+    }   
 }
 
 ?>
