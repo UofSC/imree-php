@@ -1,4 +1,4 @@
-<?
+<?php
 	require_once("../../config.php");
 ?><!--
 To change this template, choose Tools | Templates
@@ -40,7 +40,7 @@ and open the template in the editor.
 				<tr><th>Time</th><th>IP</th><th>MSG</th></tr>
 			</thead>
 			<tbody>
-				<?
+				<?php
 				foreach($error_log_results as $item) {
 					echo "
 						<tr><td>".$item['error_time']."</td><td>".$item['error_ip']."</td><td>".$item['error_msg']."</td></tr>";
@@ -53,7 +53,7 @@ and open the template in the editor.
 				<tr><th>device_id</th><th>location_id</th><th>score</th><th>duration</th><th style="width:120px;">notes</th><th>datetime</th></tr>
 			</thead>
 			<tbody>
-				<?
+				<?php
 				foreach($location_log_results as $item) {
 					echo "
 						<tr><td>".$item['device_id']."</td><td>".$item['location_id']."</td><td>".$item['score']."</td><td>".$item['duration']."</td><td>".$item['note']."</td><td>t-".(time() - strtotime($item['datetime']))."s</td></tr>";

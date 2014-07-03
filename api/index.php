@@ -9,6 +9,27 @@
  */
 require_once('../../config.php');
 $conn = db_connect();
+
+if(isset($cfg_signage_db_username)) {
+    $ocfg_db_host = $cfg_db_host;
+    $ocfg_db_type = $cfg_db_type;
+    $ocfg_db_name = $cfg_db_name;
+    $ocfg_db_username = $cfg_db_username;
+    $ocfg_db_password = $cfg_db_password;
+    
+    $cfg_db_host = $cfg_signage_db_host;
+    $cfg_db_type = $cfg_signage_db_type;
+    $cfg_db_name = $cfg_signage_db_name;
+    $cfg_db_username = $cfg_signage_db_username;
+    $cfg_db_password = $cfg_signage_db_password;
+    $signage_conn = db_connect(false);
+    
+    $cfg_db_host = $ocfg_db_host;
+    $cfg_db_type = $ocfg_db_type;
+    $cfg_db_name = $ocfg_db_name;
+    $cfg_db_username = $ocfg_db_username;
+    $cfg_db_password = $ocfg_db_password;
+}
 $errors = array();
 $results = array();
 
@@ -52,43 +73,53 @@ function quick_auth() {
 }
 /**
  * This keeps a log of every time a digital signage device makes a query. More of a "is it on" check than something diagnostically useful
- * @global type $conn
- * @param type $ip
+ * @global PDO $conn
+ * @param string $device_mac_address
  */
-function device_chirp($ip) {
+function device_chirp($device_mac_address) {
 	global $conn;
-	db_exec($conn, "UPDATE devices SET device_last_chirp = '".date("Y-m-d H:i:s")."' WHERE device_ip = ".  db_escape($ip));
+	db_exec($conn, "UPDATE devices SET device_last_chirp = '".date("Y-m-d H:i:s")."' WHERE device_mac_address = ".  db_escape($device_mac_address));
 }
 
 function IMREE_log($ip, $module_type, $module_id) {
 	//need to do some logging here for assesment feedback
 }
 
-$command = isset($_POST["command"]) ? filter_input(INPUT_POST, "command") : filter_input(INPUT_GET, "command");
-$command_parameter = isset($_POST["command_parameter"]) ? filter_input(INPUT_POST, "command_parameter") : filter_input(INPUT_GET, "command_parameter");
+$command = (filter_input(INPUT_POST,'command') !== null) ? filter_input(INPUT_POST, "command") : filter_input(INPUT_GET, "command");
+$command_parameter = (filter_input(INPUT_POST, 'command_parameter') !== null) ? filter_input(INPUT_POST, "command_parameter") : filter_input(INPUT_GET, "command_parameter");
 $username = filter_input(INPUT_POST, "username");
 $password = filter_input(INPUT_POST, "password");
-$session_key = filter_input(INPUT_POST, "session_key"); 
+$session_key = filter_input(INPUT_POST, "sessionkey"); 
+$device_mac_address = filter_input(INPUT_POST, 'macaddress');
+
 //error_log($session_id);
 //error_log("Command: " . $command . " Parameter: " .$command_parameter );
 
 //add command 
 if($command) {
     if($command === "mode") {
-        $ip = $_SERVER['REMOTE_ADDR'];
-        $results = db_query($conn, "SELECT * FROM devices WHERE device_ip = ".db_escape($ip));
         $session_key = build_session();
-        if(count($results) > 0 ) {
-            $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>".$results[0]['device_mode']."</mode>\n</result></response>";
-		  device_chirp($ip);
+        if($device_mac_address !== null) {
+            $results = db_query($conn, "SELECT * FROM devices WHERE device_mac_address = ".db_escape($device_mac_address));
+            if(count($results) > 0 ) {
+                device_chirp($device_mac_address);
+                $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>".$results[0]['device_mode']."</mode>\n</result></response>";
+		
+            } else {
+                $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>normal</mode>\n</result></response>";
+            }
         } else {
             $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>normal</mode>\n</result></response>";
         }
+        
+       
 	   
 	   
-	   
-    } else if($command === "signage_items") {
-        $ip = $_SERVER['REMOTE_ADDR'];
+    } 
+    
+    /** Needs to rethought - especially cause there's no reliable device ips anymore 
+    else if($command === "signage_items") {
+        $ip = filter_input(INPUT_SERVER,'REMOTE_ADDR');
         device_chirp($ip);
         $results = db_query($conn, "
          SELECT * FROM devices
@@ -96,8 +127,25 @@ if($command) {
 		LEFT JOIN signage_feeds USING (signage_feed_id)
 		WHERE devices.device_ip = ".db_escape($ip));
         $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
-
+    } 
+    */
+    
+    
+    
+      else if($command === 'signage_properties') {
+        device_chirp($device_mac_address);
+        $results = db_query($conn, "SELECT * FROM devices WHERE device_mac_address = ".db_escape($device_mac_address));
+        if(isset($signage_conn)) {
+            $delphi_properties = db_query($signage_conn, "SELECT * FROM news2.signage_devices WHERE foreign_device_id = ".  db_escape($results[0]['device_id'], $signage_conn));
+            $results[0] = array_merge($results[0], $delphi_properties[0]);
+            $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+        } else {
+            $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
+        }
+        
+        
 	   
+        
 	   
     } else if($command === "search") {
         if(!$command_parameter) {
@@ -169,8 +217,8 @@ if($command) {
 		
 		
 		
-	} else if($command === "exhibits") {
-            $device = new imree_device();
+    } else if($command === "exhibits") {
+            $device = new imree_device($command_parameter);
             $q = "SELECT * FROM exhibits WHERE exhibit_date_start < NOW() AND exhibit_date_end > NOW() ";
             if($device->device_mode === imree_device::DEVICE_MODE_KIOSK) {
                 $q .= " AND exhibit_is_kiosk = '1' ";
@@ -266,9 +314,15 @@ if($command) {
 		    }
 		    if($can) {
 			    $array = array();
-			    if(isset($values->person_name_first))	$array['person_name_first'] = $values->person_name_first;
-			    if(isset($values->person_name_last))	$array['person_name_last'] = $values->person_name_last;
-			    if(isset($values->person_title))		$array['person_title'] = $values->person_title;
+			    if(isset($values->person_name_first)) {
+                                $array['person_name_first'] = $values->person_name_first;
+                            }
+			    if(isset($values->person_name_last)) {
+                                $array['person_name_last'] = $values->person_name_last;
+                            }
+			    if(isset($values->person_title)) {
+                                $array['person_title'] = $values->person_title;
+                            }
 			    if(count($array)) {
 				    db_exec($conn, build_update_query($conn, "people", $array, "person_id = ".  db_escape($values->person_id)));
 			    }
@@ -589,9 +643,40 @@ if($command) {
 				$exhibit_id = imree_module_get_exhibit_id($_POST['module_id']);
 				if($user->can("exhibit", "EDIT", $exhibit_id)) {					
 					if($_FILES['Filedata']['error'] === UPLOAD_ERR_OK && is_uploaded_file($_FILES['Filedata']['tmp_name'])) {
-						$asset_id = IMREE_asset_ingest(file_get_contents($_FILES['Filedata']['tmp_name']), "Untitled snapshot", null, $_FILES['Filedata']['size'], $user->username, '0', '0');
-						$module_asset_id = IMREE_asset_instantiate($asset_id, $_POST['module_id'], "Untitled snapshot", "", "No description", '0', "", $user->username);
-						$str.= "<response><success>true</success><result><asset_id>".$module_asset_id."</asset_id></result></response>";
+                                                $data = file_get_contents($_FILES['Filedata']['tmp_name']);
+                                                $finfo = new finfo(FILEINFO_MIME_TYPE);
+                                                $mimetype = $finfo->buffer($data);
+                                                if($mimetype === "application/zip") {
+                                                    $dir = "../temp/zipfolder";
+                                                    if(file_exists($dir)) {
+                                                        foreach (scandir($dir) as $item) {
+                                                            if ($item == '.' || $item == '..') continue;
+                                                            unlink($dir.DIRECTORY_SEPARATOR.$item);
+                                                        }
+                                                        rmdir($dir);
+                                                        mkdir($dir);
+                                                    } else {
+                                                        mkdir($dir);
+                                                    }
+                                                    
+                                                    $zip = new ZipArchive();
+                                                    $zip->open($_FILES['Filedata']['tmp_name']);
+                                                    $zip->extractTo($dir);
+                                                    $str = "<response><success>true</success><result>";
+                                                    foreach(scandir($dir) as $item) {
+                                                        if ($item == '.' || $item == '..') continue;
+                                                        $asset_id = IMREE_asset_ingest(file_get_contents($dir."/".$item), "Untitled", null, filesize($dir."/".$item), $user->username, '0', '0');
+                                                        $module_asset_id = IMREE_asset_instantiate($asset_id, $_POST['module_id'], "Untitled", "", "No description", '0', "", $user->username);
+                                                        $str .= "<asset_id>$module_asset_id</asset_id>";
+                                                    }
+                                                    $str .= "</result></response>";
+                                                    $zip->close();
+                                                } else {
+                                                    $asset_id = IMREE_asset_ingest($data, "Untitled", null, $_FILES['Filedata']['size'], $user->username, '0', '0');
+                                                    $module_asset_id = IMREE_asset_instantiate($asset_id, $_POST['module_id'], "Untitled snapshot", "", "No description", '0', "", $user->username);
+                                                    $str.= "<response><success>true</success><result><asset_id>".$module_asset_id."</asset_id></result></response>";
+                                                }
+                                                
 						imree_error_log("Uploaded new file", $_SERVER['REMOTE_ADDR']);
 					} else {
 						$str .= "<response><success>false</success><error>Error uploading File: ".$_FILES['Filedata']['error']."</error></response>";

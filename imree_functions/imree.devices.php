@@ -15,33 +15,32 @@ class imree_device {
 	const DEVICE_MODE_WEB = 5; 
 	
 	public $device_name;
-	public $device_ip;
+	public $device_mac_address;
 	public $device_last_chirp;
 	
 	public $array_of_signal_objects;
-	public function __construct($device_id_or_ip = false) {
-		if($device_id_or_ip === false) {
-			$results =  db_query(db_connect(), "SELECT * FROM devices WHERE device_ip = ".db_escape(filter_input(INPUT_SERVER, "REMOTE_ADDR")));
-		} else if(strpos($device_id_or_ip, ".")) {
-			$results = db_query(db_connect(), "SELECT * FROM devices WHERE device_ip = ".db_escape($device_id_or_ip));
-		} else {
-		    $results = db_query(db_connect(), "SELECT * FROM devices WHERE device_id = ".db_escape($device_id_or_ip));
-		}
-		
-		if(count($results)) {
-		    $this->device_id = $results[0]['device_id'];
-		    $this->device_ip = $results[0]['device_ip'];
-		    $this->device_name = $results[0]['device_name'];
-		    $this->device_last_chirp = $results[0]['device_last_chirp'];
-		    $this->device_mode = $this->device_mode_from_sql($results[0]['device_mode']);
-		    
-		} else {
-		    $this->device_mode = self::DEVICE_MODE_NORMAL;
-		    $this->device_ip = filter_input(INPUT_SERVER, "REMOTE_ADDR");
-		    $this->device_id = 0;
-		    $this->device_last_chirp = date("Y-m-d H:i:s");
-		    $this->device_name = "unnamed";
-		}
+	public function __construct($device_id_or_mac_address = false) {
+            if($device_id_or_mac_address === false OR $device_id_or_mac_address === null) {
+                $results = array();
+            } else if(strpos($device_id_or_mac_address, ":")) {
+                $results = db_query(db_connect(), "SELECT * FROM devices WHERE device_mac_address = ".db_escape($device_id_or_mac_address));
+            } else {
+                $results = db_query(db_connect(), "SELECT * FROM devices WHERE device_id = ".db_escape($device_id_or_mac_address));
+            }
+
+            if($device_id_or_mac_address AND count($results)) {
+                $this->device_id = $results[0]['device_id'];
+                $this->device_mac_address = $results[0]['device_mac_address'];
+                $this->device_name = $results[0]['device_name'];
+                $this->device_last_chirp = $results[0]['device_last_chirp'];
+                $this->device_mode = $this->device_mode_from_sql($results[0]['device_mode']);
+            } else {
+                $this->device_mode = self::DEVICE_MODE_NORMAL;
+                $this->device_mac_address = null;
+                $this->device_id = 0;
+                $this->device_last_chirp = date("Y-m-d H:i:s");
+                $this->device_name = "unnamed";
+            }
 	}
 	
 	private function device_mode_from_sql($device_mode) {
@@ -90,7 +89,7 @@ class imree_device {
 				$this->array_of_signal_objects[] = $signal;
 				$signal->log($this->device_id);
 			} else {
-				$signal->log_as_noise($this->device_ip);
+				$signal->log_as_noise($this->device_mac_address);
 			}
 		}
 		db_exec(db_connect(), "UPDATE devices SET device_last_signals_chirp = '".date("Y-m-d H:i:s")."' WHERE device_id = ".db_escape($this->device_id));
@@ -99,10 +98,10 @@ class imree_device {
 	public function start_tracking($device_mode, $device_name= "unnamed", $person_id=0) {
 		$conn = db_connect();
 		$data = array(
-			'device_ip' => $this->device_ip,
+			'device_mac_address' => $this->device_mac_address,
 			'device_last_chirp' => date("Y-m-d H:i:s"),
 			'device_last_added_by_person_id' => $person_id,
-		     'device_mode' => $device_mode,
+                        'device_mode' => $device_mode,
 		);
 		
 		if($device_name !== "unnamed") {
@@ -148,7 +147,7 @@ class imree_device {
 					device_signals_untracked_date_time AS date_time
 				FROM device_signals_untracked 
 				WHERE 
-					device_signals_untracked_from_ip = ".db_escape($this->device_ip)." 
+					device_signals_untracked_from_mac_address = ".db_escape($this->device_mac_address)." 
 					AND device_signals_untracked_date_time > '".date("Y-m-d H:i:s", strtotime("-$duration_in_seconds second"))."' 
 				GROUP BY device_signals_untracked_mac_address
 				ORDER BY strength DESC 
@@ -443,14 +442,14 @@ class imree_device_signal {
 		)));
 		return $results;
 	}
-	public function log_as_noise($ip) {
+	public function log_as_noise($mac_address) {
 		$conn = db_connect();
 		$results = db_exec($conn, build_insert_query($conn, 'device_signals_untracked', array(
 		    'device_signals_untracked_SSID' => $this->SSID,
 		    'device_signals_untracked_strength' => $this->level,
 		    'device_signals_untracked_mac_address' => $this->mac_id,
 		    'device_signals_untracked_date_time' => date("Y-m-d H:i:s"),
-		    'device_signals_untracked_from_ip' => $ip,
+		    'device_signals_untracked_from_mac_address' => $mac_address,
 		)));
 		return $results;
 	}
