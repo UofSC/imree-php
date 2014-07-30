@@ -37,6 +37,141 @@ $msg_permission_denied = "<response><success>false</success><error>Permission De
 
 $str = "<?xml version='1.0' encoding='UTF-8' ?>";
 
+
+function sort_results($results, $search_query, $results_per_page=10, $page=1)
+{
+    $conn = db_connect();
+    
+    $new_table = true;
+    $index = db_query($conn, "SELECT * FROM search_tbl_index");
+    
+    $current_time = time();
+   
+    //Remove old search tables
+    foreach($index as $search)
+    {
+        $time = strtotime($search['search_table_index_datetime']);
+        if(($current_time-$time) > 1800 && $search_query != $search['keyword'])//30 minutes
+        {
+            db_exec($conn, "DROP TABLE IF EXISTS ".$search['search_table_name']);
+        }
+    }
+    
+    //Checks for invalid page number
+    if($page < 1)
+    {
+        $page = 1;
+    }
+    
+    //Checks if a table already esists for this search query
+    foreach($index as $query)
+    {
+        if($query['keyword'] == $search_query)
+        {
+            $table_name = $query['search_table_name'];
+            $new_table = false;
+        }
+    }
+    
+    if($new_table)
+    {
+        $table_num = db_query($conn, "SELECT COUNT(*) FROM search_tbl_index");
+        $table_num = $table_num[0]['COUNT(*)'];
+
+        $table_name = "search_tbl_".$table_num;
+        
+        //create search table
+        $test = db_exec($conn, "CREATE TABLE ".$table_name."
+                                   (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                                    collection VARCHAR(255),
+                                    title VARCHAR(255),
+                                    metadata VARCHAR(255),
+                                    type VARCHAR(255),
+                                    repository VARCHAR(255),
+                                    thumbnail_url VARCHAR(255),
+                                    rank INT,
+                                FULLTEXT INDEX idx(title, metadata) )
+                                ENGINE = MYISAM
+                                "
+                       ); 
+
+        //Add the search query to the search table index
+        $index_query = build_insert_query($conn, 'search_tbl_index', Array('keyword' => $search_query, 
+                                                                           'search_table_name' => $table_name,
+                                                                           'search_table_index_datetime' => date("Y-m-d H:i:s")
+                                                                           ));
+        db_exec($conn, $index_query);
+
+        //Fill search table without children 
+        foreach($results as $item)
+        {
+            $insert = Array();
+
+            $insert['collection'] = $item['collection'];
+            $insert['title'] = $item['title'];
+            $insert['thumbnail_url'] = $item['thumbnail_url'];
+            $insert['repository'] = $item['repository'];
+            $insert['type'] = $item['type'];
+            $insert['metadata'] = $item['metadata'];
+
+            $query = build_insert_query($conn, $table_name, $insert);
+            db_exec($conn, $query);
+        }
+
+        //All results
+        $query = "SELECT * FROM ".$table_name;
+        $all_results = db_query($conn, $query);
+
+        //Fulltext sort
+        $sort_query =  "SELECT * FROM ".$table_name." WHERE MATCH (title,metadata) AGAINST (".db_escape($search_query).")";
+        $sorted_results = db_query($conn, $sort_query);
+
+        //Adds the remaining results to the sorted results 
+        foreach($all_results as $result)
+        {
+            $add = true;
+            foreach($sorted_results as $sort)
+            {
+                if($result['id'] === $sort['id'])
+                {    
+                    $add = false;
+                }   
+            }
+            if($add)
+            {    
+                $sorted_results[] = $result;
+            }   
+        }
+
+        //Order by rank
+        $rank = 1;
+        foreach($sorted_results as $result)
+        {
+            db_exec($conn, "UPDATE ".$table_name." SET rank = ".db_escape($rank)." WHERE id = ".db_escape($result['id']));
+            $rank++;
+        }
+
+        db_exec($conn, "ALTER TABLE ".$table_name." ORDER BY rank"); //Orders results by relevance
+    }//if($new_table)
+    
+    $page_query = "SELECT * FROM ".$table_name." WHERE rank > ".db_escape($results_per_page*($page-1))." AND rank <= ".db_escape($results_per_page*$page);
+    $paged_results = db_query($conn, $page_query);
+    
+    //Add children back to sorted parent items
+    foreach($results as $item)
+    {
+        foreach($paged_results as &$sres)
+        {
+            if($sres['title'] === $item['title'])//maybe use something else here
+            {
+                $sres['children'] = $item['children'];
+            }
+        }
+    }  
+    return $paged_results;
+}
+
+
 /**
  * This is a silly function that makes xml elements from an array of children
  * @param array $results a php array of items
@@ -153,13 +288,15 @@ if($command) {
         } else {
           if(quick_auth()) {
 			$user = new imree_person(imree_person_id_from_username($username));
-			
+			//$user = new imree_person(1);
 			$results = array();
+                        $parameters = json_decode($command_parameter);
 			foreach($user->sources as $source) {
 				set_time_limit(90);
-				$results = array_merge($results, $source->search($command_parameter, 20, 0));
+				$results = array_merge($results, $source->search($parameters->search_query, 20, 0));
 			}
-			
+                        
+                        $results = sort_results($results, $parameters->search_query, $results_per_page=10, $parameters->page);
 			//Results of all items that match a full-text search
 				 /**
 					$results = array_merge(db_query($conn, "SELECT assets.* FROM assets
@@ -176,7 +313,7 @@ if($command) {
 			 </children></result></response>";
 			}
         }
-	   
+
 	   
 	   
 	} else if($command === "ingest") {
