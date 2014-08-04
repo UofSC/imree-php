@@ -37,7 +37,6 @@ $msg_permission_denied = "<response><success>false</success><error>Permission De
 
 $str = "<?xml version='1.0' encoding='UTF-8' ?>";
 
-
 function sort_results($results, $search_query, $results_per_page=10, $page=1)
 {
     $conn = db_connect();
@@ -812,6 +811,30 @@ if($command) {
                                                     $asset_id = IMREE_asset_ingest($data, "Untitled", null, $_FILES['Filedata']['size'], $user->username, '0', '0');
                                                     $module_asset_id = IMREE_asset_instantiate($asset_id, $_POST['module_id'], "Untitled snapshot", "", "No description", '0', "", $user->username);
                                                     $str.= "<response><success>true</success><result><asset_id>".$module_asset_id."</asset_id></result></response>";
+                                                
+                                                    if(isset($_POST['module_asset_id']))
+                                                    {   //Build asset relation. Used when adding image to audio asset.
+                                                        $mod_asset_A = $_POST['module_asset_id'];
+                                                        $has_relation = db_query($conn, "SELECT * FROM module_asset_relations WHERE module_asset_A_id = ".db_escape($mod_asset_A));
+                                                        if($has_relation)
+                                                        {
+                                                            $relation_update_query  = build_update_query($conn, 'module_asset_relations', Array('module_asset_B_id' => $module_asset_id), "module_asset_A_id = ".db_escape($mod_asset_A)." ");
+                                                            db_exec($conn, $relation_update_query);
+                                                        }
+                                                        else
+                                                        {
+                                                            $relation_insert_query = build_insert_query($conn, 'module_asset_relations', Array('module_asset_A_id' => $mod_asset_A, 'module_asset_B_id' => $module_asset_id));
+                                                            db_exec($conn, $relation_insert_query);
+                                                        }
+                                                        //Change Thumbnail URL
+                                                        $thumb_file_number = db_query($conn, "SELECT asset_data_id FROM module_assets WHERE module_asset_id = ".db_escape($module_asset_id));
+                                                        $thumb_file_number = $thumb_file_number[0]['asset_data_id'];
+                                                        $thumb_values = Array('asset_specific_thumbnail_url' => "http://imree.tcl.sc.edu/imree-php/file/".$thumb_file_number);
+                                                        $thumb_where = "module_asset_id = ".db_escape($mod_asset_A)." ";
+                                                        $specfic_thumbnail_update_query = build_update_query($conn, 'module_assets', $thumb_values, $thumb_where);
+                                                        error_log($specfic_thumbnail_update_query);
+                                                        db_exec($conn, $specfic_thumbnail_update_query);
+                                                    } 
                                                 }
                                                 
 						imree_error_log("Uploaded new file", $_SERVER['REMOTE_ADDR']);
