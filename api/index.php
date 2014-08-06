@@ -832,7 +832,7 @@ if($command) {
                                                         $thumb_values = Array('asset_specific_thumbnail_url' => "http://imree.tcl.sc.edu/imree-php/file/".$thumb_file_number);
                                                         $thumb_where = "module_asset_id = ".db_escape($mod_asset_A)." ";
                                                         $specfic_thumbnail_update_query = build_update_query($conn, 'module_assets', $thumb_values, $thumb_where);
-                                                        error_log($specfic_thumbnail_update_query);
+                                                        
                                                         db_exec($conn, $specfic_thumbnail_update_query);
                                                     } 
                                                 }
