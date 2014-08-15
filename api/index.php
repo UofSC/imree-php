@@ -350,6 +350,8 @@ if($command) {
     } else if($command === "exhibits") {
             $device = new imree_device($command_parameter);
             $q = "SELECT * FROM exhibits WHERE exhibit_date_start < NOW() AND exhibit_date_end > NOW() ";
+            if(!($session->is_logged_in()))
+            {
                 if($device->device_mode === imree_device::DEVICE_MODE_KIOSK) {
                     $q .= " AND exhibit_is_kiosk = '1' ";
                 } else if($device->device_mode === imree_device::DEVICE_MODE_IMREE_PAD) {
@@ -357,6 +359,7 @@ if($command) {
                 } else {
                     $q .= " AND exhibit_is_public = '1' ";
                 }
+            }
             $results = db_query($conn, $q);
             $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
            
