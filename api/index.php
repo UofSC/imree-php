@@ -39,23 +39,19 @@ $str = "<?xml version='1.0' encoding='UTF-8' ?>";
 
 function sort_results($results, $search_query, $results_per_page=10, $page=1)
 {
-    $conn = db_connect();
-    
+    $conn = db_connect();  
     $new_table = true;
     $index = db_query($conn, "SELECT * FROM search_tbl_index");
-    
     $current_time = time();
-   
     //Remove old search tables
-    foreach($index as $search)
+    /*foreach($index as $search)
     {
         $time = strtotime($search['search_table_index_datetime']);
         if(($current_time-$time) > 1800 && $search_query != $search['keyword'])//30 minutes
         {
             db_exec($conn, "DROP TABLE IF EXISTS ".$search['search_table_name']);
         }
-    }
-    
+    } */
     //Checks for invalid page number
     if($page < 1)
     {
@@ -225,14 +221,15 @@ $username = filter_input(INPUT_POST, "username");
 $password = filter_input(INPUT_POST, "password");
 $session_key = filter_input(INPUT_POST, "sessionkey"); 
 $device_mac_address = filter_input(INPUT_POST, 'macaddress');
+$session = new imree_session();
 
-//error_log($session_id);
+//error_log($session_key);
 //error_log("Command: " . $command . " Parameter: " .$command_parameter );
-
+//
 //add command 
 if($command) {
-    if($command === "mode") {
-        $session_key = build_session();
+    if($command === "mode") { 
+        $session->build_session();
         if($device_mac_address !== null) {
             $results = db_query($conn, "SELECT * FROM devices WHERE device_mac_address = ".db_escape($device_mac_address));
             if(count($results) > 0 ) {
@@ -245,10 +242,7 @@ if($command) {
         } else {
             $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>normal</mode>\n</result></response>";
         }
-        
-       
-	   
-	   
+          
     } 
     
     /** Needs to rethought - especially cause there's no reliable device ips anymore 
@@ -356,13 +350,13 @@ if($command) {
     } else if($command === "exhibits") {
             $device = new imree_device($command_parameter);
             $q = "SELECT * FROM exhibits WHERE exhibit_date_start < NOW() AND exhibit_date_end > NOW() ";
-            if($device->device_mode === imree_device::DEVICE_MODE_KIOSK) {
-                $q .= " AND exhibit_is_kiosk = '1' ";
-            } else if($device->device_mode === imree_device::DEVICE_MODE_IMREE_PAD) {
-                $q .= " AND exhibit_is_tablet = '1' ";
-            } else {
-                $q .= " AND exhibit_is_public = '1' ";
-            }
+                if($device->device_mode === imree_device::DEVICE_MODE_KIOSK) {
+                    $q .= " AND exhibit_is_kiosk = '1' ";
+                } else if($device->device_mode === imree_device::DEVICE_MODE_IMREE_PAD) {
+                    $q .= " AND exhibit_is_tablet = '1' ";
+                } else {
+                    $q .= " AND exhibit_is_public = '1' ";
+                }
             $results = db_query($conn, $q);
             $str .= "<response><success>true</success>\n<result>".children($results)."</result></response>";
            
@@ -386,14 +380,12 @@ if($command) {
 	    $ulogin->Authenticate($values->username, $values->password);
 	    if($ulogin->AuthResult) {
 		    $str .= "<response><success>true</success>\n<result><logged_in>true</logged_in>";
+                    
 		    $id =  $ulogin->Uid($values->username);
-		    
-		    is_logged_in(true, $session_key);
+		    $session->log_in(true);
                     
 		    $user = db_query($conn, "SELECT * FROM people WHERE people.ul_user_id = ".db_escape($id));
 		    $str .= "<user>".array_to_xml($user[0], true, 2)."</user>";
-		    
-		    
 		    
 		    $person = new imree_person(imree_person_id_from_ul_user_id($id));
 		    $str .= "<permissions>";
