@@ -645,9 +645,10 @@ if($command) {
 		    $user = new imree_person(imree_person_id_from_username($username));
 			$values = json_decode($command_parameter);
 			if($user->can("exhibit","USR","")) {
-				
+                                $mods = db_query($conn, "SELECT COUNT(*) FROM modules WHERE module_parent_id = ".$values->module_parent_id);
+				$module_order = 0 + $mods[0]['COUNT(*)'];
 				$arr = array(
-				    'module_order' => $values->module_order,
+				    'module_order' => $module_order,
 				    'module_name' => $values->module_name,
 				    'module_parent_id' => $values->module_parent_id,
 				    'module_type' => $values->module_type,
