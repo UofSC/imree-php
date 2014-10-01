@@ -234,8 +234,7 @@ if($command) {
             $results = db_query($conn, "SELECT * FROM devices WHERE device_mac_address = ".db_escape($device_mac_address));
             if(count($results) > 0 ) {
                 device_chirp($device_mac_address);
-                $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>".$results[0]['device_mode']."</mode>\n</result></response>";
-		
+                $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>".$results[0]['device_mode']."</mode><exhibit>".$results[0]['exhibit_id']."</exhibit><module>".$results[0]['start_at_module']."</module>\n</result></response>";
             } else {
                 $str .= "<response><success>true</success>\n<result>\n<key>".htmlspecialchars($session_key)."</key>\n<mode>normal</mode>\n</result></response>";
             }
@@ -345,8 +344,6 @@ if($command) {
 			}
 		}
 		
-		
-		
     } else if($command === "exhibits") {
             $device = new imree_device($command_parameter);
             $q = "SELECT * FROM exhibits WHERE exhibit_date_start < NOW() AND exhibit_date_end > NOW() ";
@@ -367,8 +364,8 @@ if($command) {
 	    
     } else if($command === "exhibit_data") {
 	    if($command_parameter) {
-			require_once('exhibit_data.php');
-		     $results = exhibit_data($command_parameter);		
+                        require_once('exhibit_data.php');
+                        $results = exhibit_data($command_parameter);		
 			$str .= "\n<response>\n\t<success>true</success>\n\t<result>\n".array_to_xml($results, true, 2)."\t</result>\n</response>";
 	    } else {
 		    $str .= "<response><success>false</success>\n<error>command_parameter not set. To list a specific exhibit, we need to know which exhibit you're looking for. If you want to list all exhibits, use command=exhibits</error></response>";
