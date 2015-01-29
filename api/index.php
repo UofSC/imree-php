@@ -436,7 +436,7 @@ if($command) {
 		    $person = new imree_person($values->person_id);
 		    $can = false;
 		    foreach($person->groups as $group) {
-			    if($user->can("group", "edit", $group['people_group_id'])) {
+			    if($user->can("group", "EDIT", $group['people_group_id'])) {
 				    $can = true;
 			    }
 		    }
@@ -471,7 +471,7 @@ if($command) {
 		    $values = json_decode($command_parameter);
 		    $group_id = $values->primary_group;
 		    $can = false;
-		    if($user->can("group","edit",$group_id)) {
+		    if($user->can("group","EDIT",$group_id)) {
 			    $new_person = imree_create_user($values->new_username, $values->new_password, $values->person_name_last, $values->person_name_first, $values->person_title, 0);
 			    if($new_person) {
 					$new_person->add_to_group($group_id);
@@ -489,7 +489,22 @@ if($command) {
 		    }
 	    }
 	    
-	    
+    } else if($command === "add_permissions") {
+	if(quick_auth()) {
+	    $user = new imree_person(imree_person_id_from_username($username));
+	    $values = json_decode($command_parameter);
+	    if($user->can("group","EDIT",0)) {
+		$target_user = new imree_person($values->person_id);
+		if(!$target_user->can('exhibit','ADMIN',$values->exhibit_id)) {
+		    $target_user->add_privilege("exhibit","ADMIN",$values->exhibit_id);
+		}
+		$str .= "<response><success>true</success><result>true</result></response>";
+	    } else {
+		$str .= $msg_permission_denied;
+	    }
+	}
+	
+	
 	    
     } else if($command === "add_user_privilege") {
 	    if(quick_auth()) {
@@ -498,7 +513,7 @@ if($command) {
 		    $person = new imree_person($values->person_id);
 		    $has_rights_over_person = false;
 		    foreach($person->groups as $group) {
-			    if($user->can("group", "edit", $group['people_group_id'])) {
+			    if($user->can("group", "EDIT", $group['people_group_id'])) {
 				    $has_rights_over_person = true;
 			    }
 		    }
@@ -622,7 +637,6 @@ if($command) {
 					$result = db_exec($conn, build_update_query($conn, 'module_assets', $array, " module_asset_id = ".  db_escape($values->module_asset_id)));
 					 
 					if($result !== false) {
-						imree_error_log(("here"));
 						$str .= "<response><success>true</success>\n<result>1</result></response>";
 					} else {
 						$str .= "<response><success>false</success><error>Failed to update asset data. You have all the rights to do it, but something's gone wrong.</error></response>";
@@ -641,7 +655,7 @@ if($command) {
 	    if(quick_auth()) {
 		    $user = new imree_person(imree_person_id_from_username($username));
 			$values = json_decode($command_parameter);
-			if($user->can("exhibit","USR","")) {
+			if($user->can("exhibit","EDIT","")) {
                                 $mods = db_query($conn, "SELECT COUNT(*) FROM modules WHERE module_parent_id = ".$values->module_parent_id);
 				$module_order = 0 + $mods[0]['COUNT(*)'];
 				$arr = array(
@@ -670,7 +684,7 @@ if($command) {
 			$values = json_decode($command_parameter);
 			$exhibit_id = imree_module_get_exhibit_id($values->module_id);
 			if($exhibit_id) {
-				if($user->can("exhibit", "edit", $exhibit_id)) {
+				if($user->can("exhibit", "EDIT", $exhibit_id)) {
 					$result = db_exec($conn, "UPDATE modules SET module_order = ".db_escape($values->module_order)." WHERE module_id = ".db_escape($values->module_id));
 					$str .= "<response><success>true</success>\n<result></result></response>";
 				} else {
@@ -690,7 +704,7 @@ if($command) {
 			$values = json_decode($command_parameter);
 			$exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
 			if($exhibit_id) {
-				if($user->can("exhibit", "edit", $exhibit_id)) {
+				if($user->can("exhibit", "EDIT", $exhibit_id)) {
 					$result = db_exec($conn, "UPDATE module_assets SET module_asset_order = ".db_escape($values->module_asset_order)." WHERE module_asset_id = ".db_escape($values->module_asset_id));
 					$str .= "<response><success>true</success>\n<result></result></response>";
 				} else {
@@ -711,7 +725,7 @@ if($command) {
             if (isset($values->module_asset_id)) {
                 $exhibit_id = imree_asset_get_exhibit_id($values->module_asset_id);
                 if ($exhibit_id) {
-                    if ($user->can("exhibit", "edit", $exhibit_id)) {
+                    if ($user->can("exhibit", "EDIT", $exhibit_id)) {
                         $result = db_exec($conn, "DELETE FROM module_assets WHERE module_asset_id = " . db_escape($values->module_asset_id));
                         $str .= "<response><success>true</success>\n<result></result></response>";
                     } else {
@@ -724,7 +738,7 @@ if($command) {
                 
                 $exhibit_id = imree_module_get_exhibit_id($values->module_id);
                 if ($exhibit_id) {
-                    if ($user->can("exhibit", "edit", $exhibit_id)) {
+                    if ($user->can("exhibit", "EDIT", $exhibit_id)) {
                         $result = db_exec($conn, "DELETE FROM modules WHERE module_id = " . db_escape($values->module_id));
                         $str .= "<response><success>true</success>\n<result></result></response>";
                     } else {
@@ -970,7 +984,10 @@ if($command) {
 			   $str .= "<response><success>false</success>\n<error>for command=insert, the 'where' value should not be set. if you are trying to update a row of data, try the command=update method instead.</error></response>";
 		    } else {
 			    $query = "INSERT INTO ".$values->table." SET ".substr($set, 0, -2);
-			    db_exec($conn, $query);
+			    $result = db_exec($conn, $query);
+			    if($values->table === 'exhibits') {
+				imree_prefill_new_exhbit($conn->lastInsertId());
+			    }
 			    $str .= "<response><success>true</success>\n<result></result></response>";
 		    }
 	    } 

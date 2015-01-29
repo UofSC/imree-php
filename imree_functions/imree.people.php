@@ -126,11 +126,13 @@ class imree_person {
 		if($this->can($name, $value, $scope)) {
 			return true;
 		} else {
-			$results = db_exec($this->conn, build_insert_query($this->conn, "people_privileges", array(
+			$q = build_insert_query($this->conn, "people_privileges", array(
+			    'person_id' => $this->person_id,
 			    'people_privilege_name'=>$name,
 			    'people_privilege_value'=>$value, 
 			    'people_privilege_scope'=>$scope,
-			)));
+			));
+			$results = db_exec($this->conn, $q);
 			return $results !== false;
 		}
 	}
@@ -198,10 +200,8 @@ class imree_source {
 			$results = $search_function(		$query, $this->api_url,	$this->api_url_supplemental,	$this->api_key,$limit,		$start);
 			for($i = 0; $i < count($results); $i++) {
 				$results[$i]['repository'] = $this->id;
-				if(count($results[$i]['children']) > 1) {
-					for($j = 0; $j < count($results[$i]['children']); $j++) {
-						$results[$i]['children'][$j]['repository'] = $this->id;
-					}
+				for($j = 0; $j < count($results[$i]['children']); $j++) {
+					$results[$i]['children'][$j]['repository'] = $this->id;
 				}
 			}
 			return $results;

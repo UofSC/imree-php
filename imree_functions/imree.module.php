@@ -48,3 +48,22 @@ function imree_module_parent_ids($module_id) {
 		imree_module_parent_ids($results[0]['module_parent_id']);
 	}
 }
+
+function imree_prefill_new_exhbit($exhibit_id) {
+    $conn = db_connect();
+    db_exec($conn, build_insert_query($conn, 'modules', array(
+	'module_order' => 0,
+	'module_name' => "A new chapter",
+	'module_parent_id' => 0,
+	'module_type' => 'narrative',
+	'exhibit_id'=> $exhibit_id,
+    )));
+    $narrative_id = $conn->lastInsertId();
+    db_exec($conn, build_insert_query($conn, 'modules', array(
+	'module_order' => 0,
+	'module_name' => "An empty grouping",
+	'module_parent_id' => $narrative_id,
+	'module_type' => 'grid',
+	'exhibit_id'=> 0,
+    )));
+}
